@@ -1,0 +1,57 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/anaconda.
+{
+    "name": "Python 3.13",
+    "image": "mcr.microsoft.com/devcontainers/python:3.13-bullseye",
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "latest"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.linting.enabled": true
+                },
+            "extensions": [
+                // Python extension.
+                "ms-python.python",  // Python.
+                "ms-python.vscode-pylance",  // Pylance.
+                "ms-python.debugpy",  // Python debugger.
+                "charliermarsh.ruff",  // Ruff formatter for Python.
+                "ms-python.black-formatter",  // Black formatter for Python.
+                "njpwerner.autodocstring",  // Easy docstring for Python (type `"""` and press Enter).
+                // Jupyter extension.
+                "ms-toolsai.jupyter",  // Jupyter notebook support, interactive programming.
+                "ms-toolsai.datawrangler",  // Data viewing, cleaning and preparation for tabular datasets, for debug mode.
+                // Git extensions.
+                "mhutchie.git-graph",  // Display a graph of the git history.
+                "eamodio.gitlens",  // GitLens (shows git commit and git blame, i.e. who is the last to have modified a specific line).
+                // GitHub extensions.
+                "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "GitHub.vscode-pull-request-github",
+                "GitHub.codespaces",
+                "github.vscode-github-actions",
+                // VS Code extensions.
+                "VisualStudioExptTeam.vscodeintellicode",  // Browse real code exemple of a function.
+                "VisualStudioExptTeam.intellicode-api-usage-examples",
+                "vscode-icons-team.vscode-icons",
+                // Docker extensions.
+                "ms-azuretools.vscode-docker",
+                "ms-vscode-remote.remote-containers",
+                // Utility extensions.
+                "tomoki1207.pdf",  // PDF viewer in VS Code.
+                "mechatroner.rainbow-csv",  // Rainbow CSV (colorize CSV files).
+                "MS-vsliveshare.vsliveshare"  // Live share (Share your code in real-time).
+            ]
+        }
+    },
+    // Use 'postCreateCommand' to run commands after the container is created.
+	// Initialize Python after creation of container.
+    "postCreateCommand": "pip install uv && uv sync --python 3.13",
+
+    // Use 'postAttachCommand' to run commands after the container is attached.
+	"postAttachCommand": "source .venv/bin/activate && just update-env && just qa"
+}

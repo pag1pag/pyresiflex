@@ -1,0 +1,47 @@
+# The action below runs the tests with coverage and publishes the coverage badge to the
+# `coverage-badge` branch. This branch can then be used to display the coverage badge in the
+# README file using the badge url:
+# https://raw.githubusercontent.com/<USER>/<REPO>/refs/heads/coverage-badge/coverage.svg?raw=true
+#
+#  See https://stackoverflow.com/a/75033525 for details.
+
+
+name: tests-cov
+
+on:
+  push:
+    branches:
+    - main
+    tags:
+    - "*"
+  pull_request:
+    branches:
+    - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  tests-cov:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # To save the coverage report.
+    steps:
+    - uses: actions/checkout@v5
+    - name: Install the latest version of uv.
+      uses: astral-sh/setup-uv@v7
+      with:
+        version: "latest"
+    - uses: extractions/setup-just@v3
+    - name: Run tests with coverage.
+      run: just tests-cov
+    - name: Publish coverage report to coverage-badge branch
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        branch: coverage-badge  # The branch to push the coverage report to.
+        folder: coverage

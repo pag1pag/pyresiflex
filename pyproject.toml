@@ -1,0 +1,96 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[dependency-groups]
+dev = [
+  # Development dependencies.
+  "matplotlib",  # Plotting library.
+  "jupyter",  # To use Jupyter notebooks.
+  # Tests dependencies.
+  "pytest",  # To run tests.
+  "coverage",  # To measure code coverage.
+  "genbadge",  # To generate badges.
+  # Documentation dependencies.
+  "sphinx",  # Documentation generator.
+  "sphinx-autoapi",  # To automatically generate API reference from docstrings.
+  "sphinx-gallery",  # To generate examples gallery.
+  "pydata-sphinx-theme",  # Data science theme for Sphinx.
+  "myst-parser",  # To parse markdown files in Sphinx.
+  # Code quality dependencies.
+  "pre-commit",  # To manage pre-commit hooks.
+  "pre-commit-update",  # To update pre-commit hooks.
+  "ruff",  # Linter and code formatter.
+  "rust-just",  # To use `just` command defined in `./justfile`
+  # Type checking dependencies.
+  "mypy"  # To check type hints.
+]
+
+[project]
+authors = [
+  {name = "Pierre-Antoine Goutier", email = "pierre-antoine.goutier@spark-cleantech.eu"}
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Scientific/Engineering :: Mathematics",
+  "Topic :: Scientific/Engineering :: Physics",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14"
+]
+dependencies = [
+  "numpy"
+]
+description = "PyResiFlex is a simple set of tools in Python to obtain load (plasma) Resistance from analysis of pulse reFlexions."
+dynamic = ["version"]
+keywords = ["plasma", "signal", "resistance"]
+license = {text = "GPLv3"}
+name = "pyresiflex"
+readme = "README.md"
+requires-python = ">=3.11"
+urls = {"Homepage" = "https://github.com/pag1pag/pyresiflex"}
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/pyresiflex/*.py"
+]
+packages = ["src/pyresiflex"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.version]
+path = "src/pyresiflex/__init__.py"
+
+[tool.ruff]
+indent-width = 4
+line-length = 79
+
+[tool.ruff.lint]
+exclude = [".venv"]
+ignore = [
+  "D1",  # Missing docstring.
+  "E741"  # Ambiguous variable names like 'l', 'O', or 'I'.
+]
+select = [
+  # Pyflakes: https://docs.astral.sh/ruff/rules/#pyflakes-f.
+  "F",
+  # pycodestyle: https://docs.astral.sh/ruff/rules/#pycodestyle-e-w.
+  "E",
+  "W",
+  # isort: https://docs.astral.sh/ruff/rules/#isort-i.
+  "I",
+  # pydocstyle: https://docs.astral.sh/ruff/rules/#pydoclint-doc
+  "D"
+]
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 79
+
+[tool.ruff.lint.pydocstyle]
+# See https://numpydoc.readthedocs.io/en/latest/format.html.
+convention = "numpy"

@@ -1,0 +1,379 @@
+from typing import Callable
+from warnings import warn
+
+import numpy as np
+
+from pyresiflex.cable.cable import PerfectCable
+from pyresiflex.generator.base_generator import ComplexImpedanceBaseGenerator
+from pyresiflex.load.base_load import BaseSteadyImpedance
+from pyresiflex.solver.base_solution import BaseSolution
+
+
+class SteadyImpedanceSolution(BaseSolution):
+    r"""Voltage and current solution for a cable with steady impedance.
+
+    The cable is assumed to be a perfect transmission line, meaning that
+    there is no loss in the line and that the wave velocity is constant.
+    It is connected to a generator and a load. The generator provides
+    a voltage source and a constant impednace, while the load provides
+    a constant impedance at the end of the line. Both impedances can be
+    complex.
+
+    This class provides the analytical solution for the voltage and current
+    in the transmission line, taking into account the generator and load
+    impedances. The solution is based on the wave equation and the boundary
+    conditions imposed by the generator and load.
+
+    Parameters
+    ----------
+    cable : PerfectCable
+        Perfect transmission line object.
+    generator : ComplexImpedanceBaseGenerator
+        Generator object that provides the voltage source.
+    load : BaseSteadyImpedance
+        Load object that provides the impedance at the end of the line.
+    nb_points_ft : int, optional
+        Number of points for the Fourier transform of the generator voltage.
+        Default is 1000.
+        There must be enough points to satisfy the Shannon-Nyquist criterion.
+    max_time_ft : float, optional
+        Maximum time for the Fourier transform of the generator voltage
+        in seconds. Default is 1e-7 s.
+        The maximum time must be large enough to capture the lowest
+        frequency component of the generator voltage.
+
+    Notes
+    -----
+    The transmission line is assumed to be perfect, meaning that there is no
+    loss in the line and that the wave velocity is constant.
+
+    For a perfect transmission line, the voltage and current satisfy the wave
+    equation (or telegrapher's equation without losses):
+
+    .. math::
+
+        \begin{align}
+            \frac{\partial^2 V}{\partial t^2}(x, t)
+            & = c^2 \frac{\partial^2 V}{\partial x^2}(x, t) \\
+            \frac{\partial^2 I}{\partial t^2}(x, t)
+            & = c^2 \frac{\partial^2 I}{\partial x^2}(x, t)
+        \end{align}
+
+
+    where:
+
+    - :math:`V` is the voltage in Volt,
+    - :math:`I` is the current in Ampere,
+    - :math:`c` is the wave velocity in m/s,
+    - :math:`x` is the position along the transmission line in meter,
+    - :math:`t` is the time in second.
+
+    To fully describe the behavior of the transmission line, we need to
+    specify the boundary conditions at the ends of the transmission line.
+    """
+
+    def __init__(
+        self,
+        cable: PerfectCable,
+        generator: ComplexImpedanceBaseGenerator,
+        load: BaseSteadyImpedance,
+        nb_points_ft: int = 1000,
+        max_time_ft: float = 1e-7,
+    ):
+        if not isinstance(cable, PerfectCable):
+            raise TypeError("`cable` must be an instance of `PerfectCable`.")
+        if not isinstance(generator, ComplexImpedanceBaseGenerator):
+            raise TypeError(
+                "`generator` must be an instance of"
+                " `ComplexImpedanceBaseGenerator`."
+            )
+        if not isinstance(load, BaseSteadyImpedance):
+            raise TypeError(
+                "`load` must be an instance of `BaseSteadyImpedance`."
+            )
+
+        if load.time_varying:
+            raise ValueError(
+                "The load must be a steady impedance, i.e., not time-varying."
+            )
+        if not isinstance(generator, ComplexImpedanceBaseGenerator):
+            raise TypeError(
+                "The generator must inherit from "
+                "ComplexImpedanceBaseGenerator."
+            )
+
+        super().__init__(cable, generator, load)
+
+        # Generator parameters.
+        self.Z_g: Callable[[np.ndarray], np.ndarray] = (
+            generator.generator_impedance
+        )
+        self.V_g: Callable[[float], float] = generator.generator_voltage
+
+        self.V_g_hat: np.ndarray
+        self.f: np.ndarray
+        self.V_g_hat, self.f = self.fourier_transform_generator_voltage(
+            nb_points_ft=nb_points_ft, max_time_ft=max_time_ft
+        )
+
+        # Load parameters.
+        self.Z_l: Callable[[np.ndarray], np.ndarray] = load.load_impedance
+
+    def fourier_transform_generator_voltage(
+        self,
+        nb_points_ft: int,
+        max_time_ft: float,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Fourier transform of the generator voltage.
+
+        Parameters
+        ----------
+        nb_points_ft : int
+            Number of points for the Fourier transform.
+        max_time_ft : float
+            Maximum time for the Fourier transform in seconds.
+
+        Returns
+        -------
+        tuple of numpy.ndarray, numpy.ndarray
+            Tuple of the Fourier transform of the generator voltage and
+            the frequencies.
+
+        Notes
+        -----
+        The Fourier transform is computed using the Fast Fourier Transform
+        (FFT) algorithm. The time vector is defined from 0 to `max_time_ft`
+        with `nb_points_ft` points. The frequency vector is computed using
+        the FFT frequency function.
+
+        The Shannon-Nyquist criterion is checked to ensure that the time
+        step is small enough to capture the highest frequency component
+        of the generator voltage. If the time step is larger than 1 ns,
+        a warning is issued.
+
+        In NRP Discharge, the maximum frequency encountered is around
+        the inverse of the rise time of the generator voltage.
+        For a rise time of 2 ns, the maximum frequency is around 500 MHz.
+        According to the Shannon-Nyquist criterion, the sampling
+        frequency must be at least twice the maximum frequency, so at
+        least 1 GHz. This corresponds to a time step of 1 ns.
+        """
+        # Define the time vector for the Fourier transform.
+        times = np.linspace(0, max_time_ft, nb_points_ft, endpoint=False)
+
+        dt = times[1] - times[0]  # time step
+
+        # Shannon-Nyquist criterion.
+        if dt > 1e-9:
+            warn(
+                f"Warning: dt = {dt:.2e} s seems to be "
+                "too large for Fourier Transform of NRP Discharge."
+            )
+
+        # Generator voltage in time domain.
+        generator_voltage = np.array([self.V_g(t) for t in times])
+        # Generator voltage in frequency domain.
+        generator_voltage_hat = np.fft.fft(generator_voltage, norm="forward")
+        # Frequency.
+        frequencies = np.fft.fftfreq(nb_points_ft, dt)
+
+        return generator_voltage_hat, frequencies
+
+    def gamma_g(self, frequency: np.ndarray) -> np.ndarray:
+        r"""Calculate the generator reflection coefficient.
+
+        Parameters
+        ----------
+        frequency : numpy.ndarray
+            Frequency array in Hz.
+
+        Return
+        -------
+        numpy.ndarray
+            Generator reflection coefficient, dimensionless.
+
+        Notes
+        -----
+        The generator reflection coefficient is defined as:
+
+        .. math::
+
+            \Gamma_g(f) = \frac{Z_g(f) - Z_c}{Z_g(f) + Z_c}
+
+        where:
+
+        - :math:`Z_g(f)` is the generator impedance in Ohm,
+        - :math:`f` is the frequency in Hz,
+        - :math:`Z_g(f)` is the generator resistance in Ohm,
+        - :math:`Z_c` is the characteristic impedance of the transmission line
+          in Ohm.
+        """
+        Z_g = self.Z_g(frequency)
+        return (Z_g - self.Z_c) / (Z_g + self.Z_c)
+
+    def gamma_l(self, frequency: np.ndarray) -> np.ndarray:
+        r"""Calculate the load reflection coefficient.
+
+        Parameters
+        ----------
+        frequency : numpy.ndarray
+            Frequency array in Hz.
+
+        Return
+        -------
+        numpy.ndarray
+            Load reflection coefficient, dimensionless.
+
+        Notes
+        -----
+        The load reflection coefficient is defined as:
+
+        .. math::
+
+            \Gamma_l(f) = \frac{Z_l(f) - Z_c}{Z_l(f) + Z_c}
+
+        where:
+
+        - :math:`Z_l(f)` is the load impedance in Ohm,
+        - :math:`f` is the frequency in Hz,
+        - :math:`Z_l` is the generator resistance in Ohm,
+        - :math:`Z_c` is the characteristic impedance of the transmission line
+          in Ohm.
+        """
+        Z_l = self.Z_l(frequency)
+        return (Z_l - self.Z_c) / (Z_l + self.Z_c)
+
+    def alpha_g(self, frequency: np.ndarray) -> np.ndarray:
+        r"""Calculate the generator resistance voltage divider.
+
+        Parameters
+        ----------
+        frequency : numpy.ndarray
+            Frequency array in Hz.
+
+        Return
+        -------
+        numpy.ndarray
+            Generator resistance voltage divider, dimensionless.
+
+        Notes
+        -----
+        The generator resistance voltage divider is defined as:
+
+        .. math::
+
+            \alpha_g(f) = \frac{Z_g(f)}{Z_g(f) + Z_c}
+
+        where:
+
+        - :math:`Z_g(f)` is the generator impedance in Ohm,
+        - :math:`f` is the frequency in Hz,
+        - :math:`Z_c` is the characteristic impedance of the transmission line
+          in Ohm.
+        """
+        Z_g = self.Z_g(frequency)
+        return 1 / (1 + Z_g / self.Z_c)
+
+    def V_incident(self, t: float, n: int) -> float:
+        r"""Incident wave.
+
+        Compute the incident wave of generation :math:`n` at time :math:`t`.
+
+        Parameters
+        ----------
+        t : float
+            Time in seconds.
+        n : int
+            Generation number.
+
+        Return
+        ------
+        float
+            Incident wave value in volts.
+
+        Notes
+        -----
+        The incident wave of generation :math:`n` is defined as:
+
+        .. math::
+
+            V_i^n(t) =
+            \Re \left\{
+                \int_{-\infty}^{+\infty}
+                    \alpha_g(\omega)
+                    \hat{V_g}(\omega)
+                    e^{j \omega \left(t - \frac{2 n L}{c}\right)}
+                    \left(\Gamma_g(\omega) \Gamma_l(\omega)\right)^n
+            \right\}
+        """
+        # Get the reflection coefficient at the generator.
+        gamma_g_ω = self.gamma_g(self.f)
+
+        # Get the reflection coefficient at the load.
+        gamma_l_ω = self.gamma_l(self.f)
+
+        # Get the attenuation factor at the generator.
+        alpha_g_ω = self.alpha_g(self.f)
+
+        # Compute the incident wave.
+        v_incident = (
+            alpha_g_ω
+            * self.V_g_hat
+            * np.exp(2j * np.pi * self.f * (t - 2 * n * self.L / self.c))
+            * (gamma_g_ω * gamma_l_ω) ** n
+        )
+
+        return np.real(np.sum(v_incident))
+
+    def V_reflected(self, t: float, n: int) -> float:
+        r"""Reflected wave.
+
+        Compute the reflected wave of generation :math:`n` at time :math:`t`.
+
+        Parameters
+        ----------
+        t : float
+            Time in seconds.
+        n : int
+            Generation number.
+
+        Return
+        ------
+        float
+            Incident wave value in volts.
+
+        Notes
+        -----
+        The reflected wave of generation :math:`n` is defined as:
+
+        .. math::
+
+            V_r^n(t) =
+            \Re \left\{
+                \int_{-\infty}^{+\infty}
+                    \gamma_l(\omega)
+                    \alpha_g(\omega)
+                    \hat{V_g}(\omega)
+                    e^{j \omega \left(t - \frac{2 (n + 1) L}{c}\right)}
+                    \left(\Gamma_g(\omega) \Gamma_l(\omega)\right)^n
+            \right\}
+        """
+        # Get the reflection coefficient at the generator.
+        gamma_g_ω = self.gamma_g(self.f)
+
+        # Get the reflection coefficient at the load.
+        gamma_l_ω = self.gamma_l(self.f)
+
+        # Get the attenuation factor at the generator.
+        alpha_g_ω = self.alpha_g(self.f)
+
+        # Compute the incident wave.
+        v_incident = (
+            gamma_l_ω
+            * alpha_g_ω
+            * self.V_g_hat
+            * np.exp(2j * np.pi * self.f * (t - 2 * (n + 1) * self.L / self.c))
+            * (gamma_g_ω * gamma_l_ω) ** n
+        )
+
+        return np.real(np.sum(v_incident))
