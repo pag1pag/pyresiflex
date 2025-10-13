@@ -5,8 +5,14 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 
 from pyresiflex.cable.cable import PerfectCable
-from pyresiflex.generator.base_generator import BaseGenerator
-from pyresiflex.load.base_load import BaseLoad
+from pyresiflex.generator.base_generator import (
+    ComplexImpedanceBaseGenerator,
+    PurelyResistiveBaseGenerator,
+)
+from pyresiflex.load.base_load import (
+    ComplexImpedanceBaseLoad,
+    PurelyResistiveBaseLoad,
+)
 
 
 class BaseSolution(ABC):
@@ -22,9 +28,9 @@ class BaseSolution(ABC):
     ----------
     cable : PerfectCable
         Perfect transmission line object.
-    generator : BaseGenerator
+    generator : PurelyResistiveBaseGenerator or ComplexImpedanceBaseGenerator
         Generator object that provides the voltage source.
-    load : BaseLoad
+    load : PurelyResistiveBaseLoad or ComplexImpedanceBaseLoad
         Load object that provides the impedance at the end of the line.
 
     Notes
@@ -37,12 +43,12 @@ class BaseSolution(ABC):
 
     .. math::
 
-        \begin{align}
+        \begin{aligned}
             \frac{\partial^2 V}{\partial t^2}(x, t)
             & = c^2 \frac{\partial^2 V}{\partial x^2}(x, t) \\
             \frac{\partial^2 I}{\partial t^2}(x, t)
             & = c^2 \frac{\partial^2 I}{\partial x^2}(x, t)
-        \end{align}
+        \end{aligned}
 
 
     where:
@@ -56,30 +62,43 @@ class BaseSolution(ABC):
     To fully describe the behavior of the transmission line, we need to
     specify the boundary conditions at the ends of the transmission line.
 
-    This is done is the derived classes, which implement the incident and
+    This is done in the derived classes, which implement the incident and
     reflected waves at the generator and the load.
     """
 
     def __init__(
         self,
         cable: PerfectCable,
-        generator: BaseGenerator,
-        load: BaseLoad,
+        generator: PurelyResistiveBaseGenerator
+        | ComplexImpedanceBaseGenerator,
+        load: PurelyResistiveBaseLoad | ComplexImpedanceBaseLoad,
     ):
         if not isinstance(cable, PerfectCable):
             raise TypeError("`cable` must be an instance of `PerfectCable`.")
-        if not isinstance(generator, BaseGenerator):
+        if not isinstance(
+            generator,
+            (PurelyResistiveBaseGenerator, ComplexImpedanceBaseGenerator),
+        ):
             raise TypeError(
-                "`generator` must be an instance of `BaseGenerator`."
+                "`generator` must be an instance of "
+                "`PurelyResistiveBaseGenerator`"
+                " or `ComplexImpedanceBaseGenerator`."
             )
-        if not isinstance(load, BaseLoad):
-            raise TypeError("`load` must be an instance of `BaseLoad`.")
+        if not isinstance(
+            load, (PurelyResistiveBaseLoad, ComplexImpedanceBaseLoad)
+        ):
+            raise TypeError(
+                "`load` must be an instance of `PurelyResistiveBaseLoad`"
+                " or `ComplexImpedanceBaseLoad`."
+            )
 
         self.cable: PerfectCable = cable
         """Perfect transmission line object."""
-        self.generator: BaseGenerator = generator
+        self.generator: (
+            PurelyResistiveBaseGenerator | ComplexImpedanceBaseGenerator
+        ) = generator
         """Generator object that provides the voltage source."""
-        self.load: BaseLoad = load
+        self.load: PurelyResistiveBaseLoad | ComplexImpedanceBaseLoad = load
         """Load object that provides the impedance at the end of the line."""
 
         # Cable parameters.
@@ -98,6 +117,32 @@ class BaseSolution(ABC):
         # Also store the time and position arrays for plotting.
         self.x: np.ndarray
         self.t: np.ndarray
+
+    def N(self, t: float) -> int:
+        r"""Get the number of wave generations that have occurred at time t.
+
+        Parameters
+        ----------
+        t : float
+            Time in seconds.
+
+        Returns
+        -------
+        int
+            Number of wave generations.
+
+        Notes
+        -----
+        The number of wave generations is given by:
+
+        .. math::
+
+            N(t) = \left\lfloor \frac{t}{2 L / c} \right\rfloor
+        """
+        L = self.cable.L
+        c = self.cable.c
+        N = np.floor(t / (2 * L / c)).astype(int)
+        return N
 
     @abstractmethod
     def V_incident(self, t: float, n: int) -> float:
@@ -145,50 +190,99 @@ class BaseSolution(ABC):
             "Please use a different solution or implement the reflected wave."
         )
 
-    def Vn(self, x: float, t: float, n: int) -> float:
-        r"""Voltage at position :math:`x` and time :math:`t`.
-
-        Compute the voltage at position :math:`x`, time :math:`t` and
-        generation :math:`n`.
+    def V_incident_total(self, t: float) -> float:
+        r"""Total incident voltage at time :math:`t`.
 
         Parameters
         ----------
-        x : float
-            Position in meters.
         t : float
             Time in seconds.
-        n : int
-            Generation number.
 
         Return
         ------
         float
-            Voltage value in volts.
+            Total incident voltage value in volts.
 
         Notes
         -----
-        The voltage of generation :math:`n` is defined as:
+        The total incident voltage is defined as:
 
         .. math::
 
-            V^n(x, t) = V_i^n(t-x/c) + V_r^n(t+x/c)
+            V_i(t) = \sum_{n=0}^{N(t)} V^n_i(t)
 
         where:
 
-        - :math:`V_i^n(t-x/c)` is the incident wave of generation :math:`n`,
-        - :math:`V_r^n(t+x/c)` is the reflected wave of generation :math:`n`.
+        - :math:`V^n_i(t)` is the incident voltage of generation :math:`n`.
+        - :math:`N(t)` is the number of generations that have occurred at time
+          :math:`t`.
 
-        See Also
-        --------
-        :py:meth:`pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution.V_incident`
-        :py:meth:`pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution.V_reflected`
-        :py:meth:`pyresiflex.solver.steady_impedance_solution.SteadyImpedanceSolution.V_incident`
-        :py:meth:`pyresiflex.solver.steady_impedance_solution.SteadyImpedanceSolution.V_reflected`
+        The number of generations is defined as:
+
+        .. math::
+
+            N(t) = \left\lfloor \frac{t}{\tau} \right\rfloor
+
+        where:
+
+        - :math:`\tau` is the time it takes for a wave to travel from the
+          generator to the load and back, which is equal to :math:`2 L / c`.
         """
-        v_incident = self.V_incident(t - x / self.c, n)
-        v_reflected = self.V_reflected(t + x / self.c, n)
+        # Get the number of generations.
+        N_incident = self.N(t)
 
-        return v_incident + v_reflected
+        # Compute the incident voltage for each generation.
+        V_i = np.sum(
+            np.array([self.V_incident(t, n) for n in range(N_incident + 1)])
+        )
+        return V_i
+
+    def V_reflected_total(self, t: float) -> float:
+        r"""Total reflected voltage at time :math:`t`.
+
+        Parameters
+        ----------
+        t : float
+            Time in seconds.
+
+        Return
+        ------
+        float
+            Total reflected voltage value in volts.
+
+        Notes
+        -----
+        The total reflected voltage is defined as:
+
+        .. math::
+
+            V_r(t) = \sum_{n=0}^{N(t)} V^n_r(t)
+
+        where:
+
+        - :math:`V^n_r(t)` is the reflected voltage of generation :math:`n`.
+        - :math:`N(t)` is the number of generations that have occurred at time
+          :math:`t`.
+
+        The number of generations is defined as:
+
+        .. math::
+
+            N(t) = \left\lfloor \frac{t}{\tau} \right\rfloor
+
+        where:
+
+        - :math:`\tau` is the time it takes for a wave to travel from the
+          generator to the load and back, which is equal to :math:`2 L / c`.
+        """
+        # Get the number of generations.
+        N_reflected = self.N(t)
+
+        # Compute the reflected voltage for each generation.
+        V_r = np.sum(
+            np.array([self.V_reflected(t, n) for n in range(N_reflected + 1)])
+        )
+        return V_r
 
     def V(self, x: float, t: float) -> float:
         r"""Voltage at position :math:`x` and time :math:`t`.
@@ -211,17 +305,41 @@ class BaseSolution(ABC):
 
         .. math::
 
-            V(x, t) = \sum_{n=0}^{\infty} V^n(x, t)
+            V(x, t) = V_i(t-x/c) + V_r(t+x/c)
 
         where:
 
-        - :math:`V^n(x, t)` is the voltage of generation :math:`n`.
-        - :math:`n` is the generation number.
+        - :math:`V_i(t-x/c)` is the incident wave at time :math:`t-x/c`.
+        - :math:`V_r(t+x/c)` is the reflected wave at time :math:`t+x/c`.
+        - :math:`c` is the wave velocity in m/s.
 
 
-        However, we can limit our computation to a finite number of
-        generations, since the incident and reflected waves of high generation
-        only exist after a certain time.
+        The total incident voltage is defined as:
+
+        .. math::
+
+            V_i(t-x/c) = \sum_{n=0}^{N(t-x/c)} V^n_i(t-x/c)
+
+        where:
+
+        - :math:`V^n_i(t-x/c)` is the incident voltage of generation :math:`n`.
+        - :math:`N(t-x/c)` is the number of generations that have occurred at
+          time :math:`t-x/c`.
+
+
+        The total reflected voltage is defined as:
+
+        .. math::
+
+            V_r(t+x/c) = \sum_{n=0}^{N(t+x/c)} V^n_r(t+x/c)
+
+        where:
+
+        - :math:`V^n_r(t+x/c)` is the reflected voltage of
+          generation :math:`n`.
+        - :math:`N(t+x/c)` is the number of generations that
+          have occurred at time :math:`t+x/c`.
+
 
         The number of generations is defined as:
 
@@ -234,65 +352,18 @@ class BaseSolution(ABC):
         - :math:`\tau` is the time it takes for a wave to travel from the
           generator to the load and back, which is equal to :math:`2 L / c`.
 
-        and the voltage is defined as:
-
-        .. math::
-
-            V(x, t) = \sum_{n=0}^{N} V^n(x, t)
-        """
-        # Get the number of generations.
-        tau = 2 * self.L / self.c
-        N = np.floor((t - x / self.c) / tau).astype(int)
-
-        # Compute the voltage for each generation.
-        return np.sum(np.array([self.Vn(x, t, n) for n in range(N + 1)]))
-
-    def In(self, x: float, t: float, n: int) -> float:
-        r"""Intensity at position :math:`x` and time :math:`t`.
-
-        Compute the current at position :math:`x`, time :math:`t` and
-        generation :math:`n`.
-
-        Parameters
-        ----------
-        x : float
-            Position in meters.
-        t : float
-            Time in seconds.
-        n : int
-            Generation number.
-
-        Return
-        ------
-        float
-            Current value in Ampere.
-
-        Notes
-        -----
-        The current of generation :math:`n` is defined as:
-
-        .. math::
-
-            I^n(x, t) = \frac{V_i^n(t-x/c) - V_r^n(t+x/c)}{Z_c}
-
-        where:
-
-        - :math:`V_i^n(t-x/c)` is the incident wave of generation :math:`n`,
-        - :math:`V_r^n(t+x/c)` is the reflected wave of generation :math:`n`,
-        - :math:`Z_c` is the characteristic impedance of the
-          transmission line in Ohm.
-
         See Also
         --------
         :py:meth:`pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution.V_incident`
         :py:meth:`pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution.V_reflected`
-        :py:meth:`pyresiflex.solver.steady_impedance_solution.SteadyImpedanceSolution.V_incident`
-        :py:meth:`pyresiflex.solver.steady_impedance_solution.SteadyImpedanceSolution.V_reflected`
         """
-        v_incident = self.V_incident(t - x / self.c, n)
-        v_reflected = self.V_reflected(t + x / self.c, n)
+        # Compute the incident voltage for each generation.
+        V_i = self.V_incident_total(t - x / self.c)
+        # Compute the reflected voltage for each generation.
+        V_r = self.V_reflected_total(t + x / self.c)
 
-        return (v_incident - v_reflected) / self.Z_c
+        # Return the total voltage.
+        return V_i + V_r
 
     def I(self, x: float, t: float) -> float:  # noqa: E743
         r"""Intensity at position :math:`x` and time :math:`t`.
@@ -315,17 +386,43 @@ class BaseSolution(ABC):
 
         .. math::
 
-            I(x, t) = \sum_{n=0}^{\infty} I^n(x, t)
+            I(x, t) = \frac{V_i(t-x/c) - V_r(t+x/c)}{Z_c}
 
         where:
 
-        - :math:`I^n(x, t)` is the current of generation :math:`n`.
-        - :math:`n` is the generation number.
+        - :math:`V_i(t-x/c)` is the incident wave at time :math:`t-x/c`.
+        - :math:`V_r(t+x/c)` is the reflected wave at time :math:`t+x/c`.
+        - :math:`c` is the wave velocity in m/s.
+        - :math:`Z_c` is the characteristic impedance of the transmission
+          line in Ohm.
 
 
-        However, we can limit our computation to a finite number of
-        generations, since the incident and reflected waves of high generation
-        only exist after a certain time.
+        The total incident voltage is defined as:
+
+        .. math::
+
+            V_i(t-x/c) = \sum_{n=0}^{N(t-x/c)} V^n_i(t-x/c)
+
+        where:
+
+        - :math:`V^n_i(t-x/c)` is the incident voltage of generation :math:`n`.
+        - :math:`N(t-x/c)` is the number of generations that have occurred at
+          time :math:`t-x/c`.
+
+
+        The total reflected voltage is defined as:
+
+        .. math::
+
+            V_r(t+x/c) = \sum_{n=0}^{N(t+x/c)} V^n_r(t+x/c)
+
+        where:
+
+        - :math:`V^n_r(t+x/c)` is the reflected voltage of
+          generation :math:`n`.
+        - :math:`N(t+x/c)` is the number of generations that have occurred at
+          time :math:`t+x/c`.
+
 
         The number of generations is defined as:
 
@@ -338,18 +435,18 @@ class BaseSolution(ABC):
         - :math:`\tau` is the time it takes for a wave to travel from the
           generator to the load and back, which is equal to :math:`2 L / c`.
 
-        and the current is defined as:
-
-        .. math::
-
-            I(x, t) = \sum_{n=0}^{N} V^n(x, t)
+        See Also
+        --------
+        :py:meth:`pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution.V_incident`
+        :py:meth:`pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution.V_reflected`
         """
-        # Get the number of generations.
-        tau = 2 * self.L / self.c
-        N = np.ceil(t / tau).astype(int)
+        # Compute the incident voltage for each generation.
+        V_i = self.V_incident_total(t - x / self.c)
+        # Compute the reflected voltage for each generation.
+        V_r = self.V_reflected_total(t + x / self.c)
 
-        # Compute the current for each generation.
-        return np.sum(np.array([self.In(x, t, n) for n in range(N + 1)]))
+        # Return the total current.
+        return (V_i - V_r) / self.Z_c
 
     def solve(self, x: np.ndarray | float, t: np.ndarray | float) -> None:
         r"""Compute voltage, current and energy at position x and time t.
@@ -358,6 +455,7 @@ class BaseSolution(ABC):
         ----------
         x : numpy.ndarray or float
             Position in meters. Can be a single value or an array of values.
+            All values must be between 0 and L.
         t : numpy.ndarray or float
             Time in seconds. Can be a single value or an array of values.
 
@@ -371,16 +469,18 @@ class BaseSolution(ABC):
 
         .. math::
 
-            V(x, t) = \sum_{n=0}^{n_{max}} V^n(x, t)
-                    = \sum_{n=0}^{n_{max}} V_i^n(x, t) + V_r^n(x, t)
+            V(x, t) = \sum_{n=0}^{N(t-x/c)} V_i^n(t - x/c)
+                    + \sum_{n=0}^{N(t+x/c)} V_r^n(t + x/c)
 
         .. math::
-            I(x, t) = \sum_{n=0}^{n_{max}} I^n(x, t)
-                = \sum_{n=0}^{n_{max}} \frac{V_i^n(x, t) - V_r^n(x, t)}{Z_c}
+
+            I(x, t) = \sum_{n=0}^{N(t-x/c)} I_i^n(t - x/c)
+                    + \sum_{n=0}^{N(t+x/c)} I_r^n(t + x/c)
 
         Power and cumulative energy are defined as:
 
         .. math::
+
             P(x, t) = V(x, t) I(x, t)
 
         .. math::
@@ -410,6 +510,9 @@ class BaseSolution(ABC):
             x_array = x.astype(float)
         else:
             raise ValueError("x must be a 1D array or a single value.")
+        # Check that all x values are within the cable length.
+        if np.any(x_array < 0) or np.any(x_array > self.L):
+            raise ValueError("All x values must be between 0 and L.")
 
         # Ensure t is a 1D numpy array or a single value.
         t_array: np.ndarray
@@ -429,22 +532,12 @@ class BaseSolution(ABC):
         # Compute the incident and reflected waves for each position and time.
         for i, x_val in enumerate(x_array):
             for j, t_val in enumerate(t_array):
-                # Get the number of generations.
-                tau = 2 * self.L / self.c
-                N = np.ceil((t_val - x_val / self.c) / tau).astype(int)
-
-                # Compute the incident and reflected waves for each generation.
-                V_incident[i, j] = np.sum(
-                    [
-                        self.V_incident(t_val - x_val / self.c, n)
-                        for n in range(N + 1)
-                    ]
+                # Compute the incident and reflected waves.
+                V_incident[i, j] = self.V_incident_total(
+                    t_val - x_val / self.c
                 )
-                V_reflected[i, j] = np.sum(
-                    [
-                        self.V_reflected(t_val + x_val / self.c, n)
-                        for n in range(N + 1)
-                    ]
+                V_reflected[i, j] = self.V_reflected_total(
+                    t_val + x_val / self.c
                 )
 
         # Compute the voltage and current for each position and time.
@@ -467,6 +560,7 @@ class BaseSolution(ABC):
             current = current.flatten()
             power = power.flatten()
             energy = energy.flatten()
+            x_array = x_array.flatten()
 
         self.voltage = voltage
         self.current = current
@@ -480,6 +574,7 @@ class BaseSolution(ABC):
     def animation(
         self,
         interval: int = 100,
+        with_current: bool = True,
         y_min_max_voltage: tuple[float, float] | None = None,
         y_min_max_current: tuple[float, float] | None = None,
         show: bool = True,
@@ -499,11 +594,10 @@ class BaseSolution(ABC):
         show : bool, optional
             If True, display the animation using plt.show(). Default is True.
         """
-        fig, ax_voltage = plt.subplots(1, figsize=(20, 10))
-        ax_current = ax_voltage.twinx()
+        fig, ax_voltage = plt.subplots()
 
-        (plot_line_voltage,) = ax_voltage.plot([], [], "k-", label="Voltage")
-        (plot_line_current,) = ax_current.plot([], [], "r--", label="Current")
+        # Set up the plot elements to be updated.
+        # .. Title that will be updated.
         animation_title = ax_voltage.text(
             0.5,
             0.89,
@@ -512,18 +606,32 @@ class BaseSolution(ABC):
             transform=ax_voltage.transAxes,
             ha="center",
         )
+        # .. Voltage line that will be updated.
+        (plot_line_voltage,) = ax_voltage.plot([], [], "k-", label="Voltage")
+        # .. Current line that will be updated.
+        if with_current:
+            ax_current = ax_voltage.twinx()
+            (plot_line_current,) = ax_current.plot(
+                [], [], "r--", label="Current"
+            )
 
         def _update_line(idx_t: int) -> tuple:
-            plot_line_voltage.set_data(self.x, self.voltage[:, idx_t] * 1e-3)
-            plot_line_current.set_data(self.x, self.current[:, idx_t])
+            # Update title with load impedance at current time.
             Z_l = self.load.load_impedance(self.t[idx_t])
             animation_title.set_text(
                 f"t = {self.t[idx_t] * 1e9:.0f} ns\n"
                 f"($Z_l$ = {Z_l:.1e} "
                 r"$\Omega$)"
             )
+            # Update voltage line.
+            plot_line_voltage.set_data(self.x, self.voltage[:, idx_t] * 1e-3)
 
-            return plot_line_voltage, plot_line_current, animation_title
+            if with_current:
+                # Update current line.
+                plot_line_current.set_data(self.x, self.current[:, idx_t])
+                return plot_line_voltage, plot_line_current, animation_title
+            else:
+                return plot_line_voltage, animation_title
 
         # Set y-limits if provided for voltage.
         if y_min_max_voltage is None:
@@ -533,19 +641,20 @@ class BaseSolution(ABC):
             ax_voltage.set_ylim(y_min_max_voltage)
         else:
             raise ValueError(
-                "`y_min_max_voltage` must be a tuple of two floats or None."
+                "`y_min_max_voltage` must be a tuple of 2 floats or None."
             )
 
         # Set y-limits if provided for current.
-        if y_min_max_current is None:
-            max_abs_current = np.max(np.abs(self.current)) * 1.1
-            ax_current.set_ylim(-max_abs_current, max_abs_current)
-        if isinstance(y_min_max_current, tuple):
-            ax_current.set_ylim(y_min_max_current)
-        else:
-            raise ValueError(
-                "`y_min_max_current` must be a tuple of two floats or None."
-            )
+        if with_current:
+            if y_min_max_current is None:
+                max_abs_current = np.max(np.abs(self.current)) * 1.1
+                ax_current.set_ylim(-max_abs_current, max_abs_current)
+            if isinstance(y_min_max_current, tuple):
+                ax_current.set_ylim(y_min_max_current)
+            else:
+                raise ValueError(
+                    "`y_min_max_current` must be a tuple of 2 floats or None."
+                )
 
         # Plot options..
         # .. for voltage.
@@ -553,13 +662,16 @@ class BaseSolution(ABC):
         ax_voltage.set_xlabel(r"$\mathregular{x \, [m]}$")
         ax_voltage.set_ylabel(r"$\mathregular{V \, [kV]}$")
         ax_voltage.grid(visible=True)
-        ax_voltage.legend(loc="upper left")
+        if with_current:
+            # Only add legends if both voltage and current are plotted.
+            ax_voltage.legend(loc="upper left")
         # .. for current.
-        ax_current.set_ylabel(r"$\mathregular{I \, [A]}$", color="r")
-        ax_current.grid(visible=False)
-        ax_current.spines["right"].set_color("r")
-        ax_current.tick_params(axis="y", colors="r", labelcolor="r")
-        ax_current.legend(loc="upper right")
+        if with_current:
+            ax_current.set_ylabel(r"$\mathregular{I \, [A]}$", color="r")
+            ax_current.grid(visible=False)
+            ax_current.spines["right"].set_color("r")
+            ax_current.tick_params(axis="y", colors="r", labelcolor="r")
+            ax_current.legend(loc="upper right")
 
         # Create the animation.
         ani = FuncAnimation(

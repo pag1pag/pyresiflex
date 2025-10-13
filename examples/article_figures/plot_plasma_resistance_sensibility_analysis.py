@@ -1,6 +1,6 @@
 r"""
-Extract plasma resistance and analyze its sensitivity.
-======================================================
+Extracting plasma resistance and analyzing sensitivity to perturbations.
+========================================================================
 
 In this example, the plasma is assumed to be a time-varying resistance.
 
@@ -31,6 +31,7 @@ are simulated, and compared against the measured signals.
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.axes import Axes
 
 from pyresiflex.cable.cable import PerfectCable
 from pyresiflex.experiment.purely_resistive_experiment import (
@@ -39,6 +40,7 @@ from pyresiflex.experiment.purely_resistive_experiment import (
 from pyresiflex.generator.generator_real_impedance import (
     FromMeasurementGenerator,
 )
+from pyresiflex.misc.load_data import load_minesi_data
 from pyresiflex.misc.plot import plot_voltage_current, set_mpl_style
 from pyresiflex.misc.utils import get_path_to_data
 from pyresiflex.solver.purely_resistive_solution import PurelyResistiveSolution
@@ -115,16 +117,17 @@ plt.show()
 
 # Transmission line parameters estimated from experimental data.
 # See `plot_determining_cable_properties.py` example for more details.
+data = load_minesi_data()
 
 # Default scenario:
 # Length of the transmission line
-default_L = 6.2  # [m]
+default_L = data.L  # [m]
 # Measurement points = probe positions
-default_x = default_L / 2  # [m]
+default_x = data.x_meas  # [m]
 # Velocity of propagation of the wave in the cable.
-default_c = 1.78e8  # [m/s]
+default_c = data.c  # [m/s]
 # Cable characteristic impedance.
-default_Z_c = 69  # [Ohm]
+default_Z_c = data.Z_c  # [Ohm]
 
 
 # Dict of scenarios:
@@ -215,7 +218,7 @@ scenarios = {
 fig_r, [[ax_r_L, ax_r_x], [ax_r_c, ax_r_Z]] = plt.subplots(
     nrows=2, ncols=2, figsize=(16 * 2, 9 * 2)
 )
-axes_r = [ax_r_L, ax_r_x, ax_r_c, ax_r_Z]
+axes_r: list[Axes] = [ax_r_L, ax_r_x, ax_r_c, ax_r_Z]
 
 # Figure and ax for the voltage.
 fig_v, [[ax_v_L, ax_v_x], [ax_v_c, ax_v_Z]] = plt.subplots(
@@ -223,7 +226,7 @@ fig_v, [[ax_v_L, ax_v_x], [ax_v_c, ax_v_Z]] = plt.subplots(
     ncols=2,
     figsize=(16 * 2, 9 * 2),
 )
-axes_v = [ax_v_L, ax_v_x, ax_v_c, ax_v_Z]
+axes_v: list[Axes] = [ax_v_L, ax_v_x, ax_v_c, ax_v_Z]
 # Plot the measured voltage.
 for ax_v in axes_v:
     plot_line_v_measured = ax_v.plot(
@@ -239,7 +242,7 @@ fig_i, [[ax_i_L, ax_i_x], [ax_i_c, ax_i_Z]] = plt.subplots(
     ncols=2,
     figsize=(16 * 2, 9 * 2),
 )
-axes_i = [ax_i_L, ax_i_x, ax_i_c, ax_i_Z]
+axes_i: list[Axes] = [ax_i_L, ax_i_x, ax_i_c, ax_i_Z]
 # Plot the measured current.
 for ax_i in axes_i:
     plot_line_i_measured = ax_i.plot(
@@ -284,7 +287,7 @@ for scenario, params in scenarios.items():
         correct_time_zero=True,
     )
 
-    expe.compute_plasma_resistance_from_vmes_and_imes(
+    expe.compute_plasma_resistance_from_vmeas_and_imeas(
         times_expe,
         threshold=400,
         channel_formation_time=channel_formation_time,
@@ -363,9 +366,9 @@ for scenario, params in scenarios.items():
 
     # .. Generator parameters.
     # Impedance of the generator.
-    R_g = 1  # [Ohm]
+    R_g = data.R_g  # [Ohm]
     # Attenuation coefficient.
-    alpha_g = Z_c / (Z_c + R_g)  # [-]
+    alpha_g = data.alpha_g  # [-]
     # Pulse duration.
     pulse_duration = 35e-9  # [s]
 

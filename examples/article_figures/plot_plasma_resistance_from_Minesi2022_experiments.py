@@ -1,6 +1,6 @@
 r"""
-Compare formulas for extracted plasma resistance.
-=================================================
+Comparison of formulas to extracte plasma resistance.
+=====================================================
 
 In this example, the plasma is assumed to be a time-varying resistance.
 
@@ -39,6 +39,7 @@ from pyresiflex.experiment.purely_resistive_experiment import (
 from pyresiflex.generator.generator_real_impedance import (
     FromMeasurementGenerator,
 )
+from pyresiflex.misc.load_data import load_minesi_data
 from pyresiflex.misc.plot import plot_voltage_current, set_mpl_style
 from pyresiflex.misc.utils import get_path_to_data
 
@@ -122,17 +123,18 @@ plt.show()
 
 # Transmission line parameters estimated from experimental data.
 # See `plot_determining_cable_properties.py` example for more details.
+data = load_minesi_data()
 
 # Length of the transmission line
-L = 6.2  # [m]
+L = data.L  # [m]
 # Measurement points = probe positions
-x = L / 2  # [m]
+x = data.x_meas  # [m]
 # Here, we assume that the probes are located at the same position.
 x_meas_voltage = x_meas_current = x  # [m]
 # Velocity of propagation of the wave in the cable.
-c = 1.78e8  # [m/s]
+c = data.c  # [m/s]
 # Cable characteristic impedance.
-Z_c = 69  # [Ohm]
+Z_c = data.Z_c  # [Ohm]
 
 
 # %%
@@ -140,9 +142,9 @@ Z_c = 69  # [Ohm]
 # --------------------
 
 # Impedance of the generator.
-R_g = 1  # [Ohm]
+R_g = data.R_g  # [Ohm]
 # Attenuation coefficient.
-alpha_g = Z_c / (Z_c + R_g)  # [-]
+alpha_g = data.alpha_g  # [-]
 # Pulse duration.
 pulse_duration = 35e-9  # [s]
 
@@ -204,54 +206,89 @@ expe = PurelyResistiveExperiment(
     correct_time_zero=True,
 )
 
-# Compute R_p(vmes, imes).
-expe.compute_plasma_resistance_from_vmes_and_imes(
+# Compute R_p(vmeas, imeas).
+expe.compute_plasma_resistance_from_vmeas_and_imeas(
     times_expe, threshold=400, channel_formation_time=42e-9
 )
-# Compute R_p(vmes, vg).
+# Compute R_p(vmeas, vg).
 reconstructed_resistance_voltage = (
-    expe.compute_plasma_resistance_from_vmes_and_vg(
+    expe.compute_plasma_resistance_from_vmeas_and_vg(
         times_expe,
         generator=generator,
     )
 )
-# Compute R_p(imes, vg).
+# Compute R_p(imeas, vg).
 reconstructed_resistance_current = (
-    expe.compute_plasma_resistance_from_imes_and_vg(
+    expe.compute_plasma_resistance_from_imeas_and_vg(
         times_expe,
         generator=generator,
     )
 )
 
 
-# Plot R_p(vmes, imes).
-fig, ax = expe.plot_resistance(times=times_expe, show=False, legend=False)
-# Plot R_p(vmes, vg).
+# Plot R_p(vmeas, imeas).
+fig, ax = expe.plot_resistance(
+    times=times_expe,
+    plot_whole=True,
+    plot_corrected=False,
+    plot_interpolated=False,
+    show=False,
+    legend=False,
+)
+# Change color of the first plot to black.
+line = ax.get_lines()[0]
+line.set_color("k")
+
+# Plot R_p(vmeas, vg).
 ax.plot(
     times_expe * 1e9,
     reconstructed_resistance_voltage,
     color="r",
-    ls="--",
+    ls="-",
 )
-# Plot R_p(imes, vg).
+# Plot R_p(imeas, vg).
 ax.plot(
     times_expe * 1e9,
     reconstructed_resistance_current,
     color="b",
-    ls="--",
+    ls="-",
 )
-ax.set_xlim(30, 80)
+ax.set_xlim(40, 70)
 ax.set_ylim(-100, 1000)
-ax.legend(
-    [
-        r"$\mathregular{R_p \left( V_{meas}, I_{meas} \right)}$",
-        r"$\mathregular{R_p \left( V_{meas}, I_{meas} \right)} \, (corr.)$",
-        r"$\mathregular{R_p \left( I_{meas}, V_{meas} \right)}"
-        + r" \ (interpolated)$",
-        r"$\mathregular{R_p \left( V_{meas}, V_g \right)}$",
-        r"$\mathregular{R_p \left( I_{meas}, V_g \right)}$",
-    ]
+
+# Annotate the plot.
+kwargs = dict(
+    textcoords="data",
+    fontsize=28,
+    horizontalalignment="center",
+    verticalalignment="center",
+    bbox=dict(facecolor="white", alpha=0.7, edgecolor="none"),
 )
+ax.annotate(
+    r"$\mathregular{R_p \left( I_{meas}, \, V_{meas} \right)}$",
+    xytext=(50, 600),
+    xy=(45, 260),
+    color="k",
+    arrowprops=dict(arrowstyle="->", color="k", lw=3),
+    **kwargs,  # type: ignore
+)
+ax.annotate(
+    r"$\mathregular{R_p \left( V_{meas}, \, V_g \right)}$",
+    xytext=(55, 400),
+    xy=(48, 160),
+    color="r",
+    arrowprops=dict(arrowstyle="->", color="r", lw=3),
+    **kwargs,  # type: ignore
+)
+ax.annotate(
+    r"$\mathregular{R_p \left( I_{meas}, \, V_g \right)}$",
+    xytext=(60, 300),
+    xy=(64, 110),
+    color="b",
+    arrowprops=dict(arrowstyle="->", color="b", lw=3),
+    **kwargs,  # type: ignore
+)
+
 plt.show()
 
 # %%

@@ -1,6 +1,6 @@
 r"""
-Reproduce [Pavan2025]_ numerical simulations.
-=============================================
+Reproducing [Pavan2025]_ numerical simulations.
+===============================================
 
 In this example, the load is a constant resistance in parallel with a
 constant capacitor.
@@ -10,7 +10,7 @@ analytical and numerical results.
 Voltage from Figure 8 of [Pavan2025]_ was digitized for this comparison.
 
 This example also show how to create a custom load which inherits from
-:py:class:`~pyresiflex.load.base_load.BaseSteadyImpedance`.
+:py:class:`~pyresiflex.load.base_load.ComplexImpedanceBaseLoad`.
 """  # noqa: D205
 
 # This sets the first figure as the thumbnail for the example gallery.
@@ -33,8 +33,9 @@ import numpy as np
 
 from pyresiflex.cable.cable import PerfectCable
 from pyresiflex.generator.generator_complex_impedance import GaussianGenerator
-from pyresiflex.load.base_load import BaseSteadyImpedance
+from pyresiflex.load.base_load import ComplexImpedanceBaseLoad
 from pyresiflex.misc.plot import set_mpl_style
+from pyresiflex.misc.units import c_0
 from pyresiflex.misc.utils import get_path_to_data
 from pyresiflex.solver.steady_impedance_solution import SteadyImpedanceSolution
 
@@ -70,7 +71,7 @@ pavan_generator = GaussianGenerator(
 # The data used here are the ones from [Pavan2025]_.
 
 L = 10.0  # Length of the transmission line [m]
-c = 0.67 * 299_792_458  # Wave celerity [m/s]
+c = 0.67 * c_0  # Wave celerity [m/s]
 Z_c = 50  # Characteristic impedance [Ohm]
 
 pavan_cable = PerfectCable(
@@ -89,7 +90,7 @@ pavan_cable = PerfectCable(
 # we create a custom load class.
 
 
-class PavanLoad(BaseSteadyImpedance):
+class PavanLoad(ComplexImpedanceBaseLoad):
     def __init__(self, R_l: float, C_l: float):
         """Create a load class for the Pavan2025 case.
 
@@ -210,19 +211,22 @@ E_ch = 16.7e-3  # Characteristic energy [J]
 # Parameters for Fourier Transform.
 # Not given in [Pavan2025]_ so chosen arbitrarily to reproduce results.
 # .. Number of points for Fourier transform.
-nb_point_ft = 1_000  # Increase for better results (but higher cost)
+nb_point_ft = 5_000  # Increase for better results (but higher cost).
 # .. Maximum time for Fourier transform.
-max_time_ft = 500e-9  # [s]
+max_time_ft = 5_000e-9  # [s]  # Increase for better results (but higher cost).
 
 fig_v, ax_v = plt.subplots()
 fig_i, ax_i = plt.subplots()
 fig_e, ax_e = plt.subplots()
 
+marker_size = 80
+marker_symbol = "x"
+alpha = 0.5
 
 for label, pavan_dict in pavan_loads.items():
     # Extract load and color from the dictionary.
     pavan_load = pavan_dict["load"]
-    assert isinstance(pavan_load, BaseSteadyImpedance)
+    assert isinstance(pavan_load, ComplexImpedanceBaseLoad)
     color = pavan_dict["color"]
     assert isinstance(color, str)
 
@@ -246,11 +250,12 @@ for label, pavan_dict in pavan_loads.items():
     ax_v.set_ylim(-2, 2)
     # Numerical result.
     t_ref, v_ref = pavan_voltage[label]
-    ax_v.plot(
+    ax_v.scatter(
         t_ref,
         v_ref,
-        color="lightgray",
-        linestyle="-",
+        s=marker_size,
+        color=color,
+        marker=marker_symbol,
     )
     # Model result.
     ax_v.plot(
@@ -258,7 +263,8 @@ for label, pavan_dict in pavan_loads.items():
         solution.voltage / V_ch,
         label=label,
         color=color,
-        ls="--",
+        ls="-",
+        alpha=alpha,
     )
 
     # .. Current
@@ -268,11 +274,12 @@ for label, pavan_dict in pavan_loads.items():
     ax_i.set_ylim(-1, 1.5)
     # Numerical result.
     t_ref, i_ref = pavan_current[label]
-    ax_i.plot(
+    ax_i.scatter(
         t_ref,
         i_ref,
-        color="lightgray",
-        linestyle="-",
+        s=marker_size,
+        color=color,
+        marker=marker_symbol,
     )
     # Model result.
     ax_i.plot(
@@ -280,7 +287,8 @@ for label, pavan_dict in pavan_loads.items():
         solution.current / I_ch,
         label=label,
         color=color,
-        ls="--",
+        ls="-",
+        alpha=alpha,
     )
 
     # .. Energy
@@ -290,11 +298,15 @@ for label, pavan_dict in pavan_loads.items():
     ax_e.set_ylim(0, 0.5)
     # Numerical result.
     t_ref, e_ref = pavan_energy[label]
-    ax_e.plot(
+    # Only select one point out of two for better visibility.
+    t_ref = t_ref[::2]
+    e_ref = e_ref[::2]
+    ax_e.scatter(
         t_ref,
         e_ref,
-        color="lightgray",
-        linestyle="-",
+        s=marker_size,
+        color=color,
+        marker=marker_symbol,
     )
     # Model result.
     ax_e.plot(
@@ -302,21 +314,24 @@ for label, pavan_dict in pavan_loads.items():
         solution.energy / E_ch,
         label=label,
         color=color,
-        ls="--",
+        ls="-",
+        alpha=alpha,
     )
 
 # Add legend for voltage figure.
-(line_v_numerical_legend,) = ax_v.plot(
+line_v_numerical_legend = ax_v.scatter(
     [],
     [],
-    color="lightgray",
-    linestyle="-",
+    color="black",
+    s=marker_size,
+    marker=marker_symbol,
 )
 (line_v_model_legend,) = ax_v.plot(
     [],
     [],
     color="black",
-    ls="--",
+    ls="-",
+    alpha=alpha,
 )
 ax_v.legend(
     [line_v_numerical_legend, line_v_model_legend],
@@ -325,17 +340,19 @@ ax_v.legend(
     loc="upper right",
 )
 # Add legend for current figure.
-(line_i_numerical_legend,) = ax_i.plot(
+line_i_numerical_legend = ax_i.scatter(
     [],
     [],
-    color="lightgray",
-    linestyle="-",
+    color="black",
+    s=marker_size,
+    marker=marker_symbol,
 )
 (line_i_model_legend,) = ax_i.plot(
     [],
     [],
     color="black",
-    ls="--",
+    ls="-",
+    alpha=alpha,
 )
 ax_i.legend(
     [line_i_numerical_legend, line_i_model_legend],
@@ -344,17 +361,19 @@ ax_i.legend(
     loc="upper right",
 )
 # Add legend for energy figure.
-(line_e_numerical_legend,) = ax_e.plot(
+line_e_numerical_legend = ax_e.scatter(
     [],
     [],
-    color="lightgray",
-    linestyle="-",
+    color="black",
+    s=marker_size,
+    marker=marker_symbol,
 )
 (line_e_model_legend,) = ax_e.plot(
     [],
     [],
     color="black",
-    ls="--",
+    ls="-",
+    alpha=alpha,
 )
 ax_e.legend(
     [line_e_numerical_legend, line_e_model_legend],
@@ -404,7 +423,7 @@ fig_e, ax_e = plt.subplots()
 for label, pavan_dict in pavan_loads.items():
     # Extract load and color from the dictionary.
     pavan_load = pavan_dict["load"]
-    assert isinstance(pavan_load, BaseSteadyImpedance)
+    assert isinstance(pavan_load, ComplexImpedanceBaseLoad)
     color = pavan_dict["color"]
     assert isinstance(color, str)
 
@@ -445,14 +464,12 @@ for label, pavan_dict in pavan_loads.items():
     ax_e.set_ylim(0, 0.5)
 
 (line_v_model_legend,) = ax_v.plot([], [], color="black")
-(line_v_numerical_legend,) = ax_v.plot(
+line_v_numerical_legend = ax_v.scatter(
     [],
     [],
     color="black",
-    marker="x",
-    linestyle="None",
-    markersize=30,
-    markeredgewidth=4,
+    s=marker_size,
+    marker=marker_symbol,
 )
 ax_v.legend(
     [line_v_model_legend, line_v_numerical_legend],

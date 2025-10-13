@@ -22,7 +22,7 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Install the latest version of uv.
       uses: astral-sh/setup-uv@v7
       with:
@@ -35,39 +35,39 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12", "3.13", "3.14"] # Add more versions as needed.
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Install the latest version of uv and set the python version.
       uses: astral-sh/setup-uv@v7
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: extractions/setup-just@v3
+    - uses: extractions/setup-just@v4
     - name: Test with python ${{ matrix.python-version }}
       run: just tests
 
   type-check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Install the latest version of uv.
       uses: astral-sh/setup-uv@v7
       with:
         version: "latest"
-    - uses: extractions/setup-just@v3
+    - uses: extractions/setup-just@v4
     - name: Run code quality checks.
       run: just type-check
 
   build-docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Install the latest version of uv.
       uses: astral-sh/setup-uv@v7
       with:
         version: "latest"
-    - uses: extractions/setup-just@v3
+    - uses: extractions/setup-just@v4
     - name: Build the documentation.
       run: just build-docs
-    - uses: actions/upload-pages-artifact@v4
+    - uses: actions/upload-pages-artifact@v5
       with:
         path: docs/_build/html/
 
@@ -91,4 +91,4 @@ jobs:
     steps:
     - name: Deploy to GitHub Pages
       id: deployment
-      uses: actions/deploy-pages@v4
+      uses: actions/deploy-pages@v5

@@ -1,9 +1,9 @@
 import numpy as np
 
-from pyresiflex.load.base_load import BaseResistance
+from pyresiflex.load.base_load import PurelyResistiveBaseLoad
 
 
-class ConstantResistance(BaseResistance):
+class ConstantResistance(PurelyResistiveBaseLoad):
     """Constant resistance load.
 
     Parameters
@@ -51,7 +51,7 @@ class ConstantResistance(BaseResistance):
         return self.R
 
 
-class PlasmaResistanceLinearFall(BaseResistance):
+class PlasmaResistanceLinearFall(PurelyResistiveBaseLoad):
     """Plasma resistance load.
 
     It is a time-varying resistance, characterized by a linear ramp
@@ -138,7 +138,7 @@ class PlasmaResistanceLinearFall(BaseResistance):
         return self.Z_end
 
 
-class PlasmaResistanceExponentialFall(BaseResistance):
+class PlasmaResistanceExponentialFall(PurelyResistiveBaseLoad):
     """Plasma resistance load.
 
     It is a time-varying resistance, characterized by an exponential fall
@@ -209,7 +209,7 @@ class PlasmaResistanceExponentialFall(BaseResistance):
         return self.Z_end
 
 
-class PlasmaResistanceInterpolate(BaseResistance):
+class PlasmaResistanceInterpolate(PurelyResistiveBaseLoad):
     """Plasma resistance load.
 
     It is a time-varying resistance, characterized by interpolation

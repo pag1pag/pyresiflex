@@ -32,12 +32,12 @@ jobs:
     permissions:
       contents: write  # To save the coverage report.
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Install the latest version of uv.
       uses: astral-sh/setup-uv@v7
       with:
         version: "latest"
-    - uses: extractions/setup-just@v3
+    - uses: extractions/setup-just@v4
     - name: Run tests with coverage.
       run: just tests-cov
     - name: Publish coverage report to coverage-badge branch

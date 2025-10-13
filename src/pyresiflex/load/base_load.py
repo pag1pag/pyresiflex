@@ -24,83 +24,8 @@ class BaseLoad(ABC):
         self.time_varying: bool = time_varying
         """Flag to indicate if the load impedance is time-varying."""
 
-    @abstractmethod
-    def load_impedance(self, *args) -> np.ndarray | float:
-        r"""Impedance of the load.
 
-        The load impedance can depend on the time and the frequency.
-        This function should be implemented in the derived class.
-
-        Other Parameters
-        ----------------
-        t : float
-            Time in seconds.
-        frequency : numpy.ndarray
-            Array of frequency in Hz.
-
-        Return
-        ------
-        numpy.ndarray or float
-            Array of load impedance in Ohm, or a single value if the
-            impedance is constant. Can be complex if the load is a
-            capacitor or an inductor. The impedance is the same for all
-            frequencies if the load is a resistance.
-
-        Notes
-        -----
-        For a constant resistance, the impedance is the same for all
-        frequencies, therefore:
-
-        .. math::
-
-            Z_l(t, f) = R_l
-
-        where:
-
-        - :math:`R_l` is the load resistance in Ohm.
-
-
-        For a capacitor, the impedance is:
-
-        .. math::
-
-            Z_l(t, f) = \frac{1}{j 2 \pi f C_l}
-
-        where:
-
-        - :math:`j` is the imaginary unit,
-        - :math:`f` is the frequency in Hz,
-        - :math:`C_l` is the capacitance in Farad.
-
-
-        For an inductor, the impedance is:
-
-        .. math::
-
-            Z_l(t, f) = j 2 \pi f L_l
-
-        where:
-
-        - :math:`L_l` is the inductance in Henry.
-
-
-        For a time-varying resistance, the impedance can be defined as:
-
-        .. math::
-
-            Z_l(t, t) = R_l(t)
-
-        where:
-
-        - :math:`R_l(t)` is the load resistance in Ohm,
-          which can vary in time.
-        """
-        raise NotImplementedError(
-            "Define the load impedance calculation in the derived class."
-        )
-
-
-class BaseResistance(BaseLoad):
+class PurelyResistiveBaseLoad(BaseLoad):
     """Abstract class for a resistance, that can vary in time.
 
     Parameters
@@ -162,7 +87,7 @@ class BaseResistance(BaseLoad):
         )
 
 
-class BaseSteadyImpedance(BaseLoad):
+class ComplexImpedanceBaseLoad(BaseLoad):
     """Abstract class for a constant impedance.
 
     The impedance can be composed of resistance, inductance and capacitance,

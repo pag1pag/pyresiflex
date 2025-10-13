@@ -38,7 +38,7 @@ set_mpl_style(nb_columns=2)
 # Transmission solution parameters
 # --------------------------------
 
-L = 0.3  # Length of the transmission solution [m]
+L = 6  # Length of the transmission solution [m]
 c = 1.66e8  # Wave velocity [m/s]
 Z_c = 75  # Characteristic impedance [Ohm]
 
@@ -96,7 +96,7 @@ solution = PurelyResistiveSolution(
 # ---------------------------------------------------------
 
 # Define time vector.
-times = np.arange(0, 30, 0.1) * 1e-9
+times = np.arange(0, 200, 0.1) * 1e-9
 
 x_meas_voltage = 2 / 3 * L
 voltages = np.array([solution.V(x_meas_voltage, t) for t in times])
@@ -140,41 +140,112 @@ expe = PurelyResistiveExperiment(
 )
 
 
-# Compute R_p(vmes, imes)
-expe.compute_plasma_resistance_from_vmes_and_imes(times)
-# Compute R_p(vmes, vg)
+# Compute R_p(vmeas, imeas)
+expe.compute_plasma_resistance_from_vmeas_and_imeas(times)
+# Compute R_p(vmeas, vg)
 reconstructed_resistance_voltage = (
-    expe.compute_plasma_resistance_from_vmes_and_vg(
+    expe.compute_plasma_resistance_from_vmeas_and_vg(
         times,
         generator=generator,
         max_n=4,
     )
 )
-# Compute R_p(imes, vg)
+# Compute R_p(imeas, vg)
 reconstructed_resistance_current = (
-    expe.compute_plasma_resistance_from_imes_and_vg(
+    expe.compute_plasma_resistance_from_imeas_and_vg(
         times,
         generator=generator,
         max_n=4,
     )
 )
+
+
+expe_shifted = PurelyResistiveExperiment(
+    experimental_voltage_time=times,
+    experimental_voltage_value=voltages,
+    x_meas_voltage=x_meas_voltage + 0.05,
+    experimental_current_time=times,
+    experimental_current_value=currents,
+    x_meas_current=x_meas_current - 0.05,
+    L=L,
+    Z_c=Z_c,
+    c=c,
+    correct_time_zero=False,
+)
+# Compute R_p(vmeas, imeas)
+# expe_shifted.compute_plasma_resistance_from_vmeas_and_imeas(times)
+# Compute R_p(vmeas, vg)
+reconstructed_resistance_voltage_shifted = (
+    expe_shifted.compute_plasma_resistance_from_vmeas_and_vg(
+        times,
+        generator=generator,
+        max_n=4,
+    )
+)
+# Compute R_p(imeas, vg)
+reconstructed_resistance_current_shifted = (
+    expe_shifted.compute_plasma_resistance_from_imeas_and_vg(
+        times,
+        generator=generator,
+        max_n=4,
+    )
+)
+
 
 # %%
 # Compare the reconstructed resistance with the true resistance.
 # --------------------------------------------------------------
 
-# Plot R_p(vmes, imes)
+set_mpl_style(nb_columns=2)
+
+# Plot R_p(vmeas, imeas)
 fig, ax = expe.plot_resistance(
-    times=times, show=False, legend=False, plot_interpolated=False
+    times=times,
+    show=False,
+    legend=False,
+    plot_interpolated=False,
+    _also_plot_when_near_cable_impedance=False,
 )
-# Plot R_p(vmes, vg)
+# Change the line style and width of the existing plot.
+for line in ax.get_lines():
+    line.set_linestyle("-")
+
+
+# Plot R_p(vmeas, vg)
 ax.plot(
     times * 1e9, reconstructed_resistance_voltage, color="r", ls="--", lw=5
 )
-# Plot R_p(imes, vg)
+# Plot R_p(imeas, vg)
 ax.plot(
     times * 1e9, reconstructed_resistance_current, color="b", ls="-.", lw=5
 )
+
+# Plot the shifted resistance.
+# fig, ax = expe_shifted.plot_resistance(
+#     times=times,
+#     show=False,
+#     legend=False,
+#     plot_interpolated=False,
+#     _also_plot_when_near_cable_impedance=False,
+#     figax=(fig, ax),
+# )
+# ax.lines[-1].set_linestyle(":")
+# ax.lines[-1].set_linewidth(2)
+ax.plot(
+    times * 1e9,
+    reconstructed_resistance_voltage_shifted,
+    color="r",
+    ls=":",
+    lw=2,
+)
+ax.plot(
+    times * 1e9,
+    reconstructed_resistance_current_shifted,
+    color="b",
+    ls=":",
+    lw=2,
+)
+
 
 # Plot the true resistance.
 true_resistance = np.array([plasma_load.load_impedance(t) for t in times])
@@ -185,12 +256,20 @@ ax.set_ylim(-100, 1100)
 ax.legend(
     [
         r"$\mathregular{R_p \left( V_{meas}, I_{meas} \right)}$",
-        r"$\mathregular{R_p \left( V_{meas}, I_{meas} \right)} \, (corr.)$",
-        r"$\mathregular{R_p \left( V_{meas}, V_g \right)}$",
-        r"$\mathregular{R_p \left( I_{meas}, V_g \right)}$",
+        r"$\mathregular{R_p \left( V_{meas}, V_g \right)}$"
+        + r" @ $x_{\text{meas}}$",
+        r"$\mathregular{R_p \left( I_{meas}, V_g \right)}$"
+        + r" @ $x_{\text{meas}}$",
+        r"$\mathregular{R_p \left( V_{meas}, V_g \right)}$"
+        + r" @ $x_{\text{meas}} + 0.05$ m",
+        r"$\mathregular{R_p \left( I_{meas}, V_g \right)}$"
+        + r" @ $x_{\text{meas}} - 0.05$ m",
         r"$\mathregular{R_{true}}$",
     ]
 )
+
+ax.set_xlim(35, 55)
+
 plt.show()
 
 # %%

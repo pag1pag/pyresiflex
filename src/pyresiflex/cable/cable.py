@@ -26,12 +26,12 @@ class PerfectCable:
 
     .. math::
 
-        \begin{align}
+        \begin{aligned}
             \frac{\partial^2 V}{\partial t^2}(x, t)
             & = c^2 \frac{\partial^2 V}{\partial x^2}(x, t) \\
             \frac{\partial^2 I}{\partial t^2}(x, t)
             & = c^2 \frac{\partial^2 I}{\partial x^2}(x, t)
-        \end{align}
+        \end{aligned}
 
     where:
 

@@ -1,0 +1,19 @@
+description: Cable properties determined from Minesi2022 experiments, with the assumption that the probes are located at the middle of the transmission line.
+celerity:
+  value: 178160919.5402299
+  uncertainty: 9605669.538344288
+characteristic_impedance:
+  value: 68.63171082039064
+  uncertainty: 2.295263303045817
+length:
+  value: 6.2
+  uncertainty: 0.1
+x_meas:
+  value: 3.1
+  uncertainty: 0.1
+internal_resistance_generator:
+  value: 12.386643987181683
+  uncertainty: 1.542900239702597
+attenuation_factor_generator_cable:
+  value: 0.847113113854245
+  uncertainty: 0.014149852625279654

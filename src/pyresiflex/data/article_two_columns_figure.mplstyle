@@ -27,7 +27,7 @@ grid.linewidth : 3
 grid.alpha : 0.7
 
 # .. Font style
-font.size : 16
+font.size : 20
 
 # .. Savefig style
 savefig.format : svg

@@ -15,7 +15,7 @@
 
 ![GIF showing the reproduction of the Minesi2022 experiment](./docs/img/reproduce_Minesi2022_experiments.gif)
 
-Exemple of the reproduction of the [Minesi2022](https://doi.org/10.1088/1361-6595/ac5cd4) experiment using PyResiFlex.
+Example of the reproduction of the [Minesi2022](https://doi.org/10.1088/1361-6595/ac5cd4) experiment using PyResiFlex.
 
 ## Documentation
 
@@ -24,13 +24,14 @@ A full set of documentation is available online at
 
 ## Workflow for developers/contributors
 
-GitHub codespace has been set up, so you click on this button to quickly code and run the examples: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=958704955&skip_quickstart=true)
+GitHub Codespaces has been set up, so you can click on this button to quickly code and run the examples: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=958704955&skip_quickstart=true)
 
 You can also follow the instructions below, to set up the project on your machine:
 
-- First, clone the repository. You'll get the package and some test drivers.
+- First, clone the repository with `git clone https://github.com/pag1pag/pyresiflex.git`.
 - Since this package uses [uv](https://docs.astral.sh/uv/), install it by following [instructions on their website](https://docs.astral.sh/uv/getting-started/installation/).
-- Run `uv sync --python 3.13` to create a virtual environment at `.venv`, with `python 3.13` and all the necessary dependencies.
+- Update this Python package manager with `uv self update`.
+- Run `uv sync` to create a virtual environment at `.venv`, with the latest version of Python and all the necessary dependencies.
 - To test if the package is working, run `uv run pytest`. All tests should pass.
 
 Next, you just need to activate the virtual environment with:
@@ -51,15 +52,23 @@ Before pushing to GitHub, run the following commands in a terminal (with the vir
 
 You could also run `just` to run all the above commands in one go.
 
+### Manually building the package
+
+If you want to install `pyresiflex` to another environment, you can build the package and install it with `pip`:
+
+- `(pyresiflex) uv build` will build a wheel `/whl` in the folder `./dist`.
+- Activating another env, called `other_env`.
+- `(other_env) pip install path/to/file.whl` should install `pyresiflex` in `other_env`.
+
 ## Who do I talk to?
 
 - Pierre-Antoine Goutier, Spark Cleantech & EM2C Lab, 2024-present, <pierre-antoine.goutier@spark-cleantech.eu>
 
 ## References
 
-- A list of references are available at [the reference section](https://pag1pag.github.io/pyresiflex/bibliography.html).
+- A list of references is available at [the reference section](https://pag1pag.github.io/pyresiflex/bibliography.html).
 - To add a reference, add a new entry to the `./docs/bibliography.rst` file.
 
 ## Note
 
-According to the [Oxford's dictionary](https://www.oxfordlearnersdictionaries.com/definition/english/reflexion), *reflexion* is an old spelling of *reflection*.
+According to [Oxford Learner's Dictionaries](https://www.oxfordlearnersdictionaries.com/definition/english/reflexion), *reflexion* is an old spelling of *reflection*.

@@ -1,6 +1,6 @@
 r"""
-Reproduce [PerrinTerrin2025]_ experiments.
-==========================================
+Reproducing [PerrinTerrin2025]_ experiments.
+============================================
 
 In this example, the plasma is a time-varying resistance.
 
@@ -137,7 +137,7 @@ x = 3.1  # [m]
 # Here, we assume that the probes are located at the same position.
 x_meas_voltage = x_meas_current = x  # [m]
 # Velocity of propagation of the wave in the cable.
-c = 1.82e8  # [m/s]
+c = 1.83e8  # [m/s]
 # Cable characteristic impedance.
 Z_c = 72  # [Ohm]
 
@@ -157,7 +157,7 @@ R_g = 1  # [Ohm]
 # Attenuation coefficient.
 alpha_g = Z_c / (Z_c + R_g)  # [-]
 # Pulse duration.
-pulse_duration = 49e-9  # [s]
+pulse_duration = 45e-9  # [s]
 
 
 def V_meas_generator(t, times, voltages):
@@ -224,16 +224,17 @@ expe = PurelyResistiveExperiment(
     correct_time_zero=True,
 )
 
-expe.compute_plasma_resistance_from_vmes_and_imes(
+threshold_voltage_reconstruction = 0.2 * np.max(voltages_expe)  # [V]
+expe.compute_plasma_resistance_from_vmeas_and_imeas(
     times_expe,
-    threshold=800,
+    threshold=threshold_voltage_reconstruction,
     channel_formation_time=0.0,
 )
 
 plasma_load = expe.load_corrected
 
 fig, ax = expe.plot_resistance(times=times_expe)
-ax.set_xlim(0, 150)
+ax.set_xlim(50, 150)
 ax.set_ylim(-100, 1000)
 plt.show()
 
@@ -285,37 +286,38 @@ set_mpl_style(nb_columns=2)
 # Do we want to plot the current and energy?
 plot_current = True
 plot_energy = True
+# Do we want to shift the time axis to have t - x/c?
+shift_time_axis = False
+
+if shift_time_axis:
+    times_shifted = times - x / c
+    times_expe_shifted = times_expe
+    x_label = r"$\mathregular{t - \frac{x_{meas}}{c} \, [ns]}$"
+else:
+    times_shifted = times
+    times_expe_shifted = times_expe + x / c
+    x_label = r"$\mathregular{t \, [ns]}$"
 
 
 fig, ax_v = plt.subplots()
 
-# .. Set title
-suptitle = "Voltage"
-if plot_current and plot_energy:
-    suptitle += ", current and energy"
-elif plot_current:
-    suptitle += " and current"
-elif plot_energy:
-    suptitle += " and energy"
-suptitle += f" at x = {x:.2f} m"
-
 # Plot voltage.
 plot_line_v = ax_v.plot(
-    (times - x / c) * 1e9,
+    times_shifted * 1e9,
     voltages * 1e-3,
     color="k",
     ls="--",
     label="Voltage (computed)",
 )
 plot_line_v_measured = ax_v.plot(
-    times_expe * 1e9,
+    times_expe_shifted * 1e9,
     voltages_expe * 1e-3,
     color="k",
     label="Voltage (experimental)",
     alpha=0.5,
 )
 # .. Plot options for voltage.
-ax_v.set_xlabel(r"$\mathregular{t - \frac{x_{meas}}{c} \, [ns]}$")
+ax_v.set_xlabel(x_label)
 ax_v.set_xlim(0, 200)
 ax_v.set_ylabel(r"$\mathregular{V \, [kV]}$")
 ax_v.set_ylim(-8, 8)
@@ -325,14 +327,14 @@ ax_v.spines["left"].set_color("k")
 if plot_current:
     ax_i = ax_v.twinx()
     ax_i.plot(
-        (times - x / c) * 1e9,
+        times_shifted * 1e9,
         currents,
         color="r",
         ls="--",
         label="Current (computed)",
     )
     ax_i.plot(
-        times_expe * 1e9,
+        times_expe_shifted * 1e9,
         currents_expe,
         color="r",
         label="Current (experimental)",
@@ -356,14 +358,14 @@ if plot_current:
 if plot_energy:
     ax_e = ax_v.twinx()
     ax_e.plot(
-        (times - x / c) * 1e9,
+        times_shifted * 1e9,
         energies * 1e3,
         color="b",
         ls="--",
         label="Energy",
     )
     ax_e.plot(
-        times_expe * 1e9,
+        times_expe_shifted * 1e9,
         energies_expe * 1e3,
         color="b",
         label="Energy (experimental)",

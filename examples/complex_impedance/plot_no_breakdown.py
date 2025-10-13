@@ -1,6 +1,6 @@
 """
-Case when there is no breakdown.
-================================
+Before a plasma breakdown: resistance in parallel with capacitance.
+===================================================================
 
 Before a plasma breakdown, the impedance of the gas can be represented
 as a very high resistance (no ionization) in parallel to a constant
@@ -8,6 +8,9 @@ capacitance (representing the electrode and the surrounding environment).
 
 Let us observe what are the current and voltage in this case.
 """  # noqa: D205
+
+# This sets the following figure as the thumbnail for the example gallery.
+# sphinx_gallery_thumbnail_number = 5
 
 # %%
 # First, we import the required libraries.
@@ -24,7 +27,8 @@ import numpy as np
 
 from pyresiflex.cable.cable import PerfectCable
 from pyresiflex.generator.generator_complex_impedance import GaussianGenerator
-from pyresiflex.load.base_load import BaseSteadyImpedance
+from pyresiflex.load.base_load import ComplexImpedanceBaseLoad
+from pyresiflex.misc.units import c_0
 from pyresiflex.misc.utils import get_path_to_data
 from pyresiflex.solver.steady_impedance_solution import SteadyImpedanceSolution
 
@@ -48,7 +52,7 @@ generator = GaussianGenerator(
 # -----------------------------
 
 L = 5  # Length of the transmission line [m]
-c = 0.67 * 299_792_458  # Wave velocity [m/s]
+c = 0.67 * c_0  # Wave velocity [m/s]
 Z_c = 100  # Characteristic impedance [Ohm]
 
 cable = PerfectCable(
@@ -63,7 +67,7 @@ cable = PerfectCable(
 # --------------------------------------------
 
 
-class NoBreakdownPlasma(BaseSteadyImpedance):
+class NoBreakdownPlasma(ComplexImpedanceBaseLoad):
     def __init__(self, R_l, C_l):
         super().__init__(purely_resistive=False)
         self.R_l = R_l
@@ -91,8 +95,8 @@ solution = SteadyImpedanceSolution(
     generator=generator,
     load=no_breakdown_plasma,
     cable=cable,
-    nb_points_ft=5_000,  # Number of points for Fourier transform.
-    max_time_ft=1000e-9,  # Maximum time for Fourier transform [s]
+    nb_points_ft=30_000,  # Number of points for Fourier transform.
+    max_time_ft=30_000e-9,  # Maximum time for Fourier transform [s]
 )
 
 x_meas_voltage = 0.85 * L  # Position of the measurement in meters.
@@ -109,10 +113,6 @@ energy = solution.energy
 # %%
 # Plot voltage, current, and energy at remote configuration.
 # ----------------------------------------------------------
-
-# This sets the following figure as the thumbnail for the example gallery.
-# sphinx_gallery_thumbnail_number = 5
-
 
 fig, ax_v = plt.subplots()
 

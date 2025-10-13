@@ -50,7 +50,7 @@ class TrapezoidalGenerator(PurelyResistiveBaseGenerator):
 
         First, the voltage is at U_off.
         Then, it rises to U_on in t_rise seconds.
-        Next, it stays at U_on for t_on second.
+        Next, it stays at U_on for t_on seconds.
         Finally, it falls to U_off in t_fall seconds.
 
         Parameters

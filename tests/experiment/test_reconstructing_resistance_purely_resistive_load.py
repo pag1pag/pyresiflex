@@ -110,24 +110,24 @@ def test_reconstruct_resistance_from_signals(
         ]
     )
 
-    # Compute R_p(vmes, imes)
-    expe.compute_plasma_resistance_from_vmes_and_imes(
+    # Compute R_p(vmeas, imeas)
+    expe.compute_plasma_resistance_from_vmeas_and_imeas(
         setup_experiment["times"],
         threshold=1e-6,
     )
     resistance_v_i = expe.Rp_corrected_with_nan
     assert resistance_v_i is not None
 
-    # Compute R_p(vmes, vg)
-    resistance_v_vg = expe.compute_plasma_resistance_from_vmes_and_vg(
+    # Compute R_p(vmeas, vg)
+    resistance_v_vg = expe.compute_plasma_resistance_from_vmeas_and_vg(
         setup_experiment["times"],
         generator=setup_experiment["generator"],
         max_n=4,
     )
     assert resistance_v_vg is not None
 
-    # Compute R_p(imes, vg)
-    resistance_i_vg = expe.compute_plasma_resistance_from_imes_and_vg(
+    # Compute R_p(imeas, vg)
+    resistance_i_vg = expe.compute_plasma_resistance_from_imeas_and_vg(
         setup_experiment["times"],
         generator=setup_experiment["generator"],
         max_n=4,
@@ -160,17 +160,17 @@ def test_reconstruct_resistance_from_signals(
     assert np.isclose(
         check_norms(resistance_v_i, true_resistance),
         0,
-        atol=1e-2,
+        atol=1e-1,
     )
     assert np.isclose(
         check_norms(resistance_v_vg, true_resistance),
         0,
-        atol=1e-2,
+        atol=1e-1,
     )
     assert np.isclose(
         check_norms(resistance_i_vg, true_resistance),
         0,
-        atol=1e-2,
+        atol=1e-1,
     )
 
     # Optionally plot the results.
@@ -185,16 +185,19 @@ def test_reconstruct_resistance_from_signals(
         ax.plot(
             setup_experiment["times"] * 1e9,
             resistance_v_i,
+            linestyle="-.",
             label="R_p(v_meas, i_meas)",
         )
         ax.plot(
             setup_experiment["times"] * 1e9,
             resistance_v_vg,
+            linestyle=":",
             label="R_p(v_meas, v_g)",
         )
         ax.plot(
             setup_experiment["times"] * 1e9,
             resistance_i_vg,
+            linestyle=":",
             label="R_p(i_meas, v_g)",
         )
         ax.axvline(

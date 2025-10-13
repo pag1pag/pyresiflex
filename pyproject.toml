@@ -5,6 +5,7 @@ requires = ["hatchling"]
 [dependency-groups]
 dev = [
   # Development dependencies.
+  "adjustText",  # To adjust text labels in plots.
   "matplotlib",  # Plotting library.
   "jupyter",  # To use Jupyter notebooks.
   # Tests dependencies.
@@ -22,8 +23,9 @@ dev = [
   "pre-commit-update",  # To update pre-commit hooks.
   "ruff",  # Linter and code formatter.
   "rust-just",  # To use `just` command defined in `./justfile`
-  # Type checking dependencies.
-  "mypy"  # To check type hints.
+  # Type checking dependencies.  # To check type hints.
+  "ty>=0.0.23",
+  "types-PyYAML"
 ]
 
 [project]
@@ -48,7 +50,7 @@ dependencies = [
 description = "PyResiFlex is a simple set of tools in Python to obtain load (plasma) Resistance from analysis of pulse reFlexions."
 dynamic = ["version"]
 keywords = ["plasma", "signal", "resistance"]
-license = {text = "GPLv3"}
+license = {text = "MIT License"}
 name = "pyresiflex"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -94,3 +96,7 @@ max-line-length = 79
 [tool.ruff.lint.pydocstyle]
 # See https://numpydoc.readthedocs.io/en/latest/format.html.
 convention = "numpy"
+
+[tool.ty.src]
+exclude = ["docs", "out"]
+include = ["src", "tests"]

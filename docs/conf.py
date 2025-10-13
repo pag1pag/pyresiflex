@@ -9,8 +9,8 @@
 import os
 import sys
 
-import sphinx_gallery.gen_rst  # type: ignore
-from sphinx_gallery.sorting import FileNameSortKey  # type: ignore
+import sphinx_gallery.gen_rst
+from sphinx_gallery.sorting import FileNameSortKey
 
 import pyresiflex
 
@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath("../"))
 # -- Project information ------------------------------------------------------
 
 project = "pyresiflex"
-copyright = "GNU GPLv3"
+copyright = "MIT License"
 author = "Pierre-Antoine Goutier"
 version = pyresiflex.__version__
 release = pyresiflex.__version__
@@ -46,7 +46,11 @@ extensions = [
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "pyresiflex/data/*"]
+
+# See https://github.com/sphinx-doc/sphinx/issues/12300
+# This is to avoid `WARNING: cannot cache unpickable configuration value`
+suppress_warnings = ["config.cache"]
 
 
 # -- autodoc configuration ----------------------------------------------------
@@ -55,6 +59,13 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 autoclass_content = "both"
 # https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#confval-autodoc_inherit_docstrings
 autodoc_inherit_docstrings = False
+
+
+# -- autosummary configuration ------------------------------------------------
+
+# Used for mini-galleries.
+# https://sphinx-gallery.github.io/stable/configuration.html#add-mini-galleries-for-api-documentation
+autosummary_generate = True
 
 
 # -- Intersphinx configuration ------------------------------------------------
@@ -82,8 +93,8 @@ napoleon_type_aliases = {
     "ComplexImpedanceBaseGenerator": "~pyresiflex.generator.base_generator.ComplexImpedanceBaseGenerator",  # noqa: E501
     # Load
     "BaseLoad": "~pyresiflex.load.base_load.BaseLoad",  # noqa: E501
-    "BaseResistance": "~pyresiflex.load.base_load.BaseResistance",  # noqa: E501
-    "BaseSteadyImpedance": "~pyresiflex.load.base_load.BaseSteadyImpedance",  # noqa: E501
+    "PurelyResistiveBaseLoad": "~pyresiflex.load.base_load.PurelyResistiveBaseLoad",  # noqa: E501
+    "ComplexImpedanceBaseLoad": "~pyresiflex.load.base_load.ComplexImpedanceBaseLoad",  # noqa: E501
     # Matplotlib
     "Figure": "matplotlib.figure.Figure",
     "Axes": "matplotlib.axes.Axes",
@@ -95,7 +106,7 @@ napoleon_type_aliases = {
 # -- AutoAPI configuration ---------------------------------------------------
 
 autoapi_dirs = ["../src/pyresiflex"]
-autoapi_ignore = ["*/version.py"]
+autoapi_ignore = ["*/version.py", "*/data/*"]
 autoapi_options = [  # https://sphinx-autoapi.readthedocs.io/en/latest/reference/config.html#confval-autoapi_options
     "members",
     "inherited-members",
@@ -147,21 +158,14 @@ sphinx_gallery_conf = {
     "matplotlib_animations": True,
 }
 
-# Used for mini-galleries.
-# https://sphinx-gallery.github.io/stable/configuration.html#add-mini-galleries-for-api-documentation
-autosummary_generate = True
-
-# See https://github.com/sphinx-doc/sphinx/issues/12300
-# This is to avoid `WARNING: cannot cache unpickable configuration value`
-suppress_warnings = ["config.cache"]
-
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.
 html_theme = "pydata_sphinx_theme"
 
-html_show_sourcelink = False  # remove 'view source code' from top of page
+# Remove 'view source code' from top of page.
+html_show_sourcelink = False
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

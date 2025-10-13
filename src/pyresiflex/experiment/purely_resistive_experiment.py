@@ -155,11 +155,12 @@ class PurelyResistiveExperiment:
             right=0,
         )
 
-    def compute_plasma_resistance_from_vmes_and_imes(
+    def compute_plasma_resistance_from_vmeas_and_imeas(
         self,
         times: np.ndarray,
         threshold: float = 0.0,
         channel_formation_time: float = 0.0,
+        interpolate_with_previous_value: bool = False,
     ) -> np.ndarray:
         r"""Compute the plasma resistance from measured voltage and current.
 
@@ -176,6 +177,12 @@ class PurelyResistiveExperiment:
             computed, by default 0.0.
             This is because the reflected wave has not yet reached the
             measurement position.
+        interpolate_with_previous_value : bool, optional
+            If True, when there are nan values in the resistance, they are
+            replaced by the previous valid value for interpolation. This allows
+            to keep the same time array for interpolation. If False, nan values
+            are removed from the resistance and time arrays for interpolation.
+            By default, False.
 
         Returns
         -------
@@ -258,10 +265,6 @@ class PurelyResistiveExperiment:
         Rp_corrected = np.copy(R_p)
         # - the denominator is too small,
         Rp_corrected[np.abs(denominator) < threshold] = np.nan
-        # - the incident voltage is too small,
-        Rp_corrected[np.abs(V_i) < threshold] = np.nan
-        # - the reflected voltage is too small.
-        Rp_corrected[np.abs(V_r) < threshold] = np.nan
         # - the resistance is negative.
         Rp_corrected[Rp_corrected < 0] = np.nan
         # For the time before `channel_formation_time`, the resistance is not
@@ -270,16 +273,28 @@ class PurelyResistiveExperiment:
         Rp_corrected[self.times < channel_formation_time] = 1e6
         # - Remove nan values from the resistance for interpolation.
         self.times_corrected = np.copy(self.times)
-        self.times_corrected = self.times_corrected[~np.isnan(Rp_corrected)]
+        if not interpolate_with_previous_value:
+            self.times_corrected = self.times_corrected[
+                ~np.isnan(Rp_corrected)
+            ]
 
         # Save versions with nan for plotting.
         self.times_corrected_with_nan = np.copy(self.times)
         self.times_corrected_with_nan[np.isnan(Rp_corrected)] = np.nan
         self.Rp_corrected_with_nan = np.copy(Rp_corrected)
+        self.Rp_corrected_with_nan[denominator == 0] = np.nan
 
         # Save corrected resistance without nan values.
         self.Rp_corrected = np.copy(Rp_corrected)
-        self.Rp_corrected = self.Rp_corrected[~np.isnan(self.Rp_corrected)]
+        if interpolate_with_previous_value:
+            # Instead of removing nan values, set them to the previous valid
+            # value for interpolation.
+            for i in range(1, len(self.Rp_corrected)):
+                if np.isnan(self.Rp_corrected[i]):
+                    self.Rp_corrected[i] = self.Rp_corrected[i - 1]
+        else:
+            # Remove nan values from the resistance for interpolation.
+            self.Rp_corrected = self.Rp_corrected[~np.isnan(self.Rp_corrected)]
 
         # Create a time-varying load from the resistance.
         self.load = PlasmaResistanceInterpolate(self.times, self.R_p)
@@ -290,7 +305,7 @@ class PurelyResistiveExperiment:
 
         return self.R_p
 
-    def compute_plasma_resistance_from_vmes_and_vg(
+    def compute_plasma_resistance_from_vmeas_and_vg(
         self,
         times: np.ndarray,
         generator: PurelyResistiveBaseGenerator,
@@ -340,7 +355,7 @@ class PurelyResistiveExperiment:
 
         return reconstructed_resistance_voltage
 
-    def compute_plasma_resistance_from_imes_and_vg(
+    def compute_plasma_resistance_from_imeas_and_vg(
         self,
         times: np.ndarray,
         generator: PurelyResistiveBaseGenerator,
@@ -390,6 +405,32 @@ class PurelyResistiveExperiment:
 
         return reconstructed_resistance_voltage
 
+    def N(self, t: float) -> int:
+        r"""Get the number of wave generations that have occurred at time t.
+
+        Parameters
+        ----------
+        t : float
+            Time in seconds.
+
+        Returns
+        -------
+        int
+            Number of wave generations.
+
+        Notes
+        -----
+        The number of wave generations is given by:
+
+        .. math::
+
+            N(t) = \left\lfloor \frac{t}{2 L / c} \right\rfloor
+        """
+        L = self.cable.L
+        c = self.cable.c
+        N = np.floor(t / (2 * L / c)).astype(int)
+        return N
+
     def get_gamma_load_from_measured_voltage(
         self,
         t: float,
@@ -419,77 +460,44 @@ class PurelyResistiveExperiment:
 
         .. math::
 
-            \frac{(2 N-1) L+2 x_{\text {meas }}}{c}<t<\frac{(2 N+1) L}{c},\\
             \Gamma_p(t)
             =
             \frac{
-                V_{\text {meas }}\left(t+\frac{L-x_{\text {meas }}}{c}\right)
-                -\sum_{n=0}^N
+                V_{\text{meas}}\left(t+\tau\right)
+                -\sum_{n=0}^N(t+\tau - \frac{x_{\text{meas}}}{c})
                     \alpha_g
                     V_g \left(
                         t
-                        -\frac{2 x_{\text {meas }}}{c}
-                        -\frac{2 n L}{c}
-                        +\frac{L}{c}
+                        + \tau
+                        - \frac{x_{\text{meas}}}{c}
+                        - \frac{2 n L}{c}
                     \right)
                     \prod_{k=1}^n \left[
                         \Gamma_g
                         \Gamma_p \left(
                             t
-                            -\frac{2 x_{\text {meas }}}{c}
-                            -\frac{(2 k-1) L}{c}
-                            +\frac{L}{c}
+                            + \tau
+                            - \frac{x_{\text{meas}}}{c}
+                            - \frac{(2 k-1) L}{c}
                         \right)
                     \right]
                 }{
-                \sum_{n=0}^{N-1}
+                \sum_{n=0}^{N(t+\tau + \frac{x_{\text{meas}}}{c} - 2 L / c)}
                     \alpha_g
                     V_g\left(
                         t
-                        -\frac{2(n+1) L}{c}
-                        +\frac{L}{c}
-                    \right)
-                    \prod_{k=1}^n \left[
-                        \Gamma_g
-                        \Gamma_p\left(t-\frac{2 k L}{c}\right)
-                    \right]
-                }
-
-        .. math::
-
-            \frac{(2 N+1) L}{c}<t<\frac{(2 N+1) L+2 x_{\text {meas }}}{c},\\
-            \Gamma_p(t)
-            =
-            \frac{
-                V_{\text {meas }}\left(t+\frac{L-x_{\text {meas }}}{c}\right)
-                -\sum_{n=0}^N
-                    \alpha_g
-                    V_g \left(
-                        t
-                        -\frac{2 x_{\text {meas }}}{c}
-                        -\frac{2 n L}{c}
-                        +\frac{L}{c}
+                        + \tau
+                        + \frac{x_{\text{meas}}}{c}
+                        - \frac{2(n+1) L}{c}
                     \right)
                     \prod_{k=1}^n \left[
                         \Gamma_g
                         \Gamma_p \left(
                             t
-                            -\frac{2 x_{\text {meas }}}{c}
-                            -\frac{(2 k-1) L}{c}
-                            +\frac{L}{c}
+                            + \tau
+                            + \frac{x_{\text{meas}}}{c}
+                            - \frac{2 (k+1) L}{c}
                         \right)
-                    \right]
-                }{
-                \sum_{n=0}^{N}
-                    \alpha_g
-                    V_g\left(
-                        t
-                        -\frac{2(n+1) L}{c}
-                        +\frac{L}{c}
-                    \right)
-                    \prod_{k=1}^n \left[
-                        \Gamma_g
-                        \Gamma_p\left(t-\frac{2 k L}{c}\right)
                     \right]
                 }
         """
@@ -513,79 +521,49 @@ class PurelyResistiveExperiment:
         if t <= L / c:
             return np.nan
 
-        N = np.floor((c * t + L - 2 * x_meas) / (2 * L)).astype(int)
-
-        if N > max_n:
-            # TODO: to remove once the computation is optimized.
-            return np.nan
-
-        # Define types for the variables to avoid mypy errors.
+        # Define types for the variables to avoid type-checking errors.
         num: float
         denom: float
         num_sum: float
         denom_sum: float
 
-        # a
-        if (2 * N - 1) * L + 2 * x_meas < c * t < (2 * N + 1) * L:
-            num = float(self.V_meas(t + (L - x_meas) / c))
-            for n in range(0, N + 1):
-                num_sum = alpha_g * V_g(
-                    t - 2 * x_meas / c - 2 * n * L / c + L / c
+        tau = (L - x_meas) / c
+
+        N_incident = self.N(t + tau - x_meas / c)
+        N_reflected = self.N(t + tau + x_meas / c - 2 * L / c)
+
+        if N_incident > max_n or N_reflected > max_n:
+            # TODO: to remove once the computation is optimized.
+            return np.nan
+
+        num = float(self.V_meas(t + tau))
+        for n in range(0, N_incident + 1):
+            num_sum = alpha_g * V_g(t + tau - x_meas / c - 2 * n * L / c)
+            for k in range(1, n + 1):
+                gamma_p = self.get_gamma_load_from_measured_voltage(
+                    t + tau - x_meas / c - (2 * k - 1) * L / c,
+                    max_n=max_n,
                 )
-                for k in range(1, n + 1):
-                    gamma_p = self.get_gamma_load_from_measured_voltage(
-                        t - 2 * x_meas / c - (2 * k - 1) * L / c + L / c,
-                        max_n=max_n,
-                    )
-                    num_sum *= gamma_p * gamma_g
-                num -= num_sum
+                num_sum *= gamma_p * gamma_g
+            num -= num_sum
 
-            denom = 0.0
-            for n in range(0, N):
-                denom_sum = alpha_g * V_g(t - 2 * (n + 1) * L / c + L / c)
-                for k in range(1, n + 1):
-                    gamma_p = self.get_gamma_load_from_measured_voltage(
-                        t - 2 * k * L / c,
-                        max_n=max_n,
-                    )
-                    denom_sum *= gamma_p * gamma_g
-                denom += denom_sum
-
-            if denom == 0:
-                return np.nan
-
-            return num / denom
-
-        # b
-        else:  # if (2 * N + 1) * L < c * t < (2 * N + 1) * L + 2 * x_meas:
-            num = float(self.V_meas(t + (L - x_meas) / c))
-            for n in range(0, N + 1):
-                num_sum = alpha_g * V_g(
-                    t - 2 * x_meas / c - 2 * n * L / c + L / c
+        denom = 0.0
+        for n in range(0, N_reflected + 1):
+            denom_sum = alpha_g * V_g(
+                t + tau + x_meas / c - 2 * (n + 1) * L / c
+            )
+            for k in range(1, n + 1):
+                gamma_p = self.get_gamma_load_from_measured_voltage(
+                    t + tau + x_meas / c - (2 * k + 1) * L / c,
+                    max_n=max_n,
                 )
-                for k in range(1, n + 1):
-                    gamma_p = self.get_gamma_load_from_measured_voltage(
-                        t - 2 * x_meas / c - 2 * (k - 1) * L / c,
-                        max_n=max_n,
-                    )
-                    num_sum *= gamma_p * gamma_g
-                num -= num_sum
+                denom_sum *= gamma_p * gamma_g
+            denom += denom_sum
 
-            denom = 0.0
-            for n in range(0, N + 1):
-                denom_sum = alpha_g * V_g(t - 2 * (n + 1) * L / c + L / c)
-                for k in range(1, n + 1):
-                    gamma_p = self.get_gamma_load_from_measured_voltage(
-                        t - 2 * k * L / c,
-                        max_n=max_n,
-                    )
-                    denom_sum *= gamma_p * gamma_g
-                denom += denom_sum
+        if denom == 0:
+            return np.nan
 
-            if denom == 0:
-                return np.nan
-
-            return num / denom
+        return num / denom
 
     def get_gamma_load_from_measured_current(
         self,
@@ -614,79 +592,44 @@ class PurelyResistiveExperiment:
 
         .. math::
 
-            \frac{(2 N-1) L+2 x_{\text {meas }}}{c}<t<\frac{(2 N+1) L}{c},\\
             \Gamma_p(t)
             =
             \frac{
-                \sum_{n=0}^N
+                -Z_c I_{\text{meas}}\left(t+\tau\right)
+                +\sum_{n=0}^N(t+\tau - \frac{x_{\text{meas}}}{c})
                     \alpha_g
                     V_g \left(
                         t
-                        -\frac{2 x_{\text {meas }}}{c}
-                        -\frac{2 n L}{c}
-                        +\frac{L}{c}
+                        + \tau
+                        - \frac{x_{\text{meas}}}{c}
+                        - \frac{2 n L}{c}
                     \right)
                     \prod_{k=1}^n \left[
                         \Gamma_g
                         \Gamma_p \left(
                             t
-                            -\frac{2 x_{\text {meas }}}{c}
-                            -\frac{(2 k-1) L}{c}
-                            +\frac{L}{c}
+                            + \tau
+                            - \frac{x_{\text{meas}}}{c}
+                            - \frac{(2 k-1) L}{c}
                         \right)
                     \right]
-                - Z_c
-                I_{\text {meas }}\left(t+\frac{L-x_{\text {meas }}}{c}\right)
                 }{
-                \sum_{n=0}^{N-1}
+                \sum_{n=0}^{N(t+\tau + \frac{x_{\text{meas}}}{c} - 2 L / c)}
                     \alpha_g
                     V_g\left(
                         t
-                        -\frac{2(n+1) L}{c}
-                        +\frac{L}{c}
-                    \right)
-                    \prod_{k=1}^n \left[
-                        \Gamma_g
-                        \Gamma_p\left(t-\frac{2 k L}{c}\right)
-                    \right]
-                }
-
-        .. math::
-
-            \frac{(2 N+1) L}{c}<t<\frac{(2 N+1) L+2 x_{\text {meas }}}{c},\\
-            \Gamma_p(t)
-            =
-            \frac{
-                \sum_{n=0}^N
-                    \alpha_g
-                    V_g \left(
-                        t
-                        -\frac{2 x_{\text {meas }}}{c}
-                        -\frac{2 n L}{c}
-                        +\frac{L}{c}
+                        + \tau
+                        + \frac{x_{\text{meas}}}{c}
+                        - \frac{2(n+1) L}{c}
                     \right)
                     \prod_{k=1}^n \left[
                         \Gamma_g
                         \Gamma_p \left(
                             t
-                            -\frac{2 x_{\text {meas }}}{c}
-                            -\frac{(2 k-1) L}{c}
-                            +\frac{L}{c}
+                            + \tau
+                            + \frac{x_{\text{meas}}}{c}
+                            - \frac{2 (k+1) L}{c}
                         \right)
-                    \right]
-                - Z_c
-                V_{\text {meas }}\left(t+\frac{L-x_{\text {meas }}}{c}\right)
-                }{
-                \sum_{n=0}^{N}
-                    \alpha_g
-                    V_g\left(
-                        t
-                        -\frac{2(n+1) L}{c}
-                        +\frac{L}{c}
-                    \right)
-                    \prod_{k=1}^n \left[
-                        \Gamma_g
-                        \Gamma_p\left(t-\frac{2 k L}{c}\right)
                     \right]
                 }
         """
@@ -705,85 +648,49 @@ class PurelyResistiveExperiment:
         if x_meas > L or x_meas < 0:
             raise ValueError("x_meas must be between 0 and L")
 
-        # For value of `t` less than `L / c`, the
-        # reflection coefficient cannot be accessed, since the
-        # reflected wave has not reached the measurement point.
-        if t <= L / c:
-            return np.nan
-
-        N = np.floor((c * t + L - 2 * x_meas) / (2 * L)).astype(int)
-
-        if N > max_n:
-            # TODO: to remove once the computation is optimized.
-            return np.nan
-
-        # Define types for the variables to avoid mypy errors.
+        # Define types for the variables to avoid type-checking errors.
         num: float
         denom: float
         num_sum: float
         denom_sum: float
 
-        # a
-        if (2 * N - 1) * L + 2 * x_meas < c * t < (2 * N + 1) * L:
-            num = -Z_c * float(self.I_meas(t + (L - x_meas) / c))
-            for n in range(0, N + 1):
-                num_sum = alpha_g * V_g(
-                    t - 2 * x_meas / c - 2 * n * L / c + L / c
+        tau = (L - x_meas) / c
+
+        N_incident = self.N(t + tau - x_meas / c)
+        N_reflected = self.N(t + tau + x_meas / c - 2 * L / c)
+
+        if N_incident > max_n or N_reflected > max_n:
+            # TODO: to remove once the computation is optimized.
+            return np.nan
+
+        num = -Z_c * float(self.I_meas(t + tau))
+        for n in range(0, N_incident + 1):
+            num_sum = alpha_g * V_g(t + tau - x_meas / c - 2 * n * L / c)
+            for k in range(1, n + 1):
+                gamma_p = self.get_gamma_load_from_measured_current(
+                    t + tau - x_meas / c - (2 * k - 1) * L / c,
+                    max_n=max_n,
                 )
-                for k in range(1, n + 1):
-                    r_p = self.get_gamma_load_from_measured_current(
-                        t - 2 * x_meas / c - 2 * (k - 1) * L / c,
-                        max_n=max_n,
-                    )
-                    num_sum *= r_p * gamma_g
-                num += num_sum
+                num_sum *= gamma_p * gamma_g
+            num += num_sum
 
-            denom = 0.0
-            for n in range(0, N):
-                denom_sum = alpha_g * V_g(t - 2 * (n + 1) * L / c + L / c)
-                for k in range(1, n + 1):
-                    r_p = self.get_gamma_load_from_measured_current(
-                        t - 2 * k * L / c,
-                        max_n=max_n,
-                    )
-                    denom_sum *= r_p * gamma_g
-                denom += denom_sum
-
-            if denom == 0:
-                return np.nan
-
-            return num / denom
-
-        # b
-        else:  # if (2 * N + 1) * L < c * t < (2 * N + 1) * L + 2 * x_meas:
-            num = -Z_c * float(self.I_meas(t + (L - x_meas) / c))
-            for n in range(0, N + 1):
-                num_sum = alpha_g * V_g(
-                    t - 2 * x_meas / c - 2 * n * L / c + L / c
+        denom = 0.0
+        for n in range(0, N_reflected + 1):
+            denom_sum = alpha_g * V_g(
+                t + tau + x_meas / c - 2 * (n + 1) * L / c
+            )
+            for k in range(1, n + 1):
+                gamma_p = self.get_gamma_load_from_measured_current(
+                    t + tau + x_meas / c - (2 * k + 1) * L / c,
+                    max_n=max_n,
                 )
-                for k in range(1, n + 1):
-                    r_p = self.get_gamma_load_from_measured_current(
-                        t - 2 * x_meas / c - 2 * (k - 1) * L / c,
-                        max_n=max_n,
-                    )
-                    num_sum *= r_p * gamma_g
-                num += num_sum
+                denom_sum *= gamma_p * gamma_g
+            denom += denom_sum
 
-            denom = 0.0
-            for n in range(0, N + 1):
-                denom_sum = alpha_g * V_g(t - 2 * (n + 1) * L / c + L / c)
-                for k in range(1, n + 1):
-                    r_p = self.get_gamma_load_from_measured_current(
-                        t - 2 * k * L / c,
-                        max_n=max_n,
-                    )
-                    denom_sum *= r_p * gamma_g
-                denom += denom_sum
+        if denom == 0:
+            return np.nan
 
-            if denom == 0:
-                return np.nan
-
-            return num / denom
+        return num / denom
 
     @staticmethod
     def get_resistance_from_gamma(Z_c: float, gamma_l: float) -> float:
@@ -845,9 +752,13 @@ class PurelyResistiveExperiment:
     def plot_resistance(
         self,
         times: np.ndarray,
+        plot_whole: bool = False,
+        plot_corrected: bool = True,
         plot_interpolated: bool = True,
+        _also_plot_when_near_cable_impedance: bool = True,
         show: bool = False,
         legend: bool = True,
+        figax: tuple[Figure, Axes] | None = None,
     ) -> tuple[Figure, Axes]:
         """Plot the computed plasma resistance.
 
@@ -855,42 +766,73 @@ class PurelyResistiveExperiment:
         ----------
         times : numpy.ndarray
             Time array in second.
+        plot_whole : bool, optional
+            If True, the whole computed resistance is plotted in light gray.
+            By default, False.
+        plot_corrected : bool, optional
+            If True, the corrected resistance is plotted in full black line.
+            By default, True.
         plot_interpolated : bool, optional
             If True, the interpolated resistance is also plotted.
             By default, True
+        _also_plot_when_near_cable_impedance : bool, optional
+            If True, resistance values near the cable impedance are also
+            plotted. By default, True.
+            When there is no more reflected wave, the resistance tends to the
+            cable impedance. This option allows to hide these values for
+            better visualization of the plasma resistance evolution.
         show : bool, optional
             If True, plot is shown, by default False.
         legend : bool, optional
             If True, legend is added to the plot, by default True.
+        figax : tuple of Figure, Axes, optional
+            Figure and axes objects to use for the plot, by default None.
 
         Returns
         -------
         tuple of Figure, Axes
             Figure and axes objects of the resistance plot.
         """
-        fig, ax = plt.subplots()
-
+        # Check that the resistance has been computed.
         if not hasattr(self, "R_p"):
             raise ValueError(
                 "The resistance has not been computed yet. "
-                "Please call compute_plasma_resistance_from_vmes_and_imes() "
+                "Please call compute_plasma_resistance_from_vmeas_and_imeas() "
                 "first."
             )
 
+        # Create figure and axes if not provided.
+        if figax is not None:
+            fig, ax = figax
+        else:
+            fig, ax = plt.subplots()
+
         # Plot the whole resistance in light gray.
-        R_p = [self.load.load_impedance(t) for t in times]
-        ax.plot(times * 1e9, R_p, color="lightgray")
+        if plot_whole:
+            R_p = [self.load.load_impedance(t) for t in times]
+            ax.plot(times * 1e9, R_p, color="lightgray")
 
         # Plot corrected resistance values in full black line.
-        ax.plot(
-            self.times_corrected_with_nan * 1e9,
-            self.Rp_corrected_with_nan,
-            color="k",
-            ls="-",
-        )
+        if plot_corrected:
+            t = self.times_corrected_with_nan * 1e9
+            R = self.Rp_corrected_with_nan
+            # Optionally hide values near the cable impedance.
+            if not _also_plot_when_near_cable_impedance:
+                Z_c = self.cable.Z_c
+                tol = 0.001 * Z_c  # 0.1% tolerance
+                mask = np.abs(self.Rp_corrected_with_nan - Z_c) < tol
+                t = self.times_corrected_with_nan[~mask] * 1e9
+                R = self.Rp_corrected_with_nan[~mask]
 
+            ax.plot(
+                t,
+                R,
+                color="k",
+                ls="-",
+            )
+
+        # Plot interpolated resistance in dashed black line.
         if plot_interpolated:
-            # Plot interpolated resistance in dashed black line.
             R_p_corrected = [
                 self.load_corrected.load_impedance(t) for t in times
             ]
@@ -918,10 +860,11 @@ class PurelyResistiveExperiment:
 
         # Add legend if requested.
         if legend:
-            labels = [
-                "Computed resistance",
-                "Corrected resistance",
-            ]
+            labels = []
+            if plot_whole:
+                labels.append("Computed resistance")
+            if plot_corrected:
+                labels.append("Corrected resistance")
             if plot_interpolated:
                 labels.append("Interpolated resistance")
             ax.legend(labels)

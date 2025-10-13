@@ -7,13 +7,14 @@
 
 ## Workflow for developers/contributors
 
-GitHub codespace has been set up, so you click on this button to quickly code and run the examples: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=958704955&skip_quickstart=true)
+GitHub Codespaces has been set up, so you can click on this button to quickly code and run the examples: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=958704955&skip_quickstart=true)
 
 You can also follow the instructions below, to set up the project on your machine:
 
-- First, clone the repository. You'll get the package and some test drivers.
+- First, clone the repository with `git clone https://github.com/pag1pag/pyresiflex.git`.
 - Since this package uses [uv](https://docs.astral.sh/uv/), install it by following [instructions on their website](https://docs.astral.sh/uv/getting-started/installation/).
-- Run `uv sync --python 3.13` to create a virtual environment at `.venv`, with `python 3.13` and all the necessary dependencies.
+- Update this Python package manager with `uv self update`.
+- Run `uv sync` to create a virtual environment at `.venv`, with the latest version of Python and all the necessary dependencies.
 - To test if the package is working, run `uv run pytest`. All tests should pass.
 
 Next, you just need to activate the virtual environment with:

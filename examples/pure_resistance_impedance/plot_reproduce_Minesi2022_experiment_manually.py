@@ -1,6 +1,6 @@
 r"""
-Reproduce [Minesi2022]_ experiment.
-===================================
+(Manually) Reproducing [Minesi2022]_ experiment.
+================================================
 
 In this example, the plasma is a time-varying resistance.
 
@@ -179,7 +179,6 @@ generator = FromMeasurementGenerator(
 
 # Plot the voltage signal.
 fig, ax = plt.subplots()
-# fig.suptitle("Voltage and current signals from Minesi2022")
 ax.plot(
     times_expe * 1e9,
     voltages_expe * 1e-3,
@@ -252,7 +251,6 @@ ax.vlines(
     label="Time of the reflexion",
 )
 
-# ax.set_title("Resistance vs time")
 ax.set_xlabel(r"$\mathregular{t \, [ns]}$")
 ax.set_ylabel(r"$\mathregular{R_p \, [\Omega]}$")
 ax.set_xlim(0, 200)
@@ -300,23 +298,6 @@ max_abs_current = np.max(np.abs(currents)) * 1.1
 
 fig, ax_v = plt.subplots()
 
-# .. Set title
-suptitle = "Voltage"
-if plot_current and plot_energy:
-    suptitle += ", current and energy"
-elif plot_current:
-    suptitle += " and current"
-elif plot_energy:
-    suptitle += " and energy"
-suptitle += f" at x = {x:.2f} m"
-# fig.suptitle(suptitle, y=1.01)
-
-
-# Ohm = r"$\Omega$"
-# title = f"Cable: L = {L:.2f} m, $Z_c$ = {Z_c:.1f} {Ohm}, c = {c:.1e} m/s\n"
-# ax_v.set_title(title, fontsize=12, loc="left")
-
-
 # Plot voltage.
 plot_line_v = ax_v.plot(
     (times - x / c) * 1e9,
@@ -334,7 +315,6 @@ plot_line_v_measured = ax_v.plot(
 # .. Plot options for voltage.
 ax_v.set_xlabel(r"$\mathregular{t - \frac{x_{meas}}{c} \, [ns]}$")
 ax_v.set_ylabel(r"$\mathregular{V \, [kV]}$")
-# ax_v.set_ylim(-max_abs_voltage * 1e-3, max_abs_voltage * 1e-3)
 ax_v.set_ylim(-4, 4)
 ax_v.spines["left"].set_color("k")
 ax_v.set_xlim(times[0] * 1e9, times[-1] * 1e9)
@@ -409,7 +389,6 @@ for line in lines:
         labels.append(label)
     else:
         labels.append("Unknown")
-# ax_v.legend(lines, labels, loc="lower right")
 
 ax_v.legend(
     handles=plot_line_v + plot_line_v_measured,
@@ -437,7 +416,6 @@ currents_raw_anode = data[:, 2]  # [A]
 
 # Plot the raw data.
 fig, ax_v = plt.subplots()
-# fig.suptitle("Raw data: Voltage and current signals from Minesi2022")
 # .. Plot the voltage signal.
 ax_v.plot(
     times_raw_anode * 1e9,
@@ -500,7 +478,6 @@ max_abs_current = np.max(np.abs(currents_expe_anode))
 
 # Plot the voltage and current signals.
 fig, ax_v = plt.subplots()
-# fig.suptitle("Voltage and current signals from Minesi2022")
 # .. Plot the voltage signal.
 ax_v.plot(
     times_expe_anode * 1e9,
@@ -657,7 +634,6 @@ for line in lines:
         labels_anode.append(label)
     else:
         labels_anode.append("Unknown")
-# ax_v.legend(lines, labels_anode, loc="lower right")
 
 ax_v.legend(
     handles=plot_line_v + plot_line_v_measured,

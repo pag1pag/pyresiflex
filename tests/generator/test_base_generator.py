@@ -53,7 +53,7 @@ def test_abstract_generator_impedance_raises():
             return 1.0
 
     with pytest.raises(TypeError):
-        TestGen()  # type: ignore
+        TestGen()
 
 
 if __name__ == "__main__":

@@ -22,6 +22,9 @@ The main steps in the script are:
 - Plotting the results.
 """  # noqa: D205
 
+# This sets the following figure as the thumbnail for the example gallery.
+# sphinx_gallery_thumbnail_number = 3
+
 # %%
 # First, we import the required libraries.
 # -----------------------------------------
@@ -126,10 +129,6 @@ for solution in solutions:
 # %%
 # Plot the voltage and current at a given position.
 # -------------------------------------------------
-
-# This sets the following figure as the thumbnail for the example gallery.
-# sphinx_gallery_thumbnail_number = 3
-
 
 fig, ax = plt.subplots()
 ax_i = ax.twinx()

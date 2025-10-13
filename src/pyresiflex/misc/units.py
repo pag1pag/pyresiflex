@@ -1,28 +1,25 @@
 """Physical constants and unit conversions.
 
-This module provides a class with physical constants and unit conversions.
 All units are by default in the International System of Units (SI).
-
 Values are taken from the 2022 CODATA recommended values.
 """
 
-c: float = 299_792_458
-r"""Speed of light in vacuum [:math:`\text{m.s}^{-1}`].
+e = 1.602_176_634e-19
+"""Elementary charge [C].
 
-See: https://physics.nist.gov/cgi-bin/cuu/Value?c"""
+Exact value from https://physics.nist.gov/cgi-bin/cuu/Value?e"""
 
-e: float = 1.602_176_634e-19
-r"""Elementary charge [:math:`\text{C}`].
+k_b = 1.380_649e-23
+"""Boltzmann constant [J/K].
 
-See: https://physics.nist.gov/cgi-bin/cuu/Value?e"""
+Exact value from https://physics.nist.gov/cgi-bin/cuu/Value?k"""
 
-k_b: float = 1.380_649e-23
-r"""Boltzmann constant [:math:`\text{J.K}^{-1}`].
+c_0 = 299_792_458
+"""Speed of light [m/s].
 
-See: https://physics.nist.gov/cgi-bin/cuu/Value?k"""
+Exact value from https://physics.nist.gov/cgi-bin/cuu/Value?c"""
 
-m_e: float = 9.109_383_713_9e-31
-r"""Electron mass [:math:`\text{kg}`].
+m_e = 9.109_383_713_9e-31
+"""Electron mass [kg].
 
-See: https://physics.nist.gov/cgi-bin/cuu/Value?me
-"""
+Taken from https://physics.nist.gov/cgi-bin/cuu/Value?me"""

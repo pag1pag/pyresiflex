@@ -5,7 +5,7 @@ import numpy as np
 
 from pyresiflex.cable.cable import PerfectCable
 from pyresiflex.generator.base_generator import ComplexImpedanceBaseGenerator
-from pyresiflex.load.base_load import BaseSteadyImpedance
+from pyresiflex.load.base_load import ComplexImpedanceBaseLoad
 from pyresiflex.solver.base_solution import BaseSolution
 
 
@@ -30,7 +30,7 @@ class SteadyImpedanceSolution(BaseSolution):
         Perfect transmission line object.
     generator : ComplexImpedanceBaseGenerator
         Generator object that provides the voltage source.
-    load : BaseSteadyImpedance
+    load : ComplexImpedanceBaseLoad
         Load object that provides the impedance at the end of the line.
     nb_points_ft : int, optional
         Number of points for the Fourier transform of the generator voltage.
@@ -52,12 +52,12 @@ class SteadyImpedanceSolution(BaseSolution):
 
     .. math::
 
-        \begin{align}
+        \begin{aligned}
             \frac{\partial^2 V}{\partial t^2}(x, t)
             & = c^2 \frac{\partial^2 V}{\partial x^2}(x, t) \\
             \frac{\partial^2 I}{\partial t^2}(x, t)
             & = c^2 \frac{\partial^2 I}{\partial x^2}(x, t)
-        \end{align}
+        \end{aligned}
 
 
     where:
@@ -76,7 +76,7 @@ class SteadyImpedanceSolution(BaseSolution):
         self,
         cable: PerfectCable,
         generator: ComplexImpedanceBaseGenerator,
-        load: BaseSteadyImpedance,
+        load: ComplexImpedanceBaseLoad,
         nb_points_ft: int = 1000,
         max_time_ft: float = 1e-7,
     ):
@@ -87,9 +87,9 @@ class SteadyImpedanceSolution(BaseSolution):
                 "`generator` must be an instance of"
                 " `ComplexImpedanceBaseGenerator`."
             )
-        if not isinstance(load, BaseSteadyImpedance):
+        if not isinstance(load, ComplexImpedanceBaseLoad):
             raise TypeError(
-                "`load` must be an instance of `BaseSteadyImpedance`."
+                "`load` must be an instance of `ComplexImpedanceBaseLoad`."
             )
 
         if load.time_varying:
@@ -367,8 +367,8 @@ class SteadyImpedanceSolution(BaseSolution):
         # Get the attenuation factor at the generator.
         alpha_g_ω = self.alpha_g(self.f)
 
-        # Compute the incident wave.
-        v_incident = (
+        # Compute the reflected wave.
+        v_reflected = (
             gamma_l_ω
             * alpha_g_ω
             * self.V_g_hat
@@ -376,4 +376,52 @@ class SteadyImpedanceSolution(BaseSolution):
             * (gamma_g_ω * gamma_l_ω) ** n
         )
 
-        return np.real(np.sum(v_incident))
+        return np.real(np.sum(v_reflected))
+
+    def V_incident_total(self, t: float) -> float:
+        # Get the reflection coefficient at the generator.
+        gamma_g_ω = self.gamma_g(self.f)
+
+        # Get the reflection coefficient at the load.
+        gamma_l_ω = self.gamma_l(self.f)
+
+        # Get the attenuation factor at the generator.
+        alpha_g_ω = self.alpha_g(self.f)
+
+        # Compute the total incident wave.
+        ω = 2 * np.pi * self.f
+        v_incident_total = (
+            alpha_g_ω
+            * self.V_g_hat
+            * np.exp(1j * ω * t)
+            / (
+                1
+                - gamma_g_ω * gamma_l_ω * np.exp(-1j * ω * 2 * self.L / self.c)
+            )
+        )
+        return np.real(np.sum(v_incident_total))
+
+    def V_reflected_total(self, t: float) -> float:
+        # Get the reflection coefficient at the generator.
+        gamma_g_ω = self.gamma_g(self.f)
+
+        # Get the reflection coefficient at the load.
+        gamma_l_ω = self.gamma_l(self.f)
+
+        # Get the attenuation factor at the generator.
+        alpha_g_ω = self.alpha_g(self.f)
+
+        # Compute the total reflected wave.
+        ω = 2 * np.pi * self.f
+        v_reflected_total = (
+            alpha_g_ω
+            * self.V_g_hat
+            * gamma_l_ω
+            * np.exp(1j * ω * (t - 2 * self.L / self.c))
+            / (
+                1
+                - gamma_g_ω * gamma_l_ω * np.exp(-1j * ω * 2 * self.L / self.c)
+            )
+        )
+
+        return np.real(np.sum(v_reflected_total))

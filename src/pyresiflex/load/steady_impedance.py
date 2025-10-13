@@ -1,15 +1,15 @@
 import numpy as np
 
-from pyresiflex.load.base_load import BaseSteadyImpedance
+from pyresiflex.load.base_load import ComplexImpedanceBaseLoad
 
 
-class ConstantResistance(BaseSteadyImpedance):
-    """Constant capacitance load.
+class ConstantResistance(ComplexImpedanceBaseLoad):
+    """Constant resistance load.
 
     Parameters
     ----------
     R : float, optional
-        Load capacitance in Farad.
+        Load resistance in Ohm.
     """
 
     def __init__(self, R: float):
@@ -49,7 +49,7 @@ class ConstantResistance(BaseSteadyImpedance):
         return self.R * np.ones_like(frequency)
 
 
-class Capacitance(BaseSteadyImpedance):
+class Capacitance(ComplexImpedanceBaseLoad):
     """Constant capacitance load.
 
     Parameters
@@ -97,13 +97,13 @@ class Capacitance(BaseSteadyImpedance):
         return 1 / (1j * 2 * np.pi * frequency * self.C)
 
 
-class Inductance(BaseSteadyImpedance):
+class Inductance(ComplexImpedanceBaseLoad):
     """Constant inductance load.
 
     Parameters
     ----------
     L : float, optional
-        Load inductance in Farad.
+        Load inductance in Henry.
     """
 
     def __init__(self, L: float):
@@ -128,7 +128,7 @@ class Inductance(BaseSteadyImpedance):
 
         Notes
         -----
-        The impedance of a inductance is defined as:
+        The impedance of an inductance is defined as:
 
         .. math::
 
