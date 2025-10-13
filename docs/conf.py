@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath("../"))
 # -- Project information ------------------------------------------------------
 
 project = "pyresiflex"
-copyright = "GNU GPLv3"
+copyright = "MIT License"
 author = "Pierre-Antoine Goutier"
 version = pyresiflex.__version__
 release = pyresiflex.__version__
