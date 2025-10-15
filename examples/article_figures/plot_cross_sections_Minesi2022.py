@@ -14,6 +14,7 @@ from pyresiflex.misc.read_lxcat_cross_section import (
     extract_energy_cross_section,
 )
 from pyresiflex.misc.utils import get_path_to_data
+from pyresiflex.misc.units import e, m_e, k_b
 
 
 # %%
@@ -89,10 +90,10 @@ chosen_databases["H"] = "Morgan"  # Only Morgan has data for H.
 set_mpl_style(nb_columns=2)
 fig, ax = plt.subplots()
 
-xmin = 0.1
-xmax = 10
-energy_grid = np.linspace(xmin, xmax, 1000)
-total_cross_section = np.zeros_like(energy_grid)
+xmin = 0.1 # eV
+xmax = 10 # eV
+energy_grid = np.linspace(xmin, xmax, 1000)  # eV
+total_cross_section = np.zeros_like(energy_grid)  # m²
 
 for species, db in chosen_databases.items():
     energies, cross_sections = extract_energy_cross_section(
@@ -147,7 +148,7 @@ ax.plot(
 )
 ax.annotate(
     "Total",
-    xy=(6, 1e-19),
+    xy=(5, 1e-19),
     xytext=(0, 0),
     textcoords="offset points",
     fontsize=30,
@@ -162,4 +163,29 @@ ax.set_xlabel(r"$\mathregular{\varepsilon \, [eV]}$")
 ax.set_ylabel(r"$\mathregular{Q \, [m^2]}$")
 plt.show()
 
+# %%
+
+# Get the temperature from the energy grid.
+# E = (3/2) k_b T  -->  T = (2/3) E / k_b
+# with E in J, k_b in J/K, T in K.
+# Convert energy grid from eV to J.
+T_e = (2 / 3) * (energy_grid * e) / k_b  # K
+
+# Get the thermal velocity from the mean energy.
+v_th = np.sqrt((8 * k_b * T_e) / (np.pi * m_e))  # m/s
+
+n_n = 2.5e24 # m^-3, neutral density at 1 atm and 3000 K.
+
+# Get the momentum transfer frequency.
+nu_m = n_n * total_cross_section * v_th  # s^-1
+
+fig, ax = plt.subplots()
+ax.plot(T_e, nu_m, color="black", lw=4)
+# ax.set_xscale("log")
+# ax.set_yscale("log")
+ax.set_xlim(10_000, 50_000)
+# ax.set_ylim(1e6, 5e10)
+ax.set_xlabel(r"$\mathregular{T_e \, [K]}$")
+ax.set_ylabel(r"$\mathregular{\bar{\nu_{eN}} \, [Hz]}$")
+plt.show()
 # %%
