@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### TODO
 
 - Propagate uncertainty.
-- Erase git history.
 - Add cross section from Minesi part3.
 - Update figure in article with one-colum or two-columns.
 
