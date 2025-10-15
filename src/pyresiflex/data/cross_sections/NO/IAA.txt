@@ -1,0 +1,171 @@
+LXCat, www.lxcat.net
+Generated on 15 Oct 2025. All rights reserved.
+
+RECOMMENDED REFERENCE FORMAT
+- IAA database, www.lxcat.net, retrieved on October 15, 2025.
+Be aware that some databases and solvers can additionally have instructions how to reference corresponding data.
+Please check below in the headers of databases.
+
+CROSS SECTION DATA FORMAT
+In downloaded files, each collision process is defined by a block consisting of
+1st line
+Keyword in capitals indicating the type of the collision. Possible collision types are elastic, effective, excitation,
+ionization, or attachment (capital letters required, key words are case sensitive), where "elastic" is used to denote
+the elastic momentum transfer cross section and where "effective" denotes the total momentum transfer cross section (sum
+of elastic momentum transfer and total inelastic cross sections).  The latter is useful for solving the Boltzmann
+equation in the 2-term approximation.
+2nd line
+Name of the target particle species. This name is a character string, freely chosen by the user, e.g. "Ar". Optionally
+for excitation processes, the name of the corresponding excited state can be specified on the same line, separated from
+the first name either by arrow "->" (dash + greater than) or by double-head arrow "<->" (less than + dash +
+greater than), e.g. "Ar -> Ar*" and "Ar <-> Ar*", respectively. In the later case BOLSIG+ will automatically
+define the inverse superelastic process, constructing the superelastic cross-section by detailed balancing, and
+considering the indicated excited state as the target. In this case, the ratio of statistical weights must be input in
+the 3rd line (see below).
+3rd line
+For elastic and effective collisions, the ratio of the electron mass to the target particle mass. For excitation or
+ionization collisions, the electron energy loss (nominally the threshold energy) in eV. For attachment, the 3rd line is
+missing. In case of an excitation process where an excited state has been indicated on the 2nd line using double-head
+arrow "<->", the 3rd line must specify also ratio of the statistical weights of the final state to the initial state
+as the second parameter in 3rd line this is needed by BOLSIG+ to calculate the de-excitation cross-section. The
+statistical weight ratio, if given, will also be used by the automatic superelastics option in BOLSIG+. If this ratio is
+not provided then BOLSIG+ will assume it unity.
+from 4th line (optionally)
+User comments and reference information, maximum 100 lines. The only constraint on format is that these comment lines
+must not start with a number.
+Finally
+Table of the cross section as a function of energy. The table starts and ends by a line of dashes "------" (at least 5),
+and has otherwise two numbers per line: the energy in eV and the cross section in m2.
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+DATABASE:         IAA (IAA)
+PERMLINK:         www.lxcat.net/IAA
+DESCRIPTION:      Combination up to 2022 of experimental, theoretical and own calculations of electron
+                  integral/differential cross sections with atmospheric species.
+                  
+                  The work was realised by Anthony Schmalzried during his PhD thesis at the Instituto de AstrofÃ­sica de
+                  AndalucÃ­a in Granada, Spain under the supervision of Dr. Alejandro Luque and Dr. Nikolai Lehtinen
+                  from the University of Bergen, Norway.
+                  
+                  Compiled data was only extracted from published results but not from other databases on lxcat.
+                  
+                  Highlights: 
+                  * Use of analytical formulae for electronic exc. and ionisation.
+                  * Use of Born-Bethe extrapolation for total scattering cross section 
+                  * Use of the scattering length for the CS at zero energies
+                  * Complete set of electronic inelastic processes in the mathematical sense of the dipole oscillator
+                  strength (it satisfies the Bethe sum rule)
+                  * The DCS is coherent with the elastic integral and momentum-transfer cross sections. 
+                  
+                  Vulnerability:
+                  All momentum-transfer CS labelled in the datagroup MOMENTUM have been converted from the RESIDUAL
+                  elastic cross section through the multiplication by 1- (average deviation cosine). These may not be
+                  necessarily accurate, especially in regions where the DCS is sparse. 
+                  Transport parameters at low energies with this MTCS will be less accurate than in other databases
+                  because our MTCS are derived from the residual elastic cross section after subtracting all inelastic
+                  (except rotational exc.) from the total scattering cross section (which is usually known with great
+                  accuracy).
+                  
+                  You may wish to take momentum-transfer cross sections from another database, but beware that even if
+                  more accurate results are obtained, the database will lose its coherence!
+                  
+                  List of abbreviations used in comments:
+                  a0 : Bohr radius (~5.29177e-11 m)
+                  DCS : differential cross section
+                  ICS : integral (elastic) cross section
+                  MTCS : momentum-transfer (elastic) cross section
+                  OOS : optical oscillator strength
+                  A : scattering length 
+                  MERT: modified effective range theory
+                  RBEQ* : relativistic binary encounter Bethe "Q" model from [Kim et al, Phys. Rev. A 62, 052710 (2000)]
+                  (* = revised in the thesis)
+CONTACT:          Anthony Schmalzried  
+                  email: anthony.schmalzried@@mailfence.com 
+                  Alejandro Luque, Senior Researcher at the Instituto de AstrofÃ­sica de AndalucÃ­a, Granada 
+                  email: aluque@iaa.es
+HOW TO REFERENCE: A. Schmalzried, A. Luque and N. Lehtinen,  IAA Database on lxcat, www.lxcat.net/IAA, August 2023,
+                  Instituto de AstrofÃ­sica de AndalucÃ­a.
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+************************************************************************************************************************
+
+COMMENT: Elastic momentum-transfer cross sections obtained from elastic cross sections through the average deviation cosine.
+
+********************************************************** NO **********************************************************
+
+ELASTIC
+NO
+ 1.828570e-5
+SPECIES: e / NO
+PROCESS: E + NO -> E + NO, Elastic
+PARAM.:  m/M = 0.0000182857
+COMMENT: Integral elastic momentum-transfer cross section | Source: Angle integrated elastic and
+COMMENT: momentum transfer.
+UPDATED: 2024-01-03 02:07:37
+COLUMNS: Energy (eV) | Cross section (m2)
+-----------------------------
+ 1.000000e-3	3.654450e-20
+ 1.000000e-2	5.192840e-20
+ 1.500000e+0	1.013110e-19
+ 3.000000e+0	8.255000e-20
+ 5.000000e+0	7.405740e-20
+ 7.500000e+0	7.234290e-20
+ 1.000000e+1	7.348260e-20
+ 1.500000e+1	7.283450e-20
+ 2.000000e+1	6.744660e-20
+ 3.000000e+1	6.030710e-20
+ 3.500000e+1	5.436440e-20
+ 4.000000e+1	5.017400e-20
+ 4.500000e+1	4.638290e-20
+ 5.000000e+1	4.273180e-20
+ 5.500000e+1	3.925860e-20
+ 6.000000e+1	3.605550e-20
+ 6.500000e+1	3.318300e-20
+ 7.000000e+1	2.985990e-20
+ 7.500000e+1	2.734730e-20
+ 8.000000e+1	2.513200e-20
+ 8.500000e+1	2.318090e-20
+ 9.000000e+1	2.145900e-20
+ 9.500000e+1	1.993070e-20
+ 1.000000e+2	1.857010e-20
+ 1.500000e+2	1.162900e-20
+ 2.000000e+2	8.387700e-21
+ 3.000000e+2	4.778810e-21
+ 4.000000e+2	3.387220e-21
+ 5.000000e+2	2.597720e-21
+ 7.500000e+2	1.453770e-21
+ 1.000000e+3	9.528730e-22
+ 2.000000e+3	3.219540e-22
+ 3.000000e+3	1.614880e-22
+ 4.000000e+3	9.821770e-23
+ 5.000000e+3	6.660560e-23
+ 6.000000e+3	4.842370e-23
+ 7.000000e+3	3.695330e-23
+ 8.000000e+3	2.922820e-23
+ 9.000000e+3	2.376390e-23
+ 1.000000e+4	1.697520e-23
+ 1.500000e+4	9.366130e-24
+ 2.000000e+4	5.580070e-24
+ 2.500000e+4	3.734150e-24
+ 3.000000e+4	2.690380e-24
+ 4.000000e+4	1.606000e-24
+ 5.000000e+4	1.078290e-24
+ 6.000000e+4	7.800060e-25
+ 7.000000e+4	5.940610e-25
+ 8.000000e+4	4.698340e-25
+ 9.000000e+4	3.824430e-25
+ 1.000000e+5	3.184560e-25
+ 2.000000e+5	9.830200e-26
+ 5.000000e+5	2.277210e-26
+ 1.000000e+6	7.892250e-27
+ 2.000000e+6	2.699050e-27
+ 5.000000e+6	6.014200e-28
+ 1.000000e+7	1.805590e-28
+ 2.000000e+7	5.193650e-29
+ 5.000000e+7	9.595350e-30
+ 1.000000e+8	2.623470e-30
+ 2.000000e+8	7.097660e-31
+ 5.000000e+8	1.246610e-31
+ 1.000000e+9	3.323430e-32
+-----------------------------
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
