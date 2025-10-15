@@ -197,6 +197,7 @@ generator = FromMeasurementGenerator(
 )
 
 # Plot the voltage signal.
+set_mpl_style(nb_columns=1)
 fig, ax = plt.subplots()
 # fig.suptitle("Voltage and current signals from Minesi2022")
 ax.plot(
@@ -253,6 +254,8 @@ expe.compute_plasma_resistance_from_vmes_and_imes(
 
 plasma_load = expe.load_corrected
 
+# Plot the plasma resistance.
+set_mpl_style(nb_columns=1)
 fig, ax = expe.plot_resistance(times=times_expe)
 ax.set_xlim(0, 150)
 ax.set_ylim(-100, 1000)
@@ -313,7 +316,7 @@ times = solution.t  # [s]
 plot_current = True
 plot_energy = True
 
-
+set_mpl_style(nb_columns=2)
 fig, ax_v = plt.subplots()
 
 # .. Set title
