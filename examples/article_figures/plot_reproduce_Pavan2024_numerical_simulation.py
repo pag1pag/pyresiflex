@@ -218,6 +218,9 @@ fig_v, ax_v = plt.subplots()
 fig_i, ax_i = plt.subplots()
 fig_e, ax_e = plt.subplots()
 
+marker_size = 80
+marker_symbol = "x"
+alpha = 0.5
 
 for label, pavan_dict in pavan_loads.items():
     # Extract load and color from the dictionary.
@@ -246,11 +249,12 @@ for label, pavan_dict in pavan_loads.items():
     ax_v.set_ylim(-2, 2)
     # Numerical result.
     t_ref, v_ref = pavan_voltage[label]
-    ax_v.plot(
+    ax_v.scatter(
         t_ref,
         v_ref,
-        color="lightgray",
-        linestyle="-",
+        s=marker_size,
+        color=color,
+        marker=marker_symbol,
     )
     # Model result.
     ax_v.plot(
@@ -258,7 +262,8 @@ for label, pavan_dict in pavan_loads.items():
         solution.voltage / V_ch,
         label=label,
         color=color,
-        ls="--",
+        ls="-",
+        alpha=alpha,
     )
 
     # .. Current
@@ -268,11 +273,12 @@ for label, pavan_dict in pavan_loads.items():
     ax_i.set_ylim(-1, 1.5)
     # Numerical result.
     t_ref, i_ref = pavan_current[label]
-    ax_i.plot(
+    ax_i.scatter(
         t_ref,
         i_ref,
-        color="lightgray",
-        linestyle="-",
+        s=marker_size,
+        color=color,
+        marker=marker_symbol,
     )
     # Model result.
     ax_i.plot(
@@ -280,7 +286,8 @@ for label, pavan_dict in pavan_loads.items():
         solution.current / I_ch,
         label=label,
         color=color,
-        ls="--",
+        ls="-",
+        alpha=alpha,
     )
 
     # .. Energy
@@ -290,11 +297,15 @@ for label, pavan_dict in pavan_loads.items():
     ax_e.set_ylim(0, 0.5)
     # Numerical result.
     t_ref, e_ref = pavan_energy[label]
-    ax_e.plot(
+    # Only select one point out of two for better visibility.
+    t_ref = t_ref[::2]
+    e_ref = e_ref[::2]
+    ax_e.scatter(
         t_ref,
         e_ref,
-        color="lightgray",
-        linestyle="-",
+        s=marker_size,
+        color=color,
+        marker=marker_symbol,
     )
     # Model result.
     ax_e.plot(
@@ -302,21 +313,24 @@ for label, pavan_dict in pavan_loads.items():
         solution.energy / E_ch,
         label=label,
         color=color,
-        ls="--",
+        ls="-",
+        alpha=alpha,
     )
 
 # Add legend for voltage figure.
-(line_v_numerical_legend,) = ax_v.plot(
+line_v_numerical_legend = ax_v.scatter(
     [],
     [],
-    color="lightgray",
-    linestyle="-",
+    color="black",
+    s=marker_size,
+    marker=marker_symbol,
 )
 (line_v_model_legend,) = ax_v.plot(
     [],
     [],
     color="black",
-    ls="--",
+    ls="-",
+    alpha=alpha,
 )
 ax_v.legend(
     [line_v_numerical_legend, line_v_model_legend],
@@ -325,17 +339,19 @@ ax_v.legend(
     loc="upper right",
 )
 # Add legend for current figure.
-(line_i_numerical_legend,) = ax_i.plot(
+line_i_numerical_legend = ax_i.scatter(
     [],
     [],
-    color="lightgray",
-    linestyle="-",
+    color="black",
+    s=marker_size,
+    marker=marker_symbol,
 )
 (line_i_model_legend,) = ax_i.plot(
     [],
     [],
     color="black",
-    ls="--",
+    ls="-",
+    alpha=alpha,
 )
 ax_i.legend(
     [line_i_numerical_legend, line_i_model_legend],
@@ -344,17 +360,19 @@ ax_i.legend(
     loc="upper right",
 )
 # Add legend for energy figure.
-(line_e_numerical_legend,) = ax_e.plot(
+line_e_numerical_legend = ax_e.scatter(
     [],
     [],
-    color="lightgray",
-    linestyle="-",
+    color="black",
+    s=marker_size,
+    marker=marker_symbol,
 )
 (line_e_model_legend,) = ax_e.plot(
     [],
     [],
     color="black",
-    ls="--",
+    ls="-",
+    alpha=alpha,
 )
 ax_e.legend(
     [line_e_numerical_legend, line_e_model_legend],
