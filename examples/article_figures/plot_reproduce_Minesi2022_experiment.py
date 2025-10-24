@@ -176,7 +176,7 @@ cable = PerfectCable(
 # ---------------------
 
 # Impedance of the generator.
-R_g = 1  # [Ohm]  (Chosen between 1 and 10 Ohm in the article)
+R_g = 10  # [Ohm]  (Chosen between 1 and 10 Ohm in the article)
 # Attenuation coefficient.
 alpha_g = Z_c / (Z_c + R_g)  # [-]
 # Pulse duration.
@@ -248,8 +248,11 @@ expe = PurelyResistiveExperiment(
     correct_time_zero=True,
 )
 
+threshold_voltage_for_resistance = 0.2 * np.max(voltages_expe)  # [V]
 expe.compute_plasma_resistance_from_vmes_and_imes(
-    times_expe, threshold=400, channel_formation_time=42e-9
+    times_expe,
+    threshold=threshold_voltage_for_resistance,
+    channel_formation_time=42e-9,
 )
 
 plasma_load = expe.load_corrected
@@ -257,7 +260,7 @@ plasma_load = expe.load_corrected
 # Plot the plasma resistance.
 set_mpl_style(nb_columns=1)
 fig, ax = expe.plot_resistance(times=times_expe)
-ax.set_xlim(0, 150)
+ax.set_xlim(0, 200)
 ax.set_ylim(-100, 1000)
 plt.show()
 
@@ -315,6 +318,17 @@ times = solution.t  # [s]
 # Do we want to plot the current and energy?
 plot_current = True
 plot_energy = True
+# Do we want to shift the time axis to have t - x/c?
+shift_time_axis = False
+
+if shift_time_axis:
+    times_shifted = times - x / c
+    times_expe_shifted = times_expe
+    x_label = r"$\mathregular{t - \frac{x_{meas}}{c} \, [ns]}$"
+else:
+    times_shifted = times
+    times_expe_shifted = times_expe + x / c
+    x_label = r"$\mathregular{t \, [ns]}$"
 
 set_mpl_style(nb_columns=2)
 fig, ax_v = plt.subplots()
@@ -331,38 +345,38 @@ suptitle += f" at x = {x:.2f} m"
 
 # Plot voltage.
 plot_line_v = ax_v.plot(
-    (times - x / c) * 1e9,
+    times_shifted * 1e9,
     voltages * 1e-3,
     color="k",
     ls="--",
     label="Voltage (computed)",
 )
 plot_line_v_measured = ax_v.plot(
-    times_expe * 1e9,
+    times_expe_shifted * 1e9,
     voltages_expe * 1e-3,
     color="k",
     label="Voltage (experimental)",
     alpha=0.5,
 )
 # .. Plot options for voltage.
-ax_v.set_xlabel(r"$\mathregular{t - \frac{x_{meas}}{c} \, [ns]}$")
+ax_v.set_xlabel(x_label)
 ax_v.set_ylabel(r"$\mathregular{V \, [kV]}$")
 ax_v.set_ylim(-4, 4)
 ax_v.spines["left"].set_color("k")
-ax_v.set_xlim(times[0] * 1e9, times[-1] * 1e9)
+ax_v.set_xlim(times_shifted[0] * 1e9, times_shifted[-1] * 1e9)
 
 # Plot current.
 if plot_current:
     ax_i = ax_v.twinx()
     ax_i.plot(
-        (times - x / c) * 1e9,
+        times_shifted * 1e9,
         currents,
         color="r",
         ls="--",
         label="Current (computed)",
     )
     ax_i.plot(
-        times_expe * 1e9,
+        times_expe_shifted * 1e9,
         currents_expe,
         color="r",
         label="Current (experimental)",
@@ -386,14 +400,14 @@ if plot_current:
 if plot_energy:
     ax_e = ax_v.twinx()
     ax_e.plot(
-        (times - x / c) * 1e9,
+        times_shifted * 1e9,
         energies * 1e3,
         color="b",
         ls="--",
         label="Energy",
     )
     ax_e.plot(
-        times_expe * 1e9,
+        times_expe_shifted * 1e9,
         energies_expe * 1e3,
         color="b",
         label="Energy (experimental)",
@@ -464,7 +478,7 @@ ax_i.set_ylim(-25, 50)
 plt.show()
 
 # Define the zero at the first time the voltage reaches `threshold_voltage`.
-threshold_voltage = 200  # [V]
+threshold_voltage = 120  # [V]
 idx_first = np.where(np.abs(voltages_raw_anode) > threshold_voltage)[0][0]
 times_raw_anode = times_raw_anode - times_raw_anode[idx_first]
 
@@ -537,30 +551,41 @@ times = solution.t  # [s]
 # Do we want to plot the current and energy?
 plot_current = True
 plot_energy = True
+# Do we want to shift the time axis to have t - x/c?
+shift_time_axis = False
+
+if shift_time_axis:
+    times_shifted = times - x / c
+    times_expe_anode_shifted = times_expe_anode
+    x_label = r"$\mathregular{t - \frac{x_{meas}}{c} \, [ns]}$"
+else:
+    times_shifted = times
+    times_expe_anode_shifted = times_expe_anode + x / c
+    x_label = r"$\mathregular{t \, [ns]}$"
 
 fig, ax_v = plt.subplots()
 
 # Plot voltage.
 plot_line_v = ax_v.plot(
-    (times - x / c) * 1e9,
+    times_shifted * 1e9,
     voltages * 1e-3,
     color="k",
     ls="--",
     label="Voltage (computed)",
 )
 plot_line_v_measured = ax_v.plot(
-    times_expe_anode * 1e9,
+    times_expe_anode_shifted * 1e9,
     voltages_expe_anode * 1e-3,
     color="k",
     label="Voltage (experimental)",
     alpha=0.5,
 )
 # .. Plot options for voltage.
-ax_v.set_xlabel(r"$\mathregular{t - \frac{x_{meas}}{c} \, [ns]}$")
+ax_v.set_xlabel(x_label)
 ax_v.set_ylabel(r"$\mathregular{V \, [kV]}$")
 ax_v.set_ylim(-6, 8)
 ax_v.spines["left"].set_color("k")
-ax_v.set_xlim(times[0] * 1e9, times[-1] * 1e9)
+ax_v.set_xlim(times_shifted[0] * 1e9, times_shifted[-1] * 1e9)
 # Move position of the y-label.
 ax_v.yaxis.set_label_coords(-0.04, 0.45)
 
@@ -568,14 +593,14 @@ ax_v.yaxis.set_label_coords(-0.04, 0.45)
 if plot_current:
     ax_i = ax_v.twinx()
     ax_i.plot(
-        (times - x / c) * 1e9,
+        times_shifted * 1e9,
         currents,
         color="r",
         ls="--",
         label="Current (computed)",
     )
     ax_i.plot(
-        times_expe_anode * 1e9,
+        times_expe_anode_shifted * 1e9,
         currents_expe_anode,
         color="r",
         label="Current (experimental)",
@@ -598,14 +623,14 @@ if plot_current:
 if plot_energy:
     ax_e = ax_v.twinx()
     ax_e.plot(
-        (times - x / c) * 1e9,
+        times_shifted * 1e9,
         energies * 1e3,
         color="b",
         ls="--",
         label="Energy",
     )
     ax_e.plot(
-        times_expe_anode * 1e9,
+        times_expe_anode_shifted * 1e9,
         energies_expe_anode * 1e3,
         color="b",
         label="Energy (experimental)",
