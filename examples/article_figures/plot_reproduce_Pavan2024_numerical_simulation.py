@@ -463,14 +463,12 @@ for label, pavan_dict in pavan_loads.items():
     ax_e.set_ylim(0, 0.5)
 
 (line_v_model_legend,) = ax_v.plot([], [], color="black")
-(line_v_numerical_legend,) = ax_v.plot(
+line_v_numerical_legend = ax_v.scatter(
     [],
     [],
     color="black",
-    marker="x",
-    linestyle="None",
-    markersize=30,
-    markeredgewidth=4,
+    s=marker_size,
+    marker=marker_symbol,
 )
 ax_v.legend(
     [line_v_model_legend, line_v_numerical_legend],

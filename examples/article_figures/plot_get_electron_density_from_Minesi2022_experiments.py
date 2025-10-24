@@ -164,7 +164,12 @@ expected_R_p_with_nan = expe.Rp_corrected_with_nan
 # ---------------------------------------------
 
 times_plasma, nu_m_3000K, nu_m_2000K = np.loadtxt(
-    "momentum_transfer_frequency_vs_time.csv",
+    get_path_to_data(
+        "cross_sections",
+        "Bolsig",
+        "output",
+        "momentum_transfer_frequency_vs_time.csv",
+    ),
     delimiter=",",
     skiprows=1,
     unpack=True,

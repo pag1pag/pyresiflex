@@ -30,7 +30,7 @@ This includes the unit tests in the `tests` directory,
 as well as the doctests in the codebase.')]
 tests:
 	uv run pytest tests -vv
-	uv run pytest src/pyresiflex --doctest-modules -vv
+	uv run pytest src/pyresiflex --doctest-modules -vv --ignore src/pyresiflex/data
 
 [doc('Run `just tests-cov` to run all the tests with coverage.
 This includes generating coverage reports in various formats.')]

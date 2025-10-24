@@ -46,7 +46,7 @@ extensions = [
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "pyresiflex/data/*"]
 
 
 # -- autodoc configuration ----------------------------------------------------
@@ -95,7 +95,7 @@ napoleon_type_aliases = {
 # -- AutoAPI configuration ---------------------------------------------------
 
 autoapi_dirs = ["../src/pyresiflex"]
-autoapi_ignore = ["*/version.py"]
+autoapi_ignore = ["*/version.py", "*/data/*"]
 autoapi_options = [  # https://sphinx-autoapi.readthedocs.io/en/latest/reference/config.html#confval-autoapi_options
     "members",
     "inherited-members",
