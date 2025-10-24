@@ -258,10 +258,6 @@ class PurelyResistiveExperiment:
         Rp_corrected = np.copy(R_p)
         # - the denominator is too small,
         Rp_corrected[np.abs(denominator) < threshold] = np.nan
-        # - the incident voltage is too small,
-        Rp_corrected[np.abs(V_i) < threshold] = np.nan
-        # - the reflected voltage is too small.
-        Rp_corrected[np.abs(V_r) < threshold] = np.nan
         # - the resistance is negative.
         Rp_corrected[Rp_corrected < 0] = np.nan
         # For the time before `channel_formation_time`, the resistance is not

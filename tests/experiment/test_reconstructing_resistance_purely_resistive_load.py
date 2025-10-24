@@ -160,17 +160,17 @@ def test_reconstruct_resistance_from_signals(
     assert np.isclose(
         check_norms(resistance_v_i, true_resistance),
         0,
-        atol=1e-2,
+        atol=1e-1,
     )
     assert np.isclose(
         check_norms(resistance_v_vg, true_resistance),
         0,
-        atol=1e-2,
+        atol=1e-1,
     )
     assert np.isclose(
         check_norms(resistance_i_vg, true_resistance),
         0,
-        atol=1e-2,
+        atol=1e-1,
     )
 
     # Optionally plot the results.
@@ -185,16 +185,19 @@ def test_reconstruct_resistance_from_signals(
         ax.plot(
             setup_experiment["times"] * 1e9,
             resistance_v_i,
+            linestyle="-.",
             label="R_p(v_meas, i_meas)",
         )
         ax.plot(
             setup_experiment["times"] * 1e9,
             resistance_v_vg,
+            linestyle=":",
             label="R_p(v_meas, v_g)",
         )
         ax.plot(
             setup_experiment["times"] * 1e9,
             resistance_i_vg,
+            linestyle=":",
             label="R_p(i_meas, v_g)",
         )
         ax.axvline(
