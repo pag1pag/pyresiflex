@@ -52,6 +52,8 @@ def get_path_to_data(*paths: str, force_return: bool = False) -> Path:
     path_to_data_folder = get_root().joinpath("data", *paths)
 
     if not (path_to_data_folder.exists() or force_return):
-        raise FileNotFoundError(f"File or folder not found: {path_to_data_folder}")
+        raise FileNotFoundError(
+            f"File or folder not found: {path_to_data_folder}"
+        )
 
     return path_to_data_folder.resolve()
