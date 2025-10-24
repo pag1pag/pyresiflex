@@ -154,39 +154,97 @@ ax.set_ylim(-100, 1000)
 plt.show()
 
 times_expe = expe.times_corrected
+times_expe_with_nan = expe.times_corrected_with_nan
 expected_R_p = expe.Rp_corrected
+expected_R_p_with_nan = expe.Rp_corrected_with_nan
 
+
+# %%
+# Get the electron-neutral collision frequency.
+# ---------------------------------------------
+
+times_plasma, nu_m_3000K, nu_m_2000K = np.loadtxt(
+    "momentum_transfer_frequency_vs_time.csv",
+    delimiter=",",
+    skiprows=1,
+    unpack=True,
+)
+# plot the momentum transfer frequency vs time.
+fig, ax = plt.subplots()
+ax.plot(times_plasma * 1e9, nu_m_3000K, label="3000 K")
+ax.plot(times_plasma * 1e9, nu_m_2000K, label="2000 K")
+ax.set_xlabel(r"$\mathregular{t - \frac{L}{c} \, [ns]}$")
+ax.set_ylabel(r"$\mathregular{\nu_m \, [Hz]}$")
+ax.set_title("Momentum transfer frequency in the plasma")
+ax.legend()
+plt.show()
+
+# %%
+# Interpolate the momentum transfer frequency to match experimental times,
+# taking care of the mismatch in time windows.
+
+nu_en_3000K = np.interp(
+    times_expe,
+    times_plasma + L / c,
+    nu_m_3000K,
+    left=0,
+    right=0,
+)
+nu_en_2000K = np.interp(
+    times_expe,
+    times_plasma + L / c,
+    nu_m_2000K,
+    left=0,
+    right=0,
+)
+nu_en_3000K_with_nan = np.interp(
+    times_expe_with_nan,
+    times_plasma + L / c,
+    nu_m_3000K,
+    left=np.nan,
+    right=np.nan,
+)
+nu_en_2000K_with_nan = np.interp(
+    times_expe_with_nan,
+    times_plasma + L / c,
+    nu_m_2000K,
+    left=np.nan,
+    right=np.nan,
+)
+# plot the momentum transfer frequency vs time.
+fig, ax = plt.subplots()
+ax.plot(
+    times_expe * 1e9, nu_en_3000K, label="3000 K", ls="--", lw=2, color="k"
+)
+ax.plot(
+    times_expe * 1e9, nu_en_2000K, label="2000 K", ls="--", lw=2, color="r"
+)
+ax.plot(
+    times_expe_with_nan * 1e9,
+    nu_en_3000K_with_nan,
+    label="3000 K",
+    ls="-",
+    lw=4,
+    color="k",
+)
+ax.plot(
+    times_expe_with_nan * 1e9,
+    nu_en_2000K_with_nan,
+    label="2000 K",
+    ls="-",
+    lw=4,
+    color="r",
+)
+ax.set_xlabel(r"$\mathregular{t \, [ns]}$")
+ax.set_ylabel(r"$\mathregular{\nu_m \, [Hz]}$")
+ax.set_title("Momentum transfer frequency in the plasma")
+ax.legend()
+ax.set_xlim(0, 150)
+plt.show()
 
 # %%
 # Get back to electron density.
 # -----------------------------------
-
-# Gas pressure.
-P_gas = 1e5  # [Pa]
-# Gas temperature.
-T_gas = 3000  # [K]
-# Gas density, assuming ideal gas and constant density.
-n_gas = P_gas / (u.k_b * T_gas)  # [m^-3]
-
-# Average momentum-transfer cross-section for electron-neutral collision.
-# Here, it is assumed that there is only nitrogen in the gas.
-# Experimental data from LXCat.
-Q_en = 1e-19  # m^2
-
-# Electron temperature.
-T_e = 4e4  # [K]
-# Electron thermal velocity.
-v_th_e = np.sqrt(8 * u.k_b * T_e / (np.pi * u.m_e))  # [m/s]
-
-# Electron-neutral collision frequency.
-nu_en = n_gas * Q_en * v_th_e  # [Hz]
-
-print(f"Electron-neutral collision frequency: {nu_en:.2e} Hz")
-
-# Electrical conductivity from electron-ion collisions.
-C = 7.5e-3
-log_lambda = 10  # Coulomb logarithm.
-sigma_ei = C * T_e**1.5 / log_lambda  # [S/m]
 
 # .. Geometry parameters
 #  Gap distance.
@@ -195,34 +253,31 @@ d_gap = 5e-3  # [m]
 r_discharge = 0.6e-3  # [m]
 # Discharge section.
 S_discharge = np.pi * r_discharge**2  # [m^2]
-# Discharge radius corrected.
-r_discharge_corrected = r_discharge / 2  # [m]
-# Discharge section corrected.
-S_discharge_corrected = np.pi * r_discharge_corrected**2  # [m^2]
+
 
 # Electron density.
-n_e = (
-    u.m_e
-    / u.e**2
-    * nu_en
-    * 1
-    / ((expected_R_p * S_discharge / d_gap) - 1 / sigma_ei)
-)  # [m^-3]
-# Electron density corrected (surface has changed).
-n_e_corrected = (
-    u.m_e
-    / u.e**2
-    * nu_en
-    * 1
-    / ((expected_R_p * S_discharge_corrected / d_gap) - 1 / sigma_ei)
-)  # [m^-3]
-# Remove negative values, which are non-physical.
-n_e_corrected[n_e_corrected < 0] = np.nan
+def n_e_from_R_p(plasma_resistance, electron_neutral_collision_frequency):
+    return (
+        u.m_e
+        / u.e**2
+        * electron_neutral_collision_frequency
+        * 1
+        / (plasma_resistance * S_discharge / d_gap)
+    )  # [m^-3]
 
 
-# %%
-# Plot the electron density vs time.
-# ----------------------------------
+n_e_3000K = n_e_from_R_p(expected_R_p, nu_en_3000K)  # [m^-3]
+n_e_3000K_with_nan = n_e_from_R_p(
+    expected_R_p_with_nan, nu_en_3000K_with_nan
+)  # [m^-3]
+n_e_2000K = n_e_from_R_p(expected_R_p, nu_en_2000K)  # [m^-3]
+n_e_2000K_with_nan = n_e_from_R_p(
+    expected_R_p_with_nan, nu_en_2000K_with_nan
+)  # [m^-3]
+
+## %%
+## Plot the electron density vs time.
+## ----------------------------------
 
 # Create the figure.
 fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True, facecolor="w")
@@ -261,22 +316,38 @@ for ne, label, marker, color in zip(ne_s, labels, markers, colors):
 # to avoid interpolation artifacts.
 for t_start, t_end in [(40, 70), (90, 120), (120, 140)]:
     mask = (times_expe * 1e9 >= t_start) & (times_expe * 1e9 <= t_end)
+    mask_with_nan = (times_expe_with_nan * 1e9 >= t_start) & (
+        times_expe_with_nan * 1e9 <= t_end
+    )
     for ax in (ax1, ax2):
+        # Plot results for 3000 K.
         ax.plot(
             times_expe[mask] * 1e9,
-            n_e[mask] * 1e-6,  # Convert to cm^-3.
+            n_e_3000K[mask] * 1e-6,  # Convert to cm^-3.
+            color="magenta",
+            ls="--",
+            lw=2,
+        )
+        ax.plot(
+            times_expe_with_nan * 1e9,
+            n_e_3000K_with_nan * 1e-6,  # Convert to cm^-3.
             color="magenta",
             ls="-",
         )
-
+        # Plot results for 2000 K.
         ax.plot(
             times_expe[mask] * 1e9,
-            n_e_corrected[mask] * 1e-6,  # Convert to cm^-3.
-            color="k",
-            lw=4,
+            n_e_2000K[mask] * 1e-6,  # Convert to cm^-3.
+            color="orange",
+            lw=2,
+            ls="--",
+        )
+        ax.plot(
+            times_expe_with_nan * 1e9,
+            n_e_2000K_with_nan * 1e-6,  # Convert to cm^-3.
+            color="orange",
             ls="-",
         )
-
 
 # Plot settings.
 
