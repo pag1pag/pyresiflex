@@ -48,7 +48,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 COMMENT: Dr. Detlef Loffhagen from Leibniz Institute for Plasma Science and Technology (INP)in Greifswald has kindly provided the
          LXCat team with the numerical data tables communicated to him by Prof Hayashi in 1996 for cross sections in CO2. These
          have been uploaded to LXCat to correct a number of small errors in the data previously available on this site. In
-         addition, the small dissociative attachment cross section is now included. 
+         addition, the small dissociative attachment cross section is now included.
          These cross sections (except for dissociative attachment) are given in M. Hayashi. Electron Collision Cross Sections,
          pages 748â€“766. in: Japan Society for the Promotion of Science (Ed.). Plasma Material Science Handbook. Ohmsha Ltd.,
          Tokyo, 1992. The dissociative attachment cross section as well as the other cross sections for CO2 are included in Fig.

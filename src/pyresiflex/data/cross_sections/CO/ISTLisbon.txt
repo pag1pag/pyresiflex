@@ -73,7 +73,7 @@ COMMENT: Ogloblina P, Tejero-del-Caz A, Guerra V and Alves L L, #039#039Electron
          mechanisms (see below), in order to reproduce measured swarm data.
          IMPORTANT NOTICE ABOUT ROTATIONAL TRANSITIONS
          This set is to be completed with the rotational cross sections for transitions CO(X,v=0,J) --> CO(X,v=0,J+1) (J=0,1,
-         â€¦ ,16), available in this database under group CO-rot (see CO-rot description for more details). 
+         â€¦ ,16), available in this database under group CO-rot (see CO-rot description for more details).
          When the full cross section set for CO (containing momentum-transfer, electronic and vibrational excitations, ionization
          and attachment from ground-state) and CO-rot (including the rotational excitation / deexcitation to/from the CO(J=0),
          CO(J=1),., CO(J=17) states) are used in a two-term Boltzmann solver they yield swarm parameters that agree with

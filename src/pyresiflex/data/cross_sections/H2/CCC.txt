@@ -57,13 +57,13 @@ DESCRIPTION:      The convergent close-coupling method (CCC) is a non-relativist
 CONTACT:          Igor Bray and Dmitry V Fursa
 HOW TO REFERENCE: 1. "Convergent close-coupling calculations of electron-hydrogen scattering"
                   Igor Bray and Andris T. Stelbovics, Phys Rev A, 46, 6995-7011 (1992)
-                  
+
                   2. â€œCalculation of electron-helium scatteringâ€
                   Dmitry V. Fursa and Igor Bray,  Phys. Rev. A 52, 1279-1297  (1995).
-                   
+
                   3. â€œElectron scattering from the molecular hydrogen ion and its isotopologuesâ€
                   Mark C. Zammit, Dmitry V. Fursa, and Igor Bray,  Phys. Rev. A 90, 022711 (2014).
-                  
+
                   4. â€œComplete Solution of Electronic Excitation and Ionization in Electron-Hydrogen Molecule
                   Scatteringâ€
                    Mark C. Zammit, Jeremy S. Savage, Dmitry V. Fursa, and Igor Bray, accepted: Phys. Rev. Lett. 116,

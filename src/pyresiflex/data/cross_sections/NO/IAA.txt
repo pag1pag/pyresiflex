@@ -42,46 +42,46 @@ DATABASE:         IAA (IAA)
 PERMLINK:         www.lxcat.net/IAA
 DESCRIPTION:      Combination up to 2022 of experimental, theoretical and own calculations of electron
                   integral/differential cross sections with atmospheric species.
-                  
+
                   The work was realised by Anthony Schmalzried during his PhD thesis at the Instituto de AstrofÃ­sica de
                   AndalucÃ­a in Granada, Spain under the supervision of Dr. Alejandro Luque and Dr. Nikolai Lehtinen
                   from the University of Bergen, Norway.
-                  
+
                   Compiled data was only extracted from published results but not from other databases on lxcat.
-                  
-                  Highlights: 
+
+                  Highlights:
                   * Use of analytical formulae for electronic exc. and ionisation.
-                  * Use of Born-Bethe extrapolation for total scattering cross section 
+                  * Use of Born-Bethe extrapolation for total scattering cross section
                   * Use of the scattering length for the CS at zero energies
                   * Complete set of electronic inelastic processes in the mathematical sense of the dipole oscillator
                   strength (it satisfies the Bethe sum rule)
-                  * The DCS is coherent with the elastic integral and momentum-transfer cross sections. 
-                  
+                  * The DCS is coherent with the elastic integral and momentum-transfer cross sections.
+
                   Vulnerability:
                   All momentum-transfer CS labelled in the datagroup MOMENTUM have been converted from the RESIDUAL
                   elastic cross section through the multiplication by 1- (average deviation cosine). These may not be
-                  necessarily accurate, especially in regions where the DCS is sparse. 
+                  necessarily accurate, especially in regions where the DCS is sparse.
                   Transport parameters at low energies with this MTCS will be less accurate than in other databases
                   because our MTCS are derived from the residual elastic cross section after subtracting all inelastic
                   (except rotational exc.) from the total scattering cross section (which is usually known with great
                   accuracy).
-                  
+
                   You may wish to take momentum-transfer cross sections from another database, but beware that even if
                   more accurate results are obtained, the database will lose its coherence!
-                  
+
                   List of abbreviations used in comments:
                   a0 : Bohr radius (~5.29177e-11 m)
                   DCS : differential cross section
                   ICS : integral (elastic) cross section
                   MTCS : momentum-transfer (elastic) cross section
                   OOS : optical oscillator strength
-                  A : scattering length 
+                  A : scattering length
                   MERT: modified effective range theory
                   RBEQ* : relativistic binary encounter Bethe "Q" model from [Kim et al, Phys. Rev. A 62, 052710 (2000)]
                   (* = revised in the thesis)
-CONTACT:          Anthony Schmalzried  
-                  email: anthony.schmalzried@@mailfence.com 
-                  Alejandro Luque, Senior Researcher at the Instituto de AstrofÃ­sica de AndalucÃ­a, Granada 
+CONTACT:          Anthony Schmalzried
+                  email: anthony.schmalzried@@mailfence.com
+                  Alejandro Luque, Senior Researcher at the Instituto de AstrofÃ­sica de AndalucÃ­a, Granada
                   email: aluque@iaa.es
 HOW TO REFERENCE: A. Schmalzried, A. Luque and N. Lehtinen,  IAA Database on lxcat, www.lxcat.net/IAA, August 2023,
                   Instituto de AstrofÃ­sica de AndalucÃ­a.

@@ -46,7 +46,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ************************************************************************************************************************
 
 COMMENT: !! ATTENTION !! Cross sections for excitation of rotational levels (very important in H20) are not included in this
-         cross section dataset. 
+         cross section dataset.
          M. Hayashi, quotElectron collision cross sections for molecules determined from beam and swarm data,quot in
          quotSwarm Studies and Inelastic Electron-Molecule Collisions,quot eds. L.C. Pitchford, B.V. McKoy, A. Chutjian, and
          S. Trajmar, (Springer-Verlag, New York, 1987).

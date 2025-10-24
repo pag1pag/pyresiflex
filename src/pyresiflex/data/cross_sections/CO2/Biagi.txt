@@ -47,9 +47,9 @@ DESCRIPTION:      These data were transcribed from S.F. Biagi's FORTRAN code, Ma
                   multi-term Boltzmann code), but their use in a 2-term Boltzmann solver gives reasonably accurate
                   results in most cases. The the LXCat data tables do not always have the same energy resolution as the
                   original data in the MagBoltz code. This limited energy resolution can introduce small (1%)
-                  differences in the calculated drift velocity at low E/N. 
-                  For history and detailed notes, see http://consult.cern.ch/writeup/magboltz/ 
-                  
+                  differences in the calculated drift velocity at low E/N.
+                  For history and detailed notes, see http://consult.cern.ch/writeup/magboltz/
+
                   Oct 2011 : update of Ar and Kr data taken from MagBoltz version 8.97 Nov 2011 : small changes in Xe
                   ionization cross sections, taken from MagBoltz v8.97
                   March 2015: cross sections for SF6 were transcribed from Magboltz version 10.6 from February 2014.
