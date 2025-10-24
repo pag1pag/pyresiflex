@@ -363,7 +363,7 @@ ax_v.set_xlabel(x_label)
 ax_v.set_ylabel(r"$\mathregular{V \, [kV]}$")
 ax_v.set_ylim(-4, 4)
 ax_v.spines["left"].set_color("k")
-ax_v.set_xlim(times_shifted[0] * 1e9, times_shifted[-1] * 1e9)
+ax_v.set_xlim(0, times_shifted[-1] * 1e9)
 
 # Plot current.
 if plot_current:
@@ -478,7 +478,7 @@ ax_i.set_ylim(-25, 50)
 plt.show()
 
 # Define the zero at the first time the voltage reaches `threshold_voltage`.
-threshold_voltage = 120  # [V]
+threshold_voltage = 140  # [V]
 idx_first = np.where(np.abs(voltages_raw_anode) > threshold_voltage)[0][0]
 times_raw_anode = times_raw_anode - times_raw_anode[idx_first]
 
