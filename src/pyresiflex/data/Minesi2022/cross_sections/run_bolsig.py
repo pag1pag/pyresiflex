@@ -1,10 +1,10 @@
-import subprocess
 import os
+import subprocess
 from pathlib import Path
+
 import numpy as np
 
 from pyresiflex.misc.utils import get_path_to_data
-
 
 BOLSIG_DIR = get_path_to_data() / "Minesi2022" / "cross_sections"
 
@@ -17,7 +17,8 @@ def run(instruction_file: Path, verbose: bool = False):
     instruction_file : Path
         Path to the Bolsigminus instruction file.
     verbose : bool, optional
-        If True, print the stdout and stderr of the subprocess, by default False.
+        If True, print the stdout and stderr of the subprocess,
+        by default False.
     """
     # Choose executable based on OS.
     if os.name == "nt":  # Windows.
@@ -91,7 +92,7 @@ def extract_bolsig_data(
     current_data_key = None
     for line in lines:
         line = line.strip()
-        if line.startswith(f"E/N (Td)"):
+        if line.startswith("E/N (Td)"):
             parts = line.split("\t")
             if len(parts) == 2 and parts[1] in data_dict:
                 current_data_key = parts[1]
@@ -145,7 +146,9 @@ if __name__ == "__main__":
 
     for file_name in file_names:
         bolsig_result = BOLSIG_DIR / file_name
-        bolsig_result_extracted = BOLSIG_DIR / f"{file_name.replace('.dat', '.csv')}"
+        bolsig_result_extracted = (
+            BOLSIG_DIR / f"{file_name.replace('.dat', '.csv')}"
+        )
 
         extract_bolsig_data(
             bolsig_result,
@@ -162,4 +165,6 @@ if __name__ == "__main__":
         if (output_folder / bolsig_result_extracted.name).exists():
             (output_folder / bolsig_result_extracted.name).unlink()
         bolsig_result.rename(output_folder / bolsig_result.name)
-        bolsig_result_extracted.rename(output_folder / bolsig_result_extracted.name)
+        bolsig_result_extracted.rename(
+            output_folder / bolsig_result_extracted.name
+        )

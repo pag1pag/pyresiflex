@@ -1,48 +1,48 @@
 BOLSIG+ version: 07/2024
 Collision input data:
 --------------------------------------------------
-CO2                                                             
+CO2
 concat_xsections.dat
 --------------------------------------------------
-CO                                                              
+CO
 concat_xsections.dat
 --------------------------------------------------
-H2O                                                             
+H2O
 concat_xsections.dat
 --------------------------------------------------
-N2                                                              
+N2
 concat_xsections.dat
 --------------------------------------------------
-O2                                                              
+O2
 concat_xsections.dat
- 
- 
- 
-Angular frequency / N (m3.rad/s)           0.00000    
-Cosine of E-B field angle                  0.00000    
-Gas temperature (K)                        3000.00    
-Excitation temperature (K)                 3000.00    
-Transition energy (eV)                     0.00000    
-Ionization degree                          0.00000    
+
+
+
+Angular frequency / N (m3.rad/s)           0.00000
+Cosine of E-B field angle                  0.00000
+Gas temperature (K)                        3000.00
+Excitation temperature (K)                 3000.00
+Transition energy (eV)                     0.00000
+Ionization degree                          0.00000
 Gas particle density (1/m3)               0.200000E+25
-Ion charge parameter                       1.00000    
-Ion/neutral mass ratio                     1.00000    
-Coulomb collision model                    1.00000    
-Energy sharing                             1.00000    
-Growth model                               1.00000    
-Maxwellian mean energy (eV)                0.00000    
-# of grid points                           200.000    
+Ion charge parameter                       1.00000
+Ion/neutral mass ratio                     1.00000
+Coulomb collision model                    1.00000
+Energy sharing                             1.00000
+Growth model                               1.00000
+Maxwellian mean energy (eV)                0.00000
+# of grid points                           200.000
 Precision                                 0.100000E-09
 Convergence                               0.100000E-03
-Maximum # of iterations                    1000.00    
+Maximum # of iterations                    1000.00
 Mole fraction CO2                         0.322581E-01
 Mole fraction CO                          0.495392E-01
-Mole fraction H2O                         0.108295    
-Mole fraction N2                          0.760369    
+Mole fraction H2O                         0.108295
+Mole fraction N2                          0.760369
 Mole fraction O2                          0.495392E-01
- 
- 
-E/N (Td)      	Electric field / N (Td)                                         
+
+
+E/N (Td)      	Electric field / N (Td)
 0.100000	0.100000
 0.109750	0.109750
 0.120450	0.120450
@@ -143,9 +143,9 @@ E/N (Td)      	Electric field / N (Td)
 830.217	830.217
 911.163	911.163
 1000.00	1000.00
- 
- 
-E/N (Td)      	Grid type                                                       
+
+
+E/N (Td)      	Grid type
 0.100000	0.00000
 0.109750	3.00000
 0.120450	3.00000
@@ -246,9 +246,9 @@ E/N (Td)      	Grid type
 830.217	3.00000
 911.163	3.00000
 1000.00	3.00000
- 
- 
-E/N (Td)      	Maximum energy                                                  
+
+
+E/N (Td)      	Maximum energy
 0.100000	200.000
 0.109750	6.21116
 0.120450	6.21116
@@ -349,8 +349,8 @@ E/N (Td)      	Maximum energy
 830.217	246.246
 911.163	291.081
 1000.00	291.081
- 
- 
+
+
 E/N (Td)	Mean energy (eV)
 0.100000	0.387797
 0.109750	0.387803
@@ -452,8 +452,8 @@ E/N (Td)	Mean energy (eV)
 830.217	13.7090
 911.163	14.7645
 1000.00	15.9205
- 
- 
+
+
 E/N (Td)	Mobility *N (1/m/V/s)
 0.100000	0.110793E+25
 0.109750	0.110793E+25
@@ -555,8 +555,8 @@ E/N (Td)	Mobility *N (1/m/V/s)
 830.217	0.565054E+24
 911.163	0.551732E+24
 1000.00	0.538644E+24
- 
- 
+
+
 E/N (Td)	Diffusion coefficient *N (1/m/s)
 0.100000	0.286498E+24
 0.109750	0.286503E+24
@@ -658,8 +658,8 @@ E/N (Td)	Diffusion coefficient *N (1/m/s)
 830.217	0.537100E+25
 911.163	0.563325E+25
 1000.00	0.591491E+25
- 
- 
+
+
 E/N (Td)	Energy mobility *N (1/m/V/s)
 0.100000	0.189834E+25
 0.109750	0.189833E+25
@@ -761,8 +761,8 @@ E/N (Td)	Energy mobility *N (1/m/V/s)
 830.217	0.865941E+24
 911.163	0.847538E+24
 1000.00	0.829721E+24
- 
- 
+
+
 E/N (Td)	Energy diffusion coef. *N (1/m/s)
 0.100000	0.490799E+24
 0.109750	0.490809E+24
@@ -864,8 +864,8 @@ E/N (Td)	Energy diffusion coef. *N (1/m/s)
 830.217	0.754967E+25
 911.163	0.798493E+25
 1000.00	0.845973E+25
- 
- 
+
+
 E/N (Td)	Total collision freq. /N (m3/s)
 0.100000	0.188535E-12
 0.109750	0.188535E-12
@@ -967,8 +967,8 @@ E/N (Td)	Total collision freq. /N (m3/s)
 830.217	0.261909E-12
 911.163	0.267395E-12
 1000.00	0.272979E-12
- 
- 
+
+
 E/N (Td)	Momentum frequency /N (m3/s)
 0.100000	0.158748E-12
 0.109750	0.158748E-12
@@ -1070,8 +1070,8 @@ E/N (Td)	Momentum frequency /N (m3/s)
 830.217	0.311266E-12
 911.163	0.318781E-12
 1000.00	0.326527E-12
- 
- 
+
+
 E/N (Td)	Total ionization freq. /N (m3/s)
 0.100000	0.00000
 0.109750	0.00000
@@ -1173,8 +1173,8 @@ E/N (Td)	Total ionization freq. /N (m3/s)
 830.217	0.704864E-14
 911.163	0.860091E-14
 1000.00	0.103938E-13
- 
- 
+
+
 E/N (Td)	Total attachment freq. /N (m3/s)
 0.100000	0.148355E-19
 0.109750	0.148357E-19
@@ -1276,8 +1276,8 @@ E/N (Td)	Total attachment freq. /N (m3/s)
 830.217	0.131563E-16
 911.163	0.125366E-16
 1000.00	0.119108E-16
- 
- 
+
+
 E/N (Td)	Townsend ioniz. coef. alpha/N (m2)
 0.100000	0.00000
 0.109750	0.00000
@@ -1379,8 +1379,8 @@ E/N (Td)	Townsend ioniz. coef. alpha/N (m2)
 830.217	0.150253E-19
 911.163	0.171088E-19
 1000.00	0.192962E-19
- 
- 
+
+
 E/N (Td)	Townsend attach. coef. eta/N (m2)
 0.100000	0.133903E-21
 0.109750	0.122008E-21
@@ -1482,8 +1482,8 @@ E/N (Td)	Townsend attach. coef. eta/N (m2)
 830.217	0.280449E-22
 911.163	0.249377E-22
 1000.00	0.221125E-22
- 
- 
+
+
 E/N (Td)	Power /N (eV m3/s)
 0.100000	0.110793E-19
 0.109750	0.133451E-19
@@ -1585,8 +1585,8 @@ E/N (Td)	Power /N (eV m3/s)
 830.217	0.389470E-12
 911.163	0.458058E-12
 1000.00	0.538644E-12
- 
- 
+
+
 E/N (Td)	Elastic power loss /N (eV m3/s)
 0.100000	0.123290E-21
 0.109750	0.175777E-21
@@ -1688,8 +1688,8 @@ E/N (Td)	Elastic power loss /N (eV m3/s)
 830.217	0.174491E-15
 911.163	0.191689E-15
 1000.00	0.210714E-15
- 
- 
+
+
 E/N (Td)	Inelastic power loss /N (eV m3/s)
 0.100000	0.154676E-19
 0.109750	0.176798E-19
@@ -1791,8 +1791,8 @@ E/N (Td)	Inelastic power loss /N (eV m3/s)
 830.217	0.292847E-12
 911.163	0.331064E-12
 1000.00	0.373147E-12
- 
- 
+
+
 E/N (Td)	Growth power /N (eV m3/s)
 0.100000	-0.575394E-20
 0.109750	-0.575408E-20
@@ -1894,8 +1894,8 @@ E/N (Td)	Growth power /N (eV m3/s)
 830.217	0.964666E-13
 911.163	0.126823E-12
 1000.00	0.165314E-12
- 
- 
+
+
 E/N (Td)	Maximum energy
 0.100000	6.21116
 0.109750	6.21116
@@ -1997,8 +1997,8 @@ E/N (Td)	Maximum energy
 830.217	291.081
 911.163	291.081
 1000.00	344.080
- 
- 
+
+
 E/N (Td)	# of iterations
 0.100000	4.00000
 0.109750	4.00000
@@ -2100,8 +2100,8 @@ E/N (Td)	# of iterations
 830.217	12.0000
 911.163	6.00000
 1000.00	12.0000
- 
- 
+
+
 E/N (Td)	# of grid trials
 0.100000	1.00000
 0.109750	1.00000
@@ -2203,8 +2203,8 @@ E/N (Td)	# of grid trials
 830.217	2.00000
 911.163	1.00000
 1000.00	2.00000
- 
- 
+
+
 E/N (Td)	Error code
 0.100000	-1.00000
 0.109750	-1.00000
@@ -2306,5 +2306,3 @@ E/N (Td)	Error code
 830.217	-1.00000
 911.163	-1.00000
 1000.00	-1.00000
- 
- 

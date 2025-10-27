@@ -442,10 +442,7 @@ plot_options = {
 
 for file_name in all_data:
     output_folder = get_path_to_data(
-        "Minesi2022",
-        "cross_sections",
-        "results",
-        file_name
+        "Minesi2022", "cross_sections", "results", file_name
     )
 
     bolsig_data = np.loadtxt(output_folder, delimiter=",", skiprows=1)
@@ -724,8 +721,8 @@ for ne, u_ne, label, marker, color, xy in zip(
         *xy,
         s=label,
         color=color,
-        **kwargs_annotation,
-    )
+        **kwargs_annotation,  # type: ignore
+    )  # type: ignore
 
 
 # Plot numerical results of electron density.
