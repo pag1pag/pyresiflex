@@ -412,10 +412,6 @@ plt.show()
 all_data: dict[str, dict[str, np.ndarray]] = {
     "2000K_Minesi2022.csv": {},
     "3000K_Minesi2022.csv": {},
-    # "3000K_ee_ei__ngas_2.5e24__ionisation_1e-4": {},
-    # "3000K_ee_ei__ngas_2.5e24__ionisation_1e-3": {},
-    # "3000K_ee_ei__ngas_2.5e24__ionisation_1e-2": {},
-    # "3000K_ee_ei__ngas_2.5e24__ionisation_1e-1": {},
 }
 plot_options = {
     "2000K_Minesi2022.csv": {
@@ -428,16 +424,6 @@ plot_options = {
         "linestyle": "-",
         "label": "3000 K",
     },
-    # "3000K_ee_ei__ngas_2.5e24__ionisation_1e-3": {
-    #     "color": "blue",
-    #     "linestyle": "--",
-    #     "label": r"3000 K (ee/ei, $\alpha$=1e-3)",
-    # },
-    # "3000K_ee_ei__ngas_2.5e24__ionisation_1e-2": {
-    #     "color": "green",
-    #     "linestyle": "--",
-    #     "label": r"3000 K (ee/ei, $\alpha$=1e-2)",
-    # },
 }
 
 for file_name in all_data:
@@ -474,23 +460,46 @@ ax_E.set_xscale("log")
 ax_E.legend(fontsize=20)
 
 # Plot mobility from Bolsig+.
+set_mpl_style(nb_columns=1)
 fig_E, ax_E = plt.subplots()
-for file_name, data in all_data.items():
+colors = ["black", "red"]
+for i, (file_name, data) in enumerate(all_data.items()):
     label = file_name.replace("_", " ")
     ax_E.plot(
         data["E_N_Td_bolsig"],
         data["mu_bolsig"],
         label=plot_options[file_name]["label"],
-        color=plot_options[file_name]["color"],
+        color=colors[i],
         linestyle=plot_options[file_name]["linestyle"],
     )
-ax_E.set_title("Mobility from Bolsig+")
 ax_E.set_xlabel(r"$\mathregular{E/N \, [Td]}$")
 ax_E.set_ylabel(r"$\mathregular{\mu \, [m^2/(V \cdot s)]}$")
 ax_E.set_xscale("log")
-ax_E.legend(fontsize=20)
-
+ax_E.text(
+    1,
+    0.21,
+    "2000 K",
+    fontsize=30,
+    color="black",
+    bbox=dict(facecolor="white", alpha=0.8, edgecolor="none"),
+)
+ax_E.text(
+    1,
+    0.45,
+    "3000 K",
+    fontsize=30,
+    color="red",
+    bbox=dict(facecolor="white", alpha=0.8, edgecolor="none"),
+)
 plt.show()
+# Save the figure.
+fig_E.savefig(
+    get_path_to_data(
+        "article_figures",
+        "Minesi2022_mobility_vs_EoverN.svg",
+        force_return=True,
+    )
+)
 
 # %%
 # Plot the mobility vs time.
@@ -918,13 +927,38 @@ ax1_E.text(50, 350, "3000 K", color="orange", **kwargs_annotation)  # type: igno
 ax1_mu.text(45, 0.18, "2000 K", color="magenta", **kwargs_annotation)  # type: ignore
 ax1_mu.text(50, 0.3, "3000 K", color="orange", **kwargs_annotation)  # type: ignore
 
+# .. Add in the upper right corner the subplot label (a), (b), ...
+subplot_labels = ["(a)", "(b)", "(c)", "(d)"]
+all_axes = [ax2_E, ax2_mu, ax2_R, ax2_ne]
+for ax, label in zip(all_axes, subplot_labels):
+    ax.text(
+        0.95,
+        0.95,
+        label,
+        transform=ax.transAxes,
+        horizontalalignment="right",
+        verticalalignment="top",
+        fontsize=24,
+        bbox=dict(facecolor="white", alpha=0.8, edgecolor="none"),
+    )
+
+# .. Adjust grid for the electron density plots.
+for ax in (ax1_ne, ax2_ne):
+    ax.grid(visible=True, which="both", linestyle="--", linewidth=2, alpha=0.5)
+
 plt.show()
 
 # %%
 # Save the figure.
 # ----------------
 
-# Export the image to a .svg file, in the figures folder.
+plt.rcParams.update(
+    {
+        "figure.autolayout": True,
+        # Change external padding of the figure when saving.
+        "savefig.pad_inches": 0.1,
+    }
+)
 fig.savefig(
     get_path_to_data(
         "article_figures",
