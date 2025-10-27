@@ -445,7 +445,7 @@ class PurelyResistiveExperiment:
             =
             \frac{
                 V_{\text {meas }}\left(t+\tau\right)
-                -\sum_{n=0}^N(t+\tau - \frac{x_{\text {meas }}}{c})}
+                -\sum_{n=0}^N(t+\tau - \frac{x_{\text {meas }}}{c})
                     \alpha_g
                     V_g \left(
                         t
@@ -577,7 +577,7 @@ class PurelyResistiveExperiment:
             =
             \frac{
                 -Z_c I_{\text {meas }}\left(t+\tau\right)
-                +\sum_{n=0}^N(t+\tau - \frac{x_{\text {meas }}}{c})}
+                +\sum_{n=0}^N(t+\tau - \frac{x_{\text {meas }}}{c})
                     \alpha_g
                     V_g \left(
                         t

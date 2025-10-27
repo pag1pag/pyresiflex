@@ -391,13 +391,13 @@ class BaseSolution(ABC):
 
         .. math::
 
-            V(x, t) = \sum_{n=0}^{n_{max}} V^n(x, t)
-                    = \sum_{n=0}^{n_{max}} V_i^n(x, t) + V_r^n(x, t)
+            V(x, t) = \sum_{n=0}^{N(t-x/c)} V_i^n(t - x/c)
+                    + \sum_{n=0}^{N(t+x/c)} V_r^n(t + x/c)
 
         .. math::
 
-            I(x, t) = \sum_{n=0}^{n_{max}} I^n(x, t)
-                = \sum_{n=0}^{n_{max}} \frac{V_i^n(x, t) - V_r^n(x, t)}{Z_c}
+            I(x, t) = \sum_{n=0}^{N(t-x/c)} I_i^n(t - x/c)
+                    + \sum_{n=0}^{N(t+x/c)} I_r^n(t + x/c)
 
         Power and cumulative energy are defined as:
 
