@@ -99,6 +99,32 @@ class BaseSolution(ABC):
         self.x: np.ndarray
         self.t: np.ndarray
 
+    def N(self, t: float) -> int:
+        r"""Get the number of wave generations that have occurred at time t.
+
+        Parameters
+        ----------
+        t : float
+            Time in seconds.
+
+        Returns
+        -------
+        int
+            Number of wave generations.
+
+        Notes
+        -----
+        The number of wave generations is given by:
+
+        .. math::
+
+            N(t) = \left\lfloor \frac{t}{2 L / c} \right\rfloor
+        """
+        L = self.cable.L
+        c = self.cable.c
+        N = np.floor(t / (2 * L / c)).astype(int)
+        return N
+
     @abstractmethod
     def V_incident(self, t: float, n: int) -> float:
         r"""Incident wave.
@@ -145,51 +171,6 @@ class BaseSolution(ABC):
             "Please use a different solution or implement the reflected wave."
         )
 
-    def Vn(self, x: float, t: float, n: int) -> float:
-        r"""Voltage at position :math:`x` and time :math:`t`.
-
-        Compute the voltage at position :math:`x`, time :math:`t` and
-        generation :math:`n`.
-
-        Parameters
-        ----------
-        x : float
-            Position in meters.
-        t : float
-            Time in seconds.
-        n : int
-            Generation number.
-
-        Return
-        ------
-        float
-            Voltage value in volts.
-
-        Notes
-        -----
-        The voltage of generation :math:`n` is defined as:
-
-        .. math::
-
-            V^n(x, t) = V_i^n(t-x/c) + V_r^n(t+x/c)
-
-        where:
-
-        - :math:`V_i^n(t-x/c)` is the incident wave of generation :math:`n`,
-        - :math:`V_r^n(t+x/c)` is the reflected wave of generation :math:`n`.
-
-        See Also
-        --------
-        :py:meth:`pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution.V_incident`
-        :py:meth:`pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution.V_reflected`
-        :py:meth:`pyresiflex.solver.steady_impedance_solution.SteadyImpedanceSolution.V_incident`
-        :py:meth:`pyresiflex.solver.steady_impedance_solution.SteadyImpedanceSolution.V_reflected`
-        """
-        v_incident = self.V_incident(t - x / self.c, n)
-        v_reflected = self.V_reflected(t + x / self.c, n)
-
-        return v_incident + v_reflected
-
     def V(self, x: float, t: float) -> float:
         r"""Voltage at position :math:`x` and time :math:`t`.
 
@@ -211,17 +192,41 @@ class BaseSolution(ABC):
 
         .. math::
 
-            V(x, t) = \sum_{n=0}^{\infty} V^n(x, t)
+            V(x, t) = V_i(t-x/c) + V_r(t+x/c)
 
         where:
 
-        - :math:`V^n(x, t)` is the voltage of generation :math:`n`.
-        - :math:`n` is the generation number.
+        - :math:`V_i(t-x/c)` is the incident wave at time :math:`t-x/c`.
+        - :math:`V_r(t+x/c)` is the reflected wave at time :math:`t+x/c`.
+        - :math:`c` is the wave velocity in m/s.
 
 
-        However, we can limit our computation to a finite number of
-        generations, since the incident and reflected waves of high generation
-        only exist after a certain time.
+        The total incident voltage is defined as:
+
+        .. math::
+
+            V_i(t-x/c) = \sum_{n=0}^{N(t-x/c)} V^n_i(t-x/c)
+
+        where:
+
+        - :math:`V^n_i(t-x/c)` is the incident voltage of generation :math:`n`.
+        - :math:`N(t-x/c)` is the number of generations that have occurred at
+          time :math:`t-x/c`.
+
+
+        The total reflected voltage is defined as:
+
+        .. math::
+
+            V_r(t+x/c) = \sum_{n=0}^{N(t+x/c)} V^n_r(t+x/c)
+
+        where:
+
+        - :math:`V^n_r(t+x/c)` is the reflected voltage of
+          generation :math:`n`.
+        - :math:`N(t+x/c)` is the number of generations that
+          have occurred at time :math:`t+x/c`.
+
 
         The number of generations is defined as:
 
@@ -234,65 +239,36 @@ class BaseSolution(ABC):
         - :math:`\tau` is the time it takes for a wave to travel from the
           generator to the load and back, which is equal to :math:`2 L / c`.
 
-        and the voltage is defined as:
-
-        .. math::
-
-            V(x, t) = \sum_{n=0}^{N} V^n(x, t)
-        """
-        # Get the number of generations.
-        tau = 2 * self.L / self.c
-        N = np.floor((t - x / self.c) / tau).astype(int)
-
-        # Compute the voltage for each generation.
-        return np.sum(np.array([self.Vn(x, t, n) for n in range(N + 1)]))
-
-    def In(self, x: float, t: float, n: int) -> float:
-        r"""Intensity at position :math:`x` and time :math:`t`.
-
-        Compute the current at position :math:`x`, time :math:`t` and
-        generation :math:`n`.
-
-        Parameters
-        ----------
-        x : float
-            Position in meters.
-        t : float
-            Time in seconds.
-        n : int
-            Generation number.
-
-        Return
-        ------
-        float
-            Current value in Ampere.
-
-        Notes
-        -----
-        The current of generation :math:`n` is defined as:
-
-        .. math::
-
-            I^n(x, t) = \frac{V_i^n(t-x/c) - V_r^n(t+x/c)}{Z_c}
-
-        where:
-
-        - :math:`V_i^n(t-x/c)` is the incident wave of generation :math:`n`,
-        - :math:`V_r^n(t+x/c)` is the reflected wave of generation :math:`n`,
-        - :math:`Z_c` is the characteristic impedance of the
-          transmission line in Ohm.
-
         See Also
         --------
         :py:meth:`pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution.V_incident`
         :py:meth:`pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution.V_reflected`
-        :py:meth:`pyresiflex.solver.steady_impedance_solution.SteadyImpedanceSolution.V_incident`
-        :py:meth:`pyresiflex.solver.steady_impedance_solution.SteadyImpedanceSolution.V_reflected`
         """
-        v_incident = self.V_incident(t - x / self.c, n)
-        v_reflected = self.V_reflected(t + x / self.c, n)
+        # Get the number of generations.
+        N_incident = self.N(t - x / self.c)
+        N_reflected = self.N(t + x / self.c)
 
-        return (v_incident - v_reflected) / self.Z_c
+        # Compute the incident voltage for each generation.
+        V_i = np.sum(
+            np.array(
+                [
+                    self.V_incident(t - x / self.c, n)
+                    for n in range(N_incident + 1)
+                ]
+            )
+        )
+        # Compute the reflected voltage for each generation.
+        V_r = np.sum(
+            np.array(
+                [
+                    self.V_reflected(t + x / self.c, n)
+                    for n in range(N_reflected + 1)
+                ]
+            )
+        )
+
+        # Return the total voltage.
+        return V_i + V_r
 
     def I(self, x: float, t: float) -> float:  # noqa: E743
         r"""Intensity at position :math:`x` and time :math:`t`.
@@ -315,17 +291,43 @@ class BaseSolution(ABC):
 
         .. math::
 
-            I(x, t) = \sum_{n=0}^{\infty} I^n(x, t)
+            I(x, t) = \frac{V_i(t-x/c) - V_r(t+x/c)}{Z_c}
 
         where:
 
-        - :math:`I^n(x, t)` is the current of generation :math:`n`.
-        - :math:`n` is the generation number.
+        - :math:`V_i(t-x/c)` is the incident wave at time :math:`t-x/c`.
+        - :math:`V_r(t+x/c)` is the reflected wave at time :math:`t+x/c`.
+        - :math:`c` is the wave velocity in m/s.
+        - :math:`Z_c` is the characteristic impedance of the transmission
+          line in Ohm.
 
 
-        However, we can limit our computation to a finite number of
-        generations, since the incident and reflected waves of high generation
-        only exist after a certain time.
+        The total incident voltage is defined as:
+
+        .. math::
+
+            V_i(t-x/c) = \sum_{n=0}^{N(t-x/c)} V^n_i(t-x/c)
+
+        where:
+
+        - :math:`V^n_i(t-x/c)` is the incident voltage of generation :math:`n`.
+        - :math:`N(t-x/c)` is the number of generations that have occurred at
+          time :math:`t-x/c`.
+
+
+        The total reflected voltage is defined as:
+
+        .. math::
+
+            V_r(t+x/c) = \sum_{n=0}^{N(t+x/c)} V^n_r(t+x/c)
+
+        where:
+
+        - :math:`V^n_r(t+x/c)` is the reflected voltage of
+          generation :math:`n`.
+        - :math:`N(t+x/c)` is the number of generations that have occurred at
+          time :math:`t+x/c`.
+
 
         The number of generations is defined as:
 
@@ -338,18 +340,36 @@ class BaseSolution(ABC):
         - :math:`\tau` is the time it takes for a wave to travel from the
           generator to the load and back, which is equal to :math:`2 L / c`.
 
-        and the current is defined as:
-
-        .. math::
-
-            I(x, t) = \sum_{n=0}^{N} V^n(x, t)
+        See Also
+        --------
+        :py:meth:`pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution.V_incident`
+        :py:meth:`pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution.V_reflected`
         """
         # Get the number of generations.
-        tau = 2 * self.L / self.c
-        N = np.ceil(t / tau).astype(int)
+        N_incident = self.N(t - x / self.c)
+        N_reflected = self.N(t + x / self.c)
 
-        # Compute the current for each generation.
-        return np.sum(np.array([self.In(x, t, n) for n in range(N + 1)]))
+        # Compute the incident voltage for each generation.
+        V_i = np.sum(
+            np.array(
+                [
+                    self.V_incident(t - x / self.c, n)
+                    for n in range(N_incident + 1)
+                ]
+            )
+        )
+        # Compute the reflected voltage for each generation.
+        V_r = np.sum(
+            np.array(
+                [
+                    self.V_reflected(t + x / self.c, n)
+                    for n in range(N_reflected + 1)
+                ]
+            )
+        )
+
+        # Return the total current.
+        return (V_i - V_r) / self.Z_c
 
     def solve(self, x: np.ndarray | float, t: np.ndarray | float) -> None:
         r"""Compute voltage, current and energy at position x and time t.
@@ -375,12 +395,14 @@ class BaseSolution(ABC):
                     = \sum_{n=0}^{n_{max}} V_i^n(x, t) + V_r^n(x, t)
 
         .. math::
+
             I(x, t) = \sum_{n=0}^{n_{max}} I^n(x, t)
                 = \sum_{n=0}^{n_{max}} \frac{V_i^n(x, t) - V_r^n(x, t)}{Z_c}
 
         Power and cumulative energy are defined as:
 
         .. math::
+
             P(x, t) = V(x, t) I(x, t)
 
         .. math::
@@ -430,20 +452,20 @@ class BaseSolution(ABC):
         for i, x_val in enumerate(x_array):
             for j, t_val in enumerate(t_array):
                 # Get the number of generations.
-                tau = 2 * self.L / self.c
-                N = np.ceil((t_val - x_val / self.c) / tau).astype(int)
+                N_incident = self.N(t_val - x_val / self.c)
+                N_reflected = self.N(t_val + x_val / self.c)
 
                 # Compute the incident and reflected waves for each generation.
                 V_incident[i, j] = np.sum(
                     [
                         self.V_incident(t_val - x_val / self.c, n)
-                        for n in range(N + 1)
+                        for n in range(N_incident + 1)
                     ]
                 )
                 V_reflected[i, j] = np.sum(
                     [
                         self.V_reflected(t_val + x_val / self.c, n)
-                        for n in range(N + 1)
+                        for n in range(N_reflected + 1)
                     ]
                 )
 

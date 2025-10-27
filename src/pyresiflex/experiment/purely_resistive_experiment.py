@@ -387,6 +387,26 @@ class PurelyResistiveExperiment:
         return reconstructed_resistance_voltage
 
     def N(self, t: float) -> int:
+        r"""Get the number of wave generations that have occurred at time t.
+
+        Parameters
+        ----------
+        t : float
+            Time in seconds.
+
+        Returns
+        -------
+        int
+            Number of wave generations.
+
+        Notes
+        -----
+        The number of wave generations is given by:
+
+        .. math::
+
+            N(t) = \left\lfloor \frac{t}{2 L / c} \right\rfloor
+        """
         L = self.cable.L
         c = self.cable.c
         N = np.floor(t / (2 * L / c)).astype(int)
