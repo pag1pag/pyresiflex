@@ -386,6 +386,12 @@ class PurelyResistiveExperiment:
 
         return reconstructed_resistance_voltage
 
+    def N(self, t: float) -> int:
+        L = self.cable.L
+        c = self.cable.c
+        N = np.floor(t / (2 * L / c)).astype(int)
+        return N
+
     def get_gamma_load_from_measured_voltage(
         self,
         t: float,
@@ -415,77 +421,44 @@ class PurelyResistiveExperiment:
 
         .. math::
 
-            \frac{(2 N-1) L+2 x_{\text {meas }}}{c}<t<\frac{(2 N+1) L}{c},\\
             \Gamma_p(t)
             =
             \frac{
-                V_{\text {meas }}\left(t+\frac{L-x_{\text {meas }}}{c}\right)
-                -\sum_{n=0}^N
+                V_{\text {meas }}\left(t+\tau\right)
+                -\sum_{n=0}^N(t+\tau - \frac{x_{\text {meas }}}{c})}
                     \alpha_g
                     V_g \left(
                         t
-                        -\frac{2 x_{\text {meas }}}{c}
-                        -\frac{2 n L}{c}
-                        +\frac{L}{c}
+                        + \tau
+                        - \frac{x_{\text {meas }}}{c}
+                        - \frac{2 n L}{c}
                     \right)
                     \prod_{k=1}^n \left[
                         \Gamma_g
                         \Gamma_p \left(
                             t
-                            -\frac{2 x_{\text {meas }}}{c}
-                            -\frac{(2 k-1) L}{c}
-                            +\frac{L}{c}
+                            + \tau
+                            - \frac{x_{\text {meas }}}{c}
+                            - \frac{(2 k-1) L}{c}
                         \right)
                     \right]
                 }{
-                \sum_{n=0}^{N-1}
+                \sum_{n=0}^{N(t+\tau + \frac{x_{\text {meas }}}{c} - 2 L / c)}
                     \alpha_g
                     V_g\left(
                         t
-                        -\frac{2(n+1) L}{c}
-                        +\frac{L}{c}
-                    \right)
-                    \prod_{k=1}^n \left[
-                        \Gamma_g
-                        \Gamma_p\left(t-\frac{2 k L}{c}\right)
-                    \right]
-                }
-
-        .. math::
-
-            \frac{(2 N+1) L}{c}<t<\frac{(2 N+1) L+2 x_{\text {meas }}}{c},\\
-            \Gamma_p(t)
-            =
-            \frac{
-                V_{\text {meas }}\left(t+\frac{L-x_{\text {meas }}}{c}\right)
-                -\sum_{n=0}^N
-                    \alpha_g
-                    V_g \left(
-                        t
-                        -\frac{2 x_{\text {meas }}}{c}
-                        -\frac{2 n L}{c}
-                        +\frac{L}{c}
+                        + \tau
+                        + \frac{x_{\text {meas }}}{c}
+                        - \frac{2(n+1) L}{c}
                     \right)
                     \prod_{k=1}^n \left[
                         \Gamma_g
                         \Gamma_p \left(
                             t
-                            -\frac{2 x_{\text {meas }}}{c}
-                            -\frac{(2 k-1) L}{c}
-                            +\frac{L}{c}
+                            + \tau
+                            + \frac{x_{\text {meas }}}{c}
+                            - \frac{2 (k+1) L}{c}
                         \right)
-                    \right]
-                }{
-                \sum_{n=0}^{N}
-                    \alpha_g
-                    V_g\left(
-                        t
-                        -\frac{2(n+1) L}{c}
-                        +\frac{L}{c}
-                    \right)
-                    \prod_{k=1}^n \left[
-                        \Gamma_g
-                        \Gamma_p\left(t-\frac{2 k L}{c}\right)
                     \right]
                 }
         """
@@ -509,79 +482,49 @@ class PurelyResistiveExperiment:
         if t <= L / c:
             return np.nan
 
-        N = np.floor((c * t + L - 2 * x_meas) / (2 * L)).astype(int)
-
-        if N > max_n:
-            # TODO: to remove once the computation is optimized.
-            return np.nan
-
         # Define types for the variables to avoid mypy errors.
         num: float
         denom: float
         num_sum: float
         denom_sum: float
 
-        # a
-        if (2 * N - 1) * L + 2 * x_meas < c * t < (2 * N + 1) * L:
-            num = float(self.V_meas(t + (L - x_meas) / c))
-            for n in range(0, N + 1):
-                num_sum = alpha_g * V_g(
-                    t - 2 * x_meas / c - 2 * n * L / c + L / c
+        tau = (L - x_meas) / c
+
+        N_incident = self.N(t + tau - x_meas / c)
+        N_reflected = self.N(t + tau + x_meas / c - 2 * L / c)
+
+        if N_incident > max_n or N_reflected > max_n:
+            # TODO: to remove once the computation is optimized.
+            return np.nan
+
+        num = float(self.V_meas(t + tau))
+        for n in range(0, N_incident + 1):
+            num_sum = alpha_g * V_g(t + tau - x_meas / c - 2 * n * L / c)
+            for k in range(1, n + 1):
+                gamma_p = self.get_gamma_load_from_measured_voltage(
+                    t + tau - x_meas / c - (2 * k - 1) * L / c,
+                    max_n=max_n,
                 )
-                for k in range(1, n + 1):
-                    gamma_p = self.get_gamma_load_from_measured_voltage(
-                        t - 2 * x_meas / c - (2 * k - 1) * L / c + L / c,
-                        max_n=max_n,
-                    )
-                    num_sum *= gamma_p * gamma_g
-                num -= num_sum
+                num_sum *= gamma_p * gamma_g
+            num -= num_sum
 
-            denom = 0.0
-            for n in range(0, N):
-                denom_sum = alpha_g * V_g(t - 2 * (n + 1) * L / c + L / c)
-                for k in range(1, n + 1):
-                    gamma_p = self.get_gamma_load_from_measured_voltage(
-                        t - 2 * k * L / c,
-                        max_n=max_n,
-                    )
-                    denom_sum *= gamma_p * gamma_g
-                denom += denom_sum
-
-            if denom == 0:
-                return np.nan
-
-            return num / denom
-
-        # b
-        else:  # if (2 * N + 1) * L < c * t < (2 * N + 1) * L + 2 * x_meas:
-            num = float(self.V_meas(t + (L - x_meas) / c))
-            for n in range(0, N + 1):
-                num_sum = alpha_g * V_g(
-                    t - 2 * x_meas / c - 2 * n * L / c + L / c
+        denom = 0.0
+        for n in range(0, N_reflected + 1):
+            denom_sum = alpha_g * V_g(
+                t + tau + x_meas / c - 2 * (n + 1) * L / c
+            )
+            for k in range(1, n + 1):
+                gamma_p = self.get_gamma_load_from_measured_voltage(
+                    t + tau + x_meas / c - (2 * k + 1) * L / c,
+                    max_n=max_n,
                 )
-                for k in range(1, n + 1):
-                    gamma_p = self.get_gamma_load_from_measured_voltage(
-                        t - 2 * x_meas / c - 2 * (k - 1) * L / c,
-                        max_n=max_n,
-                    )
-                    num_sum *= gamma_p * gamma_g
-                num -= num_sum
+                denom_sum *= gamma_p * gamma_g
+            denom += denom_sum
 
-            denom = 0.0
-            for n in range(0, N + 1):
-                denom_sum = alpha_g * V_g(t - 2 * (n + 1) * L / c + L / c)
-                for k in range(1, n + 1):
-                    gamma_p = self.get_gamma_load_from_measured_voltage(
-                        t - 2 * k * L / c,
-                        max_n=max_n,
-                    )
-                    denom_sum *= gamma_p * gamma_g
-                denom += denom_sum
+        if denom == 0:
+            return np.nan
 
-            if denom == 0:
-                return np.nan
-
-            return num / denom
+        return num / denom
 
     def get_gamma_load_from_measured_current(
         self,
@@ -610,79 +553,44 @@ class PurelyResistiveExperiment:
 
         .. math::
 
-            \frac{(2 N-1) L+2 x_{\text {meas }}}{c}<t<\frac{(2 N+1) L}{c},\\
             \Gamma_p(t)
             =
             \frac{
-                \sum_{n=0}^N
+                -Z_c I_{\text {meas }}\left(t+\tau\right)
+                +\sum_{n=0}^N(t+\tau - \frac{x_{\text {meas }}}{c})}
                     \alpha_g
                     V_g \left(
                         t
-                        -\frac{2 x_{\text {meas }}}{c}
-                        -\frac{2 n L}{c}
-                        +\frac{L}{c}
+                        + \tau
+                        - \frac{x_{\text {meas }}}{c}
+                        - \frac{2 n L}{c}
                     \right)
                     \prod_{k=1}^n \left[
                         \Gamma_g
                         \Gamma_p \left(
                             t
-                            -\frac{2 x_{\text {meas }}}{c}
-                            -\frac{(2 k-1) L}{c}
-                            +\frac{L}{c}
+                            + \tau
+                            - \frac{x_{\text {meas }}}{c}
+                            - \frac{(2 k-1) L}{c}
                         \right)
                     \right]
-                - Z_c
-                I_{\text {meas }}\left(t+\frac{L-x_{\text {meas }}}{c}\right)
                 }{
-                \sum_{n=0}^{N-1}
+                \sum_{n=0}^{N(t+\tau + \frac{x_{\text {meas }}}{c} - 2 L / c)}
                     \alpha_g
                     V_g\left(
                         t
-                        -\frac{2(n+1) L}{c}
-                        +\frac{L}{c}
-                    \right)
-                    \prod_{k=1}^n \left[
-                        \Gamma_g
-                        \Gamma_p\left(t-\frac{2 k L}{c}\right)
-                    \right]
-                }
-
-        .. math::
-
-            \frac{(2 N+1) L}{c}<t<\frac{(2 N+1) L+2 x_{\text {meas }}}{c},\\
-            \Gamma_p(t)
-            =
-            \frac{
-                \sum_{n=0}^N
-                    \alpha_g
-                    V_g \left(
-                        t
-                        -\frac{2 x_{\text {meas }}}{c}
-                        -\frac{2 n L}{c}
-                        +\frac{L}{c}
+                        + \tau
+                        + \frac{x_{\text {meas }}}{c}
+                        - \frac{2(n+1) L}{c}
                     \right)
                     \prod_{k=1}^n \left[
                         \Gamma_g
                         \Gamma_p \left(
                             t
-                            -\frac{2 x_{\text {meas }}}{c}
-                            -\frac{(2 k-1) L}{c}
-                            +\frac{L}{c}
+                            + \tau
+                            + \frac{x_{\text {meas }}}{c}
+                            - \frac{2 (k+1) L}{c}
                         \right)
-                    \right]
-                - Z_c
-                V_{\text {meas }}\left(t+\frac{L-x_{\text {meas }}}{c}\right)
-                }{
-                \sum_{n=0}^{N}
-                    \alpha_g
-                    V_g\left(
-                        t
-                        -\frac{2(n+1) L}{c}
-                        +\frac{L}{c}
-                    \right)
-                    \prod_{k=1}^n \left[
-                        \Gamma_g
-                        \Gamma_p\left(t-\frac{2 k L}{c}\right)
                     \right]
                 }
         """
@@ -701,85 +609,49 @@ class PurelyResistiveExperiment:
         if x_meas > L or x_meas < 0:
             raise ValueError("x_meas must be between 0 and L")
 
-        # For value of `t` less than `L / c`, the
-        # reflection coefficient cannot be accessed, since the
-        # reflected wave has not reached the measurement point.
-        if t <= L / c:
-            return np.nan
-
-        N = np.floor((c * t + L - 2 * x_meas) / (2 * L)).astype(int)
-
-        if N > max_n:
-            # TODO: to remove once the computation is optimized.
-            return np.nan
-
         # Define types for the variables to avoid mypy errors.
         num: float
         denom: float
         num_sum: float
         denom_sum: float
 
-        # a
-        if (2 * N - 1) * L + 2 * x_meas < c * t < (2 * N + 1) * L:
-            num = -Z_c * float(self.I_meas(t + (L - x_meas) / c))
-            for n in range(0, N + 1):
-                num_sum = alpha_g * V_g(
-                    t - 2 * x_meas / c - 2 * n * L / c + L / c
+        tau = (L - x_meas) / c
+
+        N_incident = self.N(t + tau - x_meas / c)
+        N_reflected = self.N(t + tau + x_meas / c - 2 * L / c)
+
+        if N_incident > max_n or N_reflected > max_n:
+            # TODO: to remove once the computation is optimized.
+            return np.nan
+
+        num = -Z_c * float(self.I_meas(t + tau))
+        for n in range(0, N_incident + 1):
+            num_sum = alpha_g * V_g(t + tau - x_meas / c - 2 * n * L / c)
+            for k in range(1, n + 1):
+                gamma_p = self.get_gamma_load_from_measured_current(
+                    t + tau - x_meas / c - (2 * k - 1) * L / c,
+                    max_n=max_n,
                 )
-                for k in range(1, n + 1):
-                    r_p = self.get_gamma_load_from_measured_current(
-                        t - 2 * x_meas / c - 2 * (k - 1) * L / c,
-                        max_n=max_n,
-                    )
-                    num_sum *= r_p * gamma_g
-                num += num_sum
+                num_sum *= gamma_p * gamma_g
+            num += num_sum
 
-            denom = 0.0
-            for n in range(0, N):
-                denom_sum = alpha_g * V_g(t - 2 * (n + 1) * L / c + L / c)
-                for k in range(1, n + 1):
-                    r_p = self.get_gamma_load_from_measured_current(
-                        t - 2 * k * L / c,
-                        max_n=max_n,
-                    )
-                    denom_sum *= r_p * gamma_g
-                denom += denom_sum
-
-            if denom == 0:
-                return np.nan
-
-            return num / denom
-
-        # b
-        else:  # if (2 * N + 1) * L < c * t < (2 * N + 1) * L + 2 * x_meas:
-            num = -Z_c * float(self.I_meas(t + (L - x_meas) / c))
-            for n in range(0, N + 1):
-                num_sum = alpha_g * V_g(
-                    t - 2 * x_meas / c - 2 * n * L / c + L / c
+        denom = 0.0
+        for n in range(0, N_reflected + 1):
+            denom_sum = alpha_g * V_g(
+                t + tau + x_meas / c - 2 * (n + 1) * L / c
+            )
+            for k in range(1, n + 1):
+                gamma_p = self.get_gamma_load_from_measured_current(
+                    t + tau + x_meas / c - (2 * k + 1) * L / c,
+                    max_n=max_n,
                 )
-                for k in range(1, n + 1):
-                    r_p = self.get_gamma_load_from_measured_current(
-                        t - 2 * x_meas / c - 2 * (k - 1) * L / c,
-                        max_n=max_n,
-                    )
-                    num_sum *= r_p * gamma_g
-                num += num_sum
+                denom_sum *= gamma_p * gamma_g
+            denom += denom_sum
 
-            denom = 0.0
-            for n in range(0, N + 1):
-                denom_sum = alpha_g * V_g(t - 2 * (n + 1) * L / c + L / c)
-                for k in range(1, n + 1):
-                    r_p = self.get_gamma_load_from_measured_current(
-                        t - 2 * k * L / c,
-                        max_n=max_n,
-                    )
-                    denom_sum *= r_p * gamma_g
-                denom += denom_sum
+        if denom == 0:
+            return np.nan
 
-            if denom == 0:
-                return np.nan
-
-            return num / denom
+        return num / denom
 
     @staticmethod
     def get_resistance_from_gamma(Z_c: float, gamma_l: float) -> float:
