@@ -410,66 +410,65 @@ plt.show()
 
 # Load Bolsig+ data.
 all_data: dict[str, dict[str, np.ndarray]] = {
-    "2000K_no_ee_no_ei": {},
-    "3000K_no_ee_no_ei": {},
+    "2000K_Minesi2022.csv": {},
+    "3000K_Minesi2022.csv": {},
     # "3000K_ee_ei__ngas_2.5e24__ionisation_1e-4": {},
     # "3000K_ee_ei__ngas_2.5e24__ionisation_1e-3": {},
     # "3000K_ee_ei__ngas_2.5e24__ionisation_1e-2": {},
     # "3000K_ee_ei__ngas_2.5e24__ionisation_1e-1": {},
 }
 plot_options = {
-    "2000K_no_ee_no_ei": {
+    "2000K_Minesi2022.csv": {
         "color": "magenta",
         "linestyle": "-",
-        "label": "2000 K (no ee/ei)",
+        "label": "2000 K",
     },
-    "3000K_no_ee_no_ei": {
+    "3000K_Minesi2022.csv": {
         "color": "orange",
         "linestyle": "-",
-        "label": "3000 K (no ee/ei)",
+        "label": "3000 K",
     },
-    "3000K_ee_ei__ngas_2.5e24__ionisation_1e-3": {
-        "color": "blue",
-        "linestyle": "--",
-        "label": r"3000 K (ee/ei, $\alpha$=1e-3)",
-    },
-    "3000K_ee_ei__ngas_2.5e24__ionisation_1e-2": {
-        "color": "green",
-        "linestyle": "--",
-        "label": r"3000 K (ee/ei, $\alpha$=1e-2)",
-    },
+    # "3000K_ee_ei__ngas_2.5e24__ionisation_1e-3": {
+    #     "color": "blue",
+    #     "linestyle": "--",
+    #     "label": r"3000 K (ee/ei, $\alpha$=1e-3)",
+    # },
+    # "3000K_ee_ei__ngas_2.5e24__ionisation_1e-2": {
+    #     "color": "green",
+    #     "linestyle": "--",
+    #     "label": r"3000 K (ee/ei, $\alpha$=1e-2)",
+    # },
 }
 
-for folder_name in all_data:
+for file_name in all_data:
     output_folder = get_path_to_data(
+        "Minesi2022",
         "cross_sections",
-        "Bolsig",
-        "output",
-        folder_name,
-        "extracted_output.csv",
+        "results",
+        file_name
     )
 
     bolsig_data = np.loadtxt(output_folder, delimiter=",", skiprows=1)
     E_N_Td = bolsig_data[:, 0]  # [Td]
-    mu_N = bolsig_data[:, 3]  # [1/(m*V*s)]
+    mu_N = bolsig_data[:, 1]  # [1/(m*V*s)]
 
-    T = int(folder_name.split("K")[0])  # [K]
+    T = int(file_name.split("K")[0])  # [K]
     n_gas = P / (k_b * T)  # [m^-3]
 
-    all_data[folder_name]["E_N_Td_bolsig"] = E_N_Td  # [Td]
-    all_data[folder_name]["mu_N_bolsig"] = mu_N  # [1/(m*V*s)]
-    all_data[folder_name]["mu_bolsig"] = mu_N / n_gas  # [m^2/(V*s)]
+    all_data[file_name]["E_N_Td_bolsig"] = E_N_Td  # [Td]
+    all_data[file_name]["mu_N_bolsig"] = mu_N  # [1/(m*V*s)]
+    all_data[file_name]["mu_bolsig"] = mu_N / n_gas  # [m^2/(V*s)]
 
 # Plot mobility * N from Bolsig+.
 fig_E, ax_E = plt.subplots()
-for folder_name, data in all_data.items():
-    label = folder_name.replace("_", " ")
+for file_name, data in all_data.items():
+    label = file_name.replace("_", " ")
     ax_E.plot(
         data["E_N_Td_bolsig"],
         data["mu_N_bolsig"],
-        label=plot_options[folder_name]["label"],
-        color=plot_options[folder_name]["color"],
-        linestyle=plot_options[folder_name]["linestyle"],
+        label=plot_options[file_name]["label"],
+        color=plot_options[file_name]["color"],
+        linestyle=plot_options[file_name]["linestyle"],
     )
 ax_E.set_title("Mobility * N from Bolsig+")
 ax_E.set_xlabel(r"$\mathregular{E/N \, [Td]}$")
@@ -479,14 +478,14 @@ ax_E.legend(fontsize=20)
 
 # Plot mobility from Bolsig+.
 fig_E, ax_E = plt.subplots()
-for folder_name, data in all_data.items():
-    label = folder_name.replace("_", " ")
+for file_name, data in all_data.items():
+    label = file_name.replace("_", " ")
     ax_E.plot(
         data["E_N_Td_bolsig"],
         data["mu_bolsig"],
-        label=plot_options[folder_name]["label"],
-        color=plot_options[folder_name]["color"],
-        linestyle=plot_options[folder_name]["linestyle"],
+        label=plot_options[file_name]["label"],
+        color=plot_options[file_name]["color"],
+        linestyle=plot_options[file_name]["linestyle"],
     )
 ax_E.set_title("Mobility from Bolsig+")
 ax_E.set_xlabel(r"$\mathregular{E/N \, [Td]}$")
@@ -501,17 +500,17 @@ plt.show()
 # --------------------------
 
 # Apply the reduced electric field in the plasma to get the mobility vs time.
-for folder_name in all_data:
+for file_name in all_data:
     # Get the temperature from the folder name.
-    T = int(folder_name.split("K")[0])  # [K]
+    T = int(file_name.split("K")[0])  # [K]
     # Compute the gas density.
     n_gas = P / (k_b * T)  # [m^-3]
     # Compute the reduced electric field in the plasma.
     E_N_Td = (plasma_electric_field / n_gas) * 1e21  # [Td]
 
     # Interpolate the mobility vs reduced electric field.
-    E_N_bolsig = all_data[folder_name]["E_N_Td_bolsig"]
-    mu_bolsig = all_data[folder_name]["mu_bolsig"]
+    E_N_bolsig = all_data[file_name]["E_N_Td_bolsig"]
+    mu_bolsig = all_data[file_name]["mu_bolsig"]
     mu_interpolated = np.interp(
         E_N_Td,
         E_N_bolsig,
@@ -521,20 +520,20 @@ for folder_name in all_data:
     )
 
     # Add the interpolated mobility to the data dictionary.
-    all_data[folder_name]["E_N_Td_plasma"] = E_N_Td
-    all_data[folder_name]["mu_interpolated"] = mu_interpolated
+    all_data[file_name]["E_N_Td_plasma"] = E_N_Td
+    all_data[file_name]["mu_interpolated"] = mu_interpolated
 
 # Plot the mobility vs time.
 fig, ax = plt.subplots()
-for folder_name, data in all_data.items():
-    label = folder_name.replace("_", " ")
+for file_name, data in all_data.items():
+    label = file_name.replace("_", " ")
     mu_interpolated = data["mu_interpolated"]
     ax.plot(
         times_plasma * 1e9,
         mu_interpolated,
-        label=plot_options[folder_name]["label"],
-        color=plot_options[folder_name]["color"],
-        linestyle=plot_options[folder_name]["linestyle"],
+        label=plot_options[file_name]["label"],
+        color=plot_options[file_name]["color"],
+        linestyle=plot_options[file_name]["linestyle"],
     )
 ax.set_xlabel(r"$\mathregular{t \, [ns]}$")
 ax.set_ylabel(r"$\mathregular{\mu \, [m^2/(V*s)]}$")
@@ -584,9 +583,9 @@ R_p_interpolated_with_nan = np.interp(
     right=np.nan,
 )
 
-for folder_name in all_data:
+for file_name in all_data:
     # Compute electron density vs time.
-    mu_interpolated = all_data[folder_name]["mu_interpolated"]
+    mu_interpolated = all_data[file_name]["mu_interpolated"]
     n_e_with_nan = (
         gap  # [m]
         / S_discharge  # [m^2]
@@ -594,7 +593,7 @@ for folder_name in all_data:
         / mu_interpolated  # [m^2/(V*s)]
         / R_p_interpolated_with_nan  # [Ohm] = [V/A]
     )  # [m^-3]
-    all_data[folder_name]["n_e_with_nan"] = n_e_with_nan
+    all_data[file_name]["n_e_with_nan"] = n_e_with_nan
 
     # Compute density, with discharge radius divided by 2.
     r_discharge_half = r_discharge / 2  # [m]
@@ -606,19 +605,19 @@ for folder_name in all_data:
         / mu_interpolated  # [m^2/(V*s)]
         / R_p_interpolated_with_nan  # [Ohm] = [V/A]
     )  # [m^-3]
-    all_data[folder_name]["n_e_half_with_nan"] = n_e_half_with_nan
+    all_data[file_name]["n_e_half_with_nan"] = n_e_half_with_nan
 
 # Plot electron density vs time.
 fig, ax = plt.subplots()
-for folder_name, data in all_data.items():
-    label = folder_name.replace("_", " ")
+for file_name, data in all_data.items():
+    label = file_name.replace("_", " ")
     n_e_with_nan = data["n_e_with_nan"]
     ax.plot(
         times_plasma * 1e9,
         n_e_with_nan * 1e-6,
-        label=plot_options[folder_name]["label"],
-        color=plot_options[folder_name]["color"],
-        linestyle=plot_options[folder_name]["linestyle"],
+        label=plot_options[file_name]["label"],
+        color=plot_options[file_name]["color"],
+        linestyle=plot_options[file_name]["linestyle"],
     )
 ax.set_xlabel(r"$\mathregular{t - \frac{L}{c} \, [ns]}$")
 ax.set_ylabel(r"$\mathregular{n_e \, [cm^{-3}]}$")
@@ -731,8 +730,8 @@ for ne, u_ne, label, marker, color, xy in zip(
 
 # Plot numerical results of electron density.
 for ax in (ax1_ne, ax2_ne):
-    for folder_name, data in all_data.items():
-        label = folder_name.replace("_", " ")
+    for file_name, data in all_data.items():
+        label = file_name.replace("_", " ")
 
         # Plot electron density (normal radius).
         n_e_with_nan = data["n_e_with_nan"]
@@ -740,9 +739,9 @@ for ax in (ax1_ne, ax2_ne):
             times_plasma * 1e9,
             n_e_with_nan * 1e-6,
             zorder=2,
-            label=plot_options[folder_name]["label"],
-            color=plot_options[folder_name]["color"],
-            linestyle=plot_options[folder_name]["linestyle"],
+            label=plot_options[file_name]["label"],
+            color=plot_options[file_name]["color"],
+            linestyle=plot_options[file_name]["linestyle"],
         )
 
         # Also plot the results with half the discharge radius.
@@ -750,8 +749,8 @@ for ax in (ax1_ne, ax2_ne):
         ax.plot(
             times_plasma * 1e9,
             n_e_half_with_nan * 1e-6,
-            label=plot_options[folder_name]["label"] + " (r/2)",
-            color=plot_options[folder_name]["color"],
+            label=plot_options[file_name]["label"] + " (r/2)",
+            color=plot_options[file_name]["color"],
             linestyle="-.",
             linewidth=6,
         )
@@ -775,16 +774,16 @@ for ax in (ax1_R, ax2_R):
 
 # Plot mobility on the mobility figure.
 for ax in (ax1_mu, ax2_mu):
-    for folder_name, data in all_data.items():
-        label = folder_name.replace("_", " ")
+    for file_name, data in all_data.items():
+        label = file_name.replace("_", " ")
 
         mu_interpolated = data["mu_interpolated"]
         ax.plot(
             times_plasma * 1e9,
             mu_interpolated,
-            label=plot_options[folder_name]["label"],
-            color=plot_options[folder_name]["color"],
-            linestyle=plot_options[folder_name]["linestyle"],
+            label=plot_options[file_name]["label"],
+            color=plot_options[file_name]["color"],
+            linestyle=plot_options[file_name]["linestyle"],
         )
 
 # Plot electric field on the electric field figure.
@@ -793,13 +792,13 @@ for ax in (ax1_E, ax2_E):
         times_plasma * 1e9,
         E_N_3000K_Td,
         label="E/N (3000 K)",
-        color=plot_options["3000K_no_ee_no_ei"]["color"],
+        color="orange",
     )
     ax.plot(
         times_plasma * 1e9,
         E_N_2000K_Td,
         label="E/N (2000 K)",
-        color=plot_options["2000K_no_ee_no_ei"]["color"],
+        color="magenta",
     )
 
 # Plot settings.
@@ -855,7 +854,7 @@ for ax in (ax1_ne, ax2_ne):
 for ax in (ax1_R, ax2_R):
     ax.set_ylim(-100, 1000)
 for ax in (ax1_mu, ax2_mu):
-    ax.set_ylim(0, 0.7)
+    ax.set_ylim(0.1, 0.5)
 for ax in (ax1_E, ax2_E):
     ax.set_ylim(-50, 600)
 
@@ -919,8 +918,8 @@ ax1_E.text(45, 300, "2000 K", color="magenta", **kwargs_annotation)  # type: ign
 ax1_E.text(50, 350, "3000 K", color="orange", **kwargs_annotation)  # type: ignore
 
 # .. Annotate the mobility plot.
-ax1_mu.text(45, 0.2, "2000 K", color="magenta", **kwargs_annotation)  # type: ignore
-ax1_mu.text(50, 0.35, "3000 K", color="orange", **kwargs_annotation)  # type: ignore
+ax1_mu.text(45, 0.18, "2000 K", color="magenta", **kwargs_annotation)  # type: ignore
+ax1_mu.text(50, 0.3, "3000 K", color="orange", **kwargs_annotation)  # type: ignore
 
 plt.show()
 
