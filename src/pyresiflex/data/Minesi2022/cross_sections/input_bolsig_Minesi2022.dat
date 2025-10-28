@@ -50,10 +50,10 @@ RUN
 CLEARRUNS
 
 RUNSERIES
-1            / Variable: 1=E/N; 2=Mean energy; 3=Maxwellian energy
+1           / Variable: 1=E/N; 2=Mean energy; 3=Maxwellian energy
 0.1  1000.  / Min Max
-100          / Number
-3            / Type: 1=Linear; 2=Quadratic; 3=Exponential
+100         / Number
+3           / Type: 1=Linear; 2=Quadratic; 3=Exponential
 
 SAVERESULTS
 3000K_Minesi2022.dat        / File
@@ -106,10 +106,10 @@ RUN
 CLEARRUNS
 
 RUNSERIES
-1            / Variable: 1=E/N; 2=Mean energy; 3=Maxwellian energy
+1           / Variable: 1=E/N; 2=Mean energy; 3=Maxwellian energy
 0.1  1000.  / Min Max
-100          / Number
-3            / Type: 1=Linear; 2=Quadratic; 3=Exponential
+100         / Number
+3           / Type: 1=Linear; 2=Quadratic; 3=Exponential
 
 SAVERESULTS
 2000K_Minesi2022.dat        / File
