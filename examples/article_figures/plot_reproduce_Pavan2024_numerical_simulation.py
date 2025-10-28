@@ -210,9 +210,9 @@ E_ch = 16.7e-3  # Characteristic energy [J]
 # Parameters for Fourier Transform.
 # Not given in [Pavan2025]_ so chosen arbitrarily to reproduce results.
 # .. Number of points for Fourier transform.
-nb_point_ft = 1_000  # Increase for better results (but higher cost)
+nb_point_ft = 5_000  # Increase for better results (but higher cost).
 # .. Maximum time for Fourier transform.
-max_time_ft = 500e-9  # [s]
+max_time_ft = 5_000e-9  # [s]  # Increase for better results (but higher cost).
 
 fig_v, ax_v = plt.subplots()
 fig_i, ax_i = plt.subplots()

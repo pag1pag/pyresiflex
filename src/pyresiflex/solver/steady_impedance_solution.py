@@ -367,8 +367,8 @@ class SteadyImpedanceSolution(BaseSolution):
         # Get the attenuation factor at the generator.
         alpha_g_ω = self.alpha_g(self.f)
 
-        # Compute the incident wave.
-        v_incident = (
+        # Compute the reflected wave.
+        v_reflected = (
             gamma_l_ω
             * alpha_g_ω
             * self.V_g_hat
@@ -376,4 +376,52 @@ class SteadyImpedanceSolution(BaseSolution):
             * (gamma_g_ω * gamma_l_ω) ** n
         )
 
-        return np.real(np.sum(v_incident))
+        return np.real(np.sum(v_reflected))
+
+    def V_incident_total(self, t: float) -> float:
+        # Get the reflection coefficient at the generator.
+        gamma_g_ω = self.gamma_g(self.f)
+
+        # Get the reflection coefficient at the load.
+        gamma_l_ω = self.gamma_l(self.f)
+
+        # Get the attenuation factor at the generator.
+        alpha_g_ω = self.alpha_g(self.f)
+
+        # Compute the total incident wave.
+        ω = 2 * np.pi * self.f
+        v_incident_total = (
+            alpha_g_ω
+            * self.V_g_hat
+            * np.exp(1j * ω * t)
+            / (
+                1
+                - gamma_g_ω * gamma_l_ω * np.exp(-1j * ω * 2 * self.L / self.c)
+            )
+        )
+        return np.real(np.sum(v_incident_total))
+
+    def V_reflected_total(self, t: float) -> float:
+        # Get the reflection coefficient at the generator.
+        gamma_g_ω = self.gamma_g(self.f)
+
+        # Get the reflection coefficient at the load.
+        gamma_l_ω = self.gamma_l(self.f)
+
+        # Get the attenuation factor at the generator.
+        alpha_g_ω = self.alpha_g(self.f)
+
+        # Compute the total reflected wave.
+        ω = 2 * np.pi * self.f
+        v_reflected_total = (
+            alpha_g_ω
+            * self.V_g_hat
+            * gamma_l_ω
+            * np.exp(1j * ω * (t - 2 * self.L / self.c))
+            / (
+                1
+                - gamma_g_ω * gamma_l_ω * np.exp(-1j * ω * 2 * self.L / self.c)
+            )
+        )
+
+        return np.real(np.sum(v_reflected_total))
