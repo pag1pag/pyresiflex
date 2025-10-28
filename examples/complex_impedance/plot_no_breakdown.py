@@ -91,8 +91,8 @@ solution = SteadyImpedanceSolution(
     generator=generator,
     load=no_breakdown_plasma,
     cable=cable,
-    nb_points_ft=5_000,  # Number of points for Fourier transform.
-    max_time_ft=1000e-9,  # Maximum time for Fourier transform [s]
+    nb_points_ft=30_000,  # Number of points for Fourier transform.
+    max_time_ft=30_000e-9,  # Maximum time for Fourier transform [s]
 )
 
 x_meas_voltage = 0.85 * L  # Position of the measurement in meters.
