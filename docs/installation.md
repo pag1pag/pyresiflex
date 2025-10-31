@@ -13,7 +13,8 @@ You can also follow the instructions below, to set up the project on your machin
 
 - First, clone the repository. You'll get the package and some test drivers.
 - Since this package uses [uv](https://docs.astral.sh/uv/), install it by following [instructions on their website](https://docs.astral.sh/uv/getting-started/installation/).
-- Run `uv sync --python 3.13` to create a virtual environment at `.venv`, with `python 3.13` and all the necessary dependencies.
+- Update this Python package manager with `uv self update`.
+- Run `uv sync` to create a virtual environment at `.venv`, with the latest version of Python and all the necessary dependencies.
 - To test if the package is working, run `uv run pytest`. All tests should pass.
 
 Next, you just need to activate the virtual environment with:
