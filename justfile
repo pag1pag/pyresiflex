@@ -16,36 +16,43 @@ default: update-env qa tests type-check build-docs
 [doc('Run `just update-env` to update the virtual environment.
 This will update the dependencies in `uv.lock`.')]
 update-env:
-	uv lock --upgrade
+    @echo "Updating the virtual environment and dependencies..."
+    uv self update
+    uv lock --upgrade
+    uv sync
 
 [doc('Run `just qa` to run all the quality assurance checks.
 This includes updating and running pre-commit hooks,
 which includes linting and formatting.')]
 qa:
-	uv run pre-commit-update
-	uv run pre-commit run --all-files
+    @echo "Running quality assurance checks..."
+    uv run pre-commit-update
+    uv run pre-commit run --all-files
 
 [doc('Run `just tests` to run all the tests.
 This includes the unit tests in the `tests` directory,
 as well as the doctests in the codebase.')]
 tests:
-	uv run pytest tests -vv
-	uv run pytest src/pyresiflex --doctest-modules -vv --ignore src/pyresiflex/data
+    @echo "Running tests..."
+    uv run pytest tests -vv
+    uv run pytest src/pyresiflex --doctest-modules -vv --ignore src/pyresiflex/data
 
 [doc('Run `just tests-cov` to run all the tests with coverage.
 This includes generating coverage reports in various formats.')]
 tests-cov:
-	uv run coverage run -m pytest tests -vv
-	uv run coverage report --show-missing --omit="*/tests/*"
-	uv run coverage xml -o coverage/coverage.xml --omit="*/tests/*"
-	uv run coverage html -d coverage/htmlcov --omit="*/tests/*"
-	uv run genbadge coverage -i coverage/coverage.xml -o coverage/coverage.svg
+    @echo "Running tests with coverage..."
+    uv run coverage run -m pytest tests -vv
+    uv run coverage report --show-missing --omit="*/tests/*"
+    uv run coverage xml -o coverage/coverage.xml --omit="*/tests/*"
+    uv run coverage html -d coverage/htmlcov --omit="*/tests/*"
+    uv run genbadge coverage -i coverage/coverage.xml -o coverage/coverage.svg
 
 [doc('Run `just type-check` to run the type checker.
 This uses mypy to check the types in the codebase.
 See https://mypy.readthedocs.io/en/stable/command_line.html for more information.')]
 type-check:
-	uv run mypy . --exclude docs --exclude out --exclude data
+    @echo "Running type checker..."
+    uv run mypy . --exclude docs --exclude out --exclude data
 
 [doc('Run `just build-docs` to build the documentation.
 This uses Sphinx to build the docs in the `docs` directory.
@@ -57,9 +64,11 @@ For example, to rebuild only the API docs, run `just build-docs _api`.
 To rebuild all except examples, run `just build-docs "_api _build source/backreferences"`.')]
 [working-directory: 'docs']
 build-docs rebuild='all':
+    @echo "Building documentation..."
     uv run python prepare_docs.py --folders {{rebuild}}
     uv run sphinx-build -M html . _build --fail-on-warning --nitpicky
 
 [doc('Run `just stub-gen` to generate type hint stubs.')]
 stub-gen:
-	uv run stubgen .\src\pyresiflex
+    @echo "Generating type hint stubs..."
+    uv run stubgen .\src\pyresiflex
