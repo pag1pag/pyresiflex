@@ -20,3 +20,7 @@ References <bibliography>
 - {ref}`genindex`
 - {ref}`modindex`
 - {ref}`search`
+
+## Note
+
+According to the [Oxford's dictionary](https://www.oxfordlearnersdictionaries.com/definition/english/reflexion), *reflexion* is an old spelling of *reflection*.
