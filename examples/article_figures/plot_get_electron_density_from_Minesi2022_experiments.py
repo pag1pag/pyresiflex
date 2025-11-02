@@ -1,6 +1,6 @@
 r"""
-Compare electron density results between electrical and optical methods.
-========================================================================
+Comparison of electron density results between electrical and optical methods.
+==============================================================================
 
 This example shows how to compute electron density in a plasma from
 electrical measurements, and compare it with experimental data obtained via

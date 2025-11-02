@@ -1,6 +1,6 @@
 r"""
-Compare formulas for extracted plasma resistance.
-=================================================
+Comparison of formulas to extracte plasma resistance.
+=====================================================
 
 In this example, the plasma is assumed to be a time-varying resistance.
 

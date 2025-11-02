@@ -1,6 +1,6 @@
 r"""
-Reproduce [PerrinTerrin2025]_ experiments.
-==========================================
+Reproducing [PerrinTerrin2025]_ experiments.
+============================================
 
 In this example, the plasma is a time-varying resistance.
 

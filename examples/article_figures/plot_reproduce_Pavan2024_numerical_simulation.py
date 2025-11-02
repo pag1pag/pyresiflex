@@ -1,6 +1,6 @@
 r"""
-Reproduce [Pavan2025]_ numerical simulations.
-=============================================
+Reproducing [Pavan2025]_ numerical simulations.
+===============================================
 
 In this example, the load is a constant resistance in parallel with a
 constant capacitor.

@@ -1,6 +1,6 @@
 """
-Case when there is no breakdown.
-================================
+Before a plasma breakdown: resistance in parallel with capacitance.
+===================================================================
 
 Before a plasma breakdown, the impedance of the gas can be represented
 as a very high resistance (no ionization) in parallel to a constant

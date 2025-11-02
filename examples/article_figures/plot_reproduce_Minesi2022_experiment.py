@@ -1,6 +1,6 @@
 r"""
-Reproduce [Minesi2022]_ experiment.
-===================================
+Reproducing [Minesi2022]_ experiment.
+=====================================
 
 In this example, the plasma is a time-varying resistance.
 

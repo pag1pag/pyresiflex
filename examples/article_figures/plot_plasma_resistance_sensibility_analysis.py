@@ -1,6 +1,6 @@
 r"""
-Extract plasma resistance and analyze its sensitivity.
-======================================================
+Extracting plasma resistance and analyzing sensitivity to perturbations.
+========================================================================
 
 In this example, the plasma is assumed to be a time-varying resistance.
 

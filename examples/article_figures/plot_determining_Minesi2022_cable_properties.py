@@ -1,6 +1,6 @@
 r"""
-Cable properties determination.
-========================================================================
+Determination of cable properties.
+==================================
 
 This example shows how to determine the properties of a coaxial cable
 from experimental data, and compare them to the datasheet values.
