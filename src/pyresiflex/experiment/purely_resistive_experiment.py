@@ -733,9 +733,12 @@ class PurelyResistiveExperiment:
     def plot_resistance(
         self,
         times: np.ndarray,
+        plot_whole: bool = False,
+        plot_corrected: bool = True,
         plot_interpolated: bool = True,
         show: bool = False,
         legend: bool = True,
+        figax: tuple[Figure, Axes] | None = None,
     ) -> tuple[Figure, Axes]:
         """Plot the computed plasma resistance.
 
@@ -743,6 +746,12 @@ class PurelyResistiveExperiment:
         ----------
         times : numpy.ndarray
             Time array in second.
+        plot_whole : bool, optional
+            If True, the whole computed resistance is plotted in light gray.
+            By default, False.
+        plot_corrected : bool, optional
+            If True, the corrected resistance is plotted in full black line.
+            By default, True.
         plot_interpolated : bool, optional
             If True, the interpolated resistance is also plotted.
             By default, True
@@ -750,14 +759,15 @@ class PurelyResistiveExperiment:
             If True, plot is shown, by default False.
         legend : bool, optional
             If True, legend is added to the plot, by default True.
+        figax : tuple of Figure, Axes, optional
+            Figure and axes objects to use for the plot, by default None.
 
         Returns
         -------
         tuple of Figure, Axes
             Figure and axes objects of the resistance plot.
         """
-        fig, ax = plt.subplots()
-
+        # Check that the resistance has been computed.
         if not hasattr(self, "R_p"):
             raise ValueError(
                 "The resistance has not been computed yet. "
@@ -765,20 +775,28 @@ class PurelyResistiveExperiment:
                 "first."
             )
 
+        # Create figure and axes if not provided.
+        if figax is not None:
+            fig, ax = figax
+        else:
+            fig, ax = plt.subplots()
+
         # Plot the whole resistance in light gray.
-        R_p = [self.load.load_impedance(t) for t in times]
-        ax.plot(times * 1e9, R_p, color="lightgray")
+        if plot_whole:
+            R_p = [self.load.load_impedance(t) for t in times]
+            ax.plot(times * 1e9, R_p, color="lightgray")
 
         # Plot corrected resistance values in full black line.
-        ax.plot(
-            self.times_corrected_with_nan * 1e9,
-            self.Rp_corrected_with_nan,
-            color="k",
-            ls="-",
-        )
+        if plot_corrected:
+            ax.plot(
+                self.times_corrected_with_nan * 1e9,
+                self.Rp_corrected_with_nan,
+                color="k",
+                ls="-",
+            )
 
+        # Plot interpolated resistance in dashed black line.
         if plot_interpolated:
-            # Plot interpolated resistance in dashed black line.
             R_p_corrected = [
                 self.load_corrected.load_impedance(t) for t in times
             ]
@@ -806,10 +824,11 @@ class PurelyResistiveExperiment:
 
         # Add legend if requested.
         if legend:
-            labels = [
-                "Computed resistance",
-                "Corrected resistance",
-            ]
+            labels = []
+            if plot_whole:
+                labels.append("Computed resistance")
+            if plot_corrected:
+                labels.append("Corrected resistance")
             if plot_interpolated:
                 labels.append("Interpolated resistance")
             ax.legend(labels)

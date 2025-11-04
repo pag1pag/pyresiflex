@@ -225,29 +225,37 @@ reconstructed_resistance_current = (
 
 
 # Plot R_p(vmes, imes).
-fig, ax = expe.plot_resistance(times=times_expe, show=False, legend=False)
+fig, ax = expe.plot_resistance(
+    times=times_expe,
+    plot_whole=True,
+    plot_corrected=False,
+    plot_interpolated=False,
+    show=False,
+    legend=False,
+)
+# Change color of the first plot to black.
+line = ax.get_lines()[0]
+line.set_color("k")
+
 # Plot R_p(vmes, vg).
 ax.plot(
     times_expe * 1e9,
     reconstructed_resistance_voltage,
     color="r",
-    ls="--",
+    ls="-",
 )
 # Plot R_p(imes, vg).
 ax.plot(
     times_expe * 1e9,
     reconstructed_resistance_current,
     color="b",
-    ls="--",
+    ls="-",
 )
-ax.set_xlim(30, 80)
+ax.set_xlim(40, 70)
 ax.set_ylim(-100, 1000)
 ax.legend(
     [
-        r"$\mathregular{R_p \left( V_{meas}, I_{meas} \right)}$",
-        r"$\mathregular{R_p \left( V_{meas}, I_{meas} \right)} \, (corr.)$",
-        r"$\mathregular{R_p \left( I_{meas}, V_{meas} \right)}"
-        + r" \ (interpolated)$",
+        r"$\mathregular{R_p \left( I_{meas}, V_{meas} \right)}$",
         r"$\mathregular{R_p \left( V_{meas}, V_g \right)}$",
         r"$\mathregular{R_p \left( I_{meas}, V_g \right)}$",
     ]
