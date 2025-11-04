@@ -52,6 +52,14 @@ Before pushing to GitHub, run the following commands in a terminal (with the vir
 
 You could also run `just` to run all the above commands in one go.
 
+### Manually building the package
+
+If you to install `pyresiflex` to another environment, you can build the package and install it with `pip`:
+
+- `(pyresiflex) uv build` will build a wheel `/whl` in the folder `./dist`.
+- Activating another env, called `other_env`.
+- `(other_env) pip install path/to/file.whl` should install `pyresiflex` in `other_env`.
+
 ## Who do I talk to?
 
 - Pierre-Antoine Goutier, Spark Cleantech & EM2C Lab, 2024-present, <pierre-antoine.goutier@spark-cleantech.eu>
