@@ -253,13 +253,40 @@ ax.plot(
 )
 ax.set_xlim(40, 70)
 ax.set_ylim(-100, 1000)
-ax.legend(
-    [
-        r"$\mathregular{R_p \left( I_{meas}, V_{meas} \right)}$",
-        r"$\mathregular{R_p \left( V_{meas}, V_g \right)}$",
-        r"$\mathregular{R_p \left( I_{meas}, V_g \right)}$",
-    ]
+
+# Annotate the plot.
+kwargs = dict(
+    textcoords="data",
+    fontsize=28,
+    horizontalalignment="center",
+    verticalalignment="center",
+    bbox=dict(facecolor="white", alpha=0.7, edgecolor="none"),
 )
+ax.annotate(
+    r"$\mathregular{R_p \left( I_{meas}, \, V_{meas} \right)}$",
+    xytext=(50, 600),
+    xy=(45, 260),
+    color="k",
+    arrowprops=dict(arrowstyle="->", color="k", lw=3),
+    **kwargs,  # type: ignore
+)
+ax.annotate(
+    r"$\mathregular{R_p \left( V_{meas}, \, V_g \right)}$",
+    xytext=(55, 400),
+    xy=(48, 160),
+    color="r",
+    arrowprops=dict(arrowstyle="->", color="r", lw=3),
+    **kwargs,  # type: ignore
+)
+ax.annotate(
+    r"$\mathregular{R_p \left( I_{meas}, \, V_g \right)}$",
+    xytext=(60, 300),
+    xy=(64, 110),
+    color="b",
+    arrowprops=dict(arrowstyle="->", color="b", lw=3),
+    **kwargs,  # type: ignore
+)
+
 plt.show()
 
 # %%
