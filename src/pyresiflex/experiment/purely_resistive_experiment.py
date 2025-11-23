@@ -736,6 +736,7 @@ class PurelyResistiveExperiment:
         plot_whole: bool = False,
         plot_corrected: bool = True,
         plot_interpolated: bool = True,
+        _also_plot_when_near_cable_impedance: bool = True,
         show: bool = False,
         legend: bool = True,
         figax: tuple[Figure, Axes] | None = None,
@@ -755,6 +756,12 @@ class PurelyResistiveExperiment:
         plot_interpolated : bool, optional
             If True, the interpolated resistance is also plotted.
             By default, True
+        _also_plot_when_near_cable_impedance : bool, optional
+            If True, resistance values near the cable impedance are also
+            plotted. By default, True.
+            When there is no more reflected wave, the resistance tends to the
+            cable impedance. This option allows to hide these values for
+            better visualization of the plasma resistance evolution.
         show : bool, optional
             If True, plot is shown, by default False.
         legend : bool, optional
@@ -788,9 +795,19 @@ class PurelyResistiveExperiment:
 
         # Plot corrected resistance values in full black line.
         if plot_corrected:
+            t = self.times_corrected_with_nan * 1e9
+            R = self.Rp_corrected_with_nan
+            # Optionally hide values near the cable impedance.
+            if not _also_plot_when_near_cable_impedance:
+                Z_c = self.cable.Z_c
+                tol = 0.001 * Z_c  # 0.1% tolerance
+                mask = np.abs(self.Rp_corrected_with_nan - Z_c) < tol
+                t = self.times_corrected_with_nan[~mask] * 1e9
+                R = self.Rp_corrected_with_nan[~mask]
+
             ax.plot(
-                self.times_corrected_with_nan * 1e9,
-                self.Rp_corrected_with_nan,
+                t,
+                R,
                 color="k",
                 ls="-",
             )

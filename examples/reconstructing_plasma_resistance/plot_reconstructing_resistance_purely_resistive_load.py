@@ -96,7 +96,7 @@ solution = PurelyResistiveSolution(
 # ---------------------------------------------------------
 
 # Define time vector.
-times = np.arange(0, 30, 0.1) * 1e-9
+times = np.arange(0, 25, 0.1) * 1e-9
 
 x_meas_voltage = 2 / 3 * L
 voltages = np.array([solution.V(x_meas_voltage, t) for t in times])
@@ -165,8 +165,17 @@ reconstructed_resistance_current = (
 
 # Plot R_p(vmes, imes)
 fig, ax = expe.plot_resistance(
-    times=times, show=False, legend=False, plot_interpolated=False
+    times=times,
+    show=False,
+    legend=False,
+    plot_interpolated=False,
+    _also_plot_when_near_cable_impedance=False,
 )
+# Change the line style and width of the existing plot.
+for line in ax.get_lines():
+    line.set_linestyle("-")
+
+
 # Plot R_p(vmes, vg)
 ax.plot(
     times * 1e9, reconstructed_resistance_voltage, color="r", ls="--", lw=5
@@ -185,7 +194,6 @@ ax.set_ylim(-100, 1100)
 ax.legend(
     [
         r"$\mathregular{R_p \left( V_{meas}, I_{meas} \right)}$",
-        r"$\mathregular{R_p \left( V_{meas}, I_{meas} \right)} \, (corr.)$",
         r"$\mathregular{R_p \left( V_{meas}, V_g \right)}$",
         r"$\mathregular{R_p \left( I_{meas}, V_g \right)}$",
         r"$\mathregular{R_{true}}$",
