@@ -272,6 +272,7 @@ class PurelyResistiveExperiment:
         self.times_corrected_with_nan = np.copy(self.times)
         self.times_corrected_with_nan[np.isnan(Rp_corrected)] = np.nan
         self.Rp_corrected_with_nan = np.copy(Rp_corrected)
+        self.Rp_corrected_with_nan[denominator == 0] = np.nan
 
         # Save corrected resistance without nan values.
         self.Rp_corrected = np.copy(Rp_corrected)
