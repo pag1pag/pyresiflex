@@ -415,12 +415,12 @@ all_data: dict[str, dict[str, np.ndarray]] = {
 }
 plot_options = {
     "2000K_Minesi2022.csv": {
-        "color": "magenta",
+        "color": "red",
         "linestyle": "-",
         "label": "2000 K",
     },
     "3000K_Minesi2022.csv": {
-        "color": "orange",
+        "color": "blue",
         "linestyle": "-",
         "label": "3000 K",
     },
@@ -691,47 +691,103 @@ u_ne_2_25mm = oes_data[:, 8]  # [cm^-3]
 u_ne_0_75mm = oes_data[:, 9]  # [cm^-3]
 u_ne_0_25mm = oes_data[:, 10]  # [cm^-3]
 
-# Plot experimental data from OES measurements, using the same markers/colors
-# as in [Minesi2022]_ Figure 7.
+# # Plot experimental data from OES measurements, using the same markers/colors
+# # as in [Minesi2022]_ Figure 7.
 ne_s = [ne_4_75mm, ne_4_25mm, ne_2_25mm, ne_0_75mm, ne_0_25mm]
 u_ne_s = [u_ne_4_75mm, u_ne_4_25mm, u_ne_2_25mm, u_ne_0_75mm, u_ne_0_25mm]
 labels = ["4.75 mm", "4.25 mm", "2.25 mm", "0.75 mm", "0.25 mm"]
 markers = ["D", "v", "^", "o", "s"]
 colors = ["m", "g", "b", "r", "k"]
 xy_labels = [(105, 1.2e16), (105, 3e15), (105, 1e15), (105, 7e15), (105, 2e16)]
-for ne, u_ne, label, marker, color, xy in zip(
-    ne_s, u_ne_s, labels, markers, colors, xy_labels
-):
-    for ax in (ax1_ne, ax2_ne):
-        # Plot experimental electron density without error bars.
-        ax.scatter(
-            time_ns,
-            ne,
-            s=100,
-            marker=marker,
-            color=color,
-            zorder=3,
-        )
-        # Plot experimental electron density with error bars, every 4 points.
-        ax.errorbar(
-            time_ns[::4],
-            ne[::4],
-            yerr=u_ne[::4],
-            fmt=marker,
-            markersize=10,
-            color=color,
-            ecolor=color,
-            elinewidth=2,
-            capsize=5,  # Size of the error bar caps
-            zorder=3,
-        )
+# for ne, u_ne, label, marker, color, xy in zip(
+#     ne_s, u_ne_s, labels, markers, colors, xy_labels
+# ):
+#     for ax in (ax1_ne, ax2_ne):
+#         # Plot experimental electron density without error bars.
+#         ax.scatter(
+#             time_ns,
+#             ne,
+#             s=100,
+#             marker=marker,
+#             color=color,
+#             zorder=3,
+#         )
+#         # Plot experimental electron density with error bars, every 4 points.
+#         ax.errorbar(
+#             time_ns[::4],
+#             ne[::4],
+#             yerr=u_ne[::4],
+#             fmt=marker,
+#             markersize=10,
+#             color=color,
+#             ecolor=color,
+#             elinewidth=2,
+#             capsize=5,  # Size of the error bar caps
+#             zorder=3,
+#         )
+#     # .. Annotate the electron density plot (experimental).
+#     ax2_ne.text(
+#         *xy,
+#         s=label,
+#         color=color,
+#         **kwargs_annotation,  # type: ignore
+#     )
+
+# Alternate graph: only the measured electron density at 0.75 mm is shown.
+# A grey area is added, covering all the measured electron densities.
+for ax in (ax1_ne, ax2_ne):
+    # .. Grey area.
+    ax.fill_between(
+        time_ns,
+        # np.nanmin(ne_s, axis=0) - np.nanmax(u_ne_s, axis=0),
+        ne_2_25mm - u_ne_2_25mm,
+        np.nanmax(ne_s, axis=0) + np.nanmax(u_ne_s, axis=0),
+        color="grey",
+        alpha=0.3,
+        zorder=1,
+    )
+    # .. Measured electron density at 0.75 mm.
+    ax.scatter(
+        time_ns,
+        ne_0_75mm,
+        s=100,
+        marker="o",
+        color="k",
+        zorder=3,
+    )
+    ax.errorbar(
+        time_ns[::4],
+        ne_0_75mm[::4],
+        yerr=u_ne_0_75mm[::4],
+        fmt="o",
+        markersize=10,
+        color="k",
+        ecolor="k",
+        elinewidth=2,
+        capsize=5,  # Size of the error bar caps
+        zorder=3,
+    )
     # .. Annotate the electron density plot (experimental).
     ax2_ne.text(
-        *xy,
-        s=label,
-        color=color,
+        x=107.5,
+        y=1.5e16,
+        s="Measured $n_e$\n at 0.75 mm",
+        color="k",
         **kwargs_annotation,  # type: ignore
-    )  # type: ignore
+    )
+    # .. Add two arrows.
+    ax2_ne.annotate(
+        "",
+        xy=(108, 4e15),
+        xytext=(107, 1e16),
+        arrowprops=dict(arrowstyle="->", color="k", lw=2),
+    )
+    ax1_ne.annotate(
+        "",
+        xy=(58, 9e15),
+        xytext=(60, 1.5e16),
+        arrowprops=dict(arrowstyle="->", color="k", lw=2),
+    )
 
 
 # Plot numerical results of electron density.
@@ -798,13 +854,13 @@ for ax in (ax1_E, ax2_E):
         times_plasma * 1e9,
         E_N_3000K_Td,
         label="E/N (3000 K)",
-        color="orange",
+        color="blue",
     )
     ax.plot(
         times_plasma * 1e9,
         E_N_2000K_Td,
         label="E/N (2000 K)",
-        color="magenta",
+        color="red",
     )
 
 # Plot settings.
@@ -877,32 +933,45 @@ ax1_R.xaxis.set_label_coords(1.05, -0.05)
 
 # .. Annotate the electron density plot (numerical).
 ax1_ne.text(
-    45,
-    4e14,
+    48,
+    2e14,
     "Simulation\n(2000 K)",
-    color="magenta",
+    color="red",
     **kwargs_annotation,  # type: ignore
 )
 ax1_ne.text(
-    50,
-    8e14,
+    53,
+    4e14,
     "Simulation\n(3000 K)",
-    color="orange",
+    color="blue",
     **kwargs_annotation,  # type: ignore
+)
+# Create arrows for the annotations.
+ax1_ne.annotate(
+    "",
+    xy=(46, 7.4e14),
+    xytext=(47, 3e14),
+    arrowprops=dict(color="red", arrowstyle="->", lw=2),
+)
+ax1_ne.annotate(
+    "",
+    xy=(50, 1e15),
+    xytext=(52, 6e14),
+    arrowprops=dict(color="blue", arrowstyle="->", lw=2),
 )
 
 ax1_ne.text(
-    43,
+    43.2,
     1e16,
     "Simulation\n(2000 K, r/2)",
-    color="magenta",
+    color="red",
     **kwargs_annotation,  # type: ignore
 )
 ax1_ne.text(
-    47,
+    48,
     2e16,
     "Simulation\n(3000 K, r/2)",
-    color="orange",
+    color="blue",
     **kwargs_annotation,  # type: ignore
 )
 # Create arrows for the (r/2) annotations.
@@ -910,22 +979,22 @@ ax1_ne.annotate(
     "",
     xy=(46, 3e15),
     xytext=(43, 8e15),
-    arrowprops=dict(color="magenta", arrowstyle="->", lw=3),
+    arrowprops=dict(color="red", arrowstyle="->", lw=2),
 )
 ax1_ne.annotate(
     "",
     xy=(48.4, 3e15),
     xytext=(48.4, 2e16),
-    arrowprops=dict(color="orange", arrowstyle="->", lw=3),
+    arrowprops=dict(color="blue", arrowstyle="->", lw=2),
 )
 
 # .. Annotate the electric field plot.
-ax1_E.text(45, 300, "2000 K", color="magenta", **kwargs_annotation)  # type: ignore
-ax1_E.text(50, 350, "3000 K", color="orange", **kwargs_annotation)  # type: ignore
+ax1_E.text(45, 300, "2000 K", color="red", **kwargs_annotation)  # type: ignore
+ax1_E.text(50, 350, "3000 K", color="blue", **kwargs_annotation)  # type: ignore
 
 # .. Annotate the mobility plot.
-ax1_mu.text(45, 0.18, "2000 K", color="magenta", **kwargs_annotation)  # type: ignore
-ax1_mu.text(50, 0.3, "3000 K", color="orange", **kwargs_annotation)  # type: ignore
+ax1_mu.text(45, 0.18, "2000 K", color="red", **kwargs_annotation)  # type: ignore
+ax1_mu.text(50, 0.3, "3000 K", color="blue", **kwargs_annotation)  # type: ignore
 
 # .. Add in the upper right corner the subplot label (a), (b), ...
 subplot_labels = ["(a)", "(b)", "(c)", "(d)"]
@@ -956,7 +1025,7 @@ plt.rcParams.update(
     {
         "figure.autolayout": True,
         # Change external padding of the figure when saving.
-        "savefig.pad_inches": 0.1,
+        "savefig.pad_inches": 0.01,
     }
 )
 fig.savefig(
