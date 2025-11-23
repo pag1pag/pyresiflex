@@ -204,27 +204,27 @@ expe = PurelyResistiveExperiment(
     correct_time_zero=True,
 )
 
-# Compute R_p(vmes, imes).
-expe.compute_plasma_resistance_from_vmes_and_imes(
+# Compute R_p(vmeas, imeas).
+expe.compute_plasma_resistance_from_vmeas_and_imeas(
     times_expe, threshold=400, channel_formation_time=42e-9
 )
-# Compute R_p(vmes, vg).
+# Compute R_p(vmeas, vg).
 reconstructed_resistance_voltage = (
-    expe.compute_plasma_resistance_from_vmes_and_vg(
+    expe.compute_plasma_resistance_from_vmeas_and_vg(
         times_expe,
         generator=generator,
     )
 )
-# Compute R_p(imes, vg).
+# Compute R_p(imeas, vg).
 reconstructed_resistance_current = (
-    expe.compute_plasma_resistance_from_imes_and_vg(
+    expe.compute_plasma_resistance_from_imeas_and_vg(
         times_expe,
         generator=generator,
     )
 )
 
 
-# Plot R_p(vmes, imes).
+# Plot R_p(vmeas, imeas).
 fig, ax = expe.plot_resistance(
     times=times_expe,
     plot_whole=True,
@@ -237,14 +237,14 @@ fig, ax = expe.plot_resistance(
 line = ax.get_lines()[0]
 line.set_color("k")
 
-# Plot R_p(vmes, vg).
+# Plot R_p(vmeas, vg).
 ax.plot(
     times_expe * 1e9,
     reconstructed_resistance_voltage,
     color="r",
     ls="-",
 )
-# Plot R_p(imes, vg).
+# Plot R_p(imeas, vg).
 ax.plot(
     times_expe * 1e9,
     reconstructed_resistance_current,

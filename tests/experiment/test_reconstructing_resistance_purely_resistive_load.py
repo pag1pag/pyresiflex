@@ -110,24 +110,24 @@ def test_reconstruct_resistance_from_signals(
         ]
     )
 
-    # Compute R_p(vmes, imes)
-    expe.compute_plasma_resistance_from_vmes_and_imes(
+    # Compute R_p(vmeas, imeas)
+    expe.compute_plasma_resistance_from_vmeas_and_imeas(
         setup_experiment["times"],
         threshold=1e-6,
     )
     resistance_v_i = expe.Rp_corrected_with_nan
     assert resistance_v_i is not None
 
-    # Compute R_p(vmes, vg)
-    resistance_v_vg = expe.compute_plasma_resistance_from_vmes_and_vg(
+    # Compute R_p(vmeas, vg)
+    resistance_v_vg = expe.compute_plasma_resistance_from_vmeas_and_vg(
         setup_experiment["times"],
         generator=setup_experiment["generator"],
         max_n=4,
     )
     assert resistance_v_vg is not None
 
-    # Compute R_p(imes, vg)
-    resistance_i_vg = expe.compute_plasma_resistance_from_imes_and_vg(
+    # Compute R_p(imeas, vg)
+    resistance_i_vg = expe.compute_plasma_resistance_from_imeas_and_vg(
         setup_experiment["times"],
         generator=setup_experiment["generator"],
         max_n=4,

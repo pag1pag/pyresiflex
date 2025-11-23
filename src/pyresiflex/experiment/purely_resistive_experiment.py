@@ -155,7 +155,7 @@ class PurelyResistiveExperiment:
             right=0,
         )
 
-    def compute_plasma_resistance_from_vmes_and_imes(
+    def compute_plasma_resistance_from_vmeas_and_imeas(
         self,
         times: np.ndarray,
         threshold: float = 0.0,
@@ -286,7 +286,7 @@ class PurelyResistiveExperiment:
 
         return self.R_p
 
-    def compute_plasma_resistance_from_vmes_and_vg(
+    def compute_plasma_resistance_from_vmeas_and_vg(
         self,
         times: np.ndarray,
         generator: PurelyResistiveBaseGenerator,
@@ -336,7 +336,7 @@ class PurelyResistiveExperiment:
 
         return reconstructed_resistance_voltage
 
-    def compute_plasma_resistance_from_imes_and_vg(
+    def compute_plasma_resistance_from_imeas_and_vg(
         self,
         times: np.ndarray,
         generator: PurelyResistiveBaseGenerator,
@@ -444,13 +444,13 @@ class PurelyResistiveExperiment:
             \Gamma_p(t)
             =
             \frac{
-                V_{\text {meas }}\left(t+\tau\right)
-                -\sum_{n=0}^N(t+\tau - \frac{x_{\text {meas }}}{c})
+                V_{\text{meas}}\left(t+\tau\right)
+                -\sum_{n=0}^N(t+\tau - \frac{x_{\text{meas}}}{c})
                     \alpha_g
                     V_g \left(
                         t
                         + \tau
-                        - \frac{x_{\text {meas }}}{c}
+                        - \frac{x_{\text{meas}}}{c}
                         - \frac{2 n L}{c}
                     \right)
                     \prod_{k=1}^n \left[
@@ -458,17 +458,17 @@ class PurelyResistiveExperiment:
                         \Gamma_p \left(
                             t
                             + \tau
-                            - \frac{x_{\text {meas }}}{c}
+                            - \frac{x_{\text{meas}}}{c}
                             - \frac{(2 k-1) L}{c}
                         \right)
                     \right]
                 }{
-                \sum_{n=0}^{N(t+\tau + \frac{x_{\text {meas }}}{c} - 2 L / c)}
+                \sum_{n=0}^{N(t+\tau + \frac{x_{\text{meas}}}{c} - 2 L / c)}
                     \alpha_g
                     V_g\left(
                         t
                         + \tau
-                        + \frac{x_{\text {meas }}}{c}
+                        + \frac{x_{\text{meas}}}{c}
                         - \frac{2(n+1) L}{c}
                     \right)
                     \prod_{k=1}^n \left[
@@ -476,7 +476,7 @@ class PurelyResistiveExperiment:
                         \Gamma_p \left(
                             t
                             + \tau
-                            + \frac{x_{\text {meas }}}{c}
+                            + \frac{x_{\text{meas}}}{c}
                             - \frac{2 (k+1) L}{c}
                         \right)
                     \right]
@@ -576,13 +576,13 @@ class PurelyResistiveExperiment:
             \Gamma_p(t)
             =
             \frac{
-                -Z_c I_{\text {meas }}\left(t+\tau\right)
-                +\sum_{n=0}^N(t+\tau - \frac{x_{\text {meas }}}{c})
+                -Z_c I_{\text{meas}}\left(t+\tau\right)
+                +\sum_{n=0}^N(t+\tau - \frac{x_{\text{meas}}}{c})
                     \alpha_g
                     V_g \left(
                         t
                         + \tau
-                        - \frac{x_{\text {meas }}}{c}
+                        - \frac{x_{\text{meas}}}{c}
                         - \frac{2 n L}{c}
                     \right)
                     \prod_{k=1}^n \left[
@@ -590,17 +590,17 @@ class PurelyResistiveExperiment:
                         \Gamma_p \left(
                             t
                             + \tau
-                            - \frac{x_{\text {meas }}}{c}
+                            - \frac{x_{\text{meas}}}{c}
                             - \frac{(2 k-1) L}{c}
                         \right)
                     \right]
                 }{
-                \sum_{n=0}^{N(t+\tau + \frac{x_{\text {meas }}}{c} - 2 L / c)}
+                \sum_{n=0}^{N(t+\tau + \frac{x_{\text{meas}}}{c} - 2 L / c)}
                     \alpha_g
                     V_g\left(
                         t
                         + \tau
-                        + \frac{x_{\text {meas }}}{c}
+                        + \frac{x_{\text{meas}}}{c}
                         - \frac{2(n+1) L}{c}
                     \right)
                     \prod_{k=1}^n \left[
@@ -608,7 +608,7 @@ class PurelyResistiveExperiment:
                         \Gamma_p \left(
                             t
                             + \tau
-                            + \frac{x_{\text {meas }}}{c}
+                            + \frac{x_{\text{meas}}}{c}
                             - \frac{2 (k+1) L}{c}
                         \right)
                     \right]
@@ -778,7 +778,7 @@ class PurelyResistiveExperiment:
         if not hasattr(self, "R_p"):
             raise ValueError(
                 "The resistance has not been computed yet. "
-                "Please call compute_plasma_resistance_from_vmes_and_imes() "
+                "Please call compute_plasma_resistance_from_vmeas_and_imeas() "
                 "first."
             )
 

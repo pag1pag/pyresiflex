@@ -284,7 +284,7 @@ for scenario, params in scenarios.items():
         correct_time_zero=True,
     )
 
-    expe.compute_plasma_resistance_from_vmes_and_imes(
+    expe.compute_plasma_resistance_from_vmeas_and_imeas(
         times_expe,
         threshold=400,
         channel_formation_time=channel_formation_time,

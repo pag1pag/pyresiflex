@@ -219,7 +219,7 @@ expe = PurelyResistiveExperiment(
 )
 
 threshold_voltage_for_resistance = 0.2 * np.max(voltages_expe)  # [V]
-expe.compute_plasma_resistance_from_vmes_and_imes(
+expe.compute_plasma_resistance_from_vmeas_and_imeas(
     times_expe,
     threshold=threshold_voltage_for_resistance,
     channel_formation_time=42e-9,
