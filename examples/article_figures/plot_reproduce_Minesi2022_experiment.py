@@ -259,8 +259,8 @@ plasma_load = expe.load_corrected
 
 # Plot the plasma resistance.
 set_mpl_style(nb_columns=1)
-fig, ax = expe.plot_resistance(times=times_expe)
-ax.set_xlim(0, 200)
+fig, ax = expe.plot_resistance(times=times_expe, plot_whole=True)
+ax.set_xlim(40, 200)
 ax.set_ylim(-100, 1000)
 plt.show()
 
