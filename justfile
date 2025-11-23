@@ -11,12 +11,12 @@ set windows-shell := ["powershell.exe", "-c"]
 # For the other platforms, use the default shell.
 
 [doc('Run `just` without arguments to run all the main tasks.')]
-default: update-env qa tests type-check build-docs
+default: update-env qa tests type-check build-docs all-done
 
 [doc('Run `just update-env` to update the virtual environment.
 This will update the dependencies in `uv.lock`.')]
 update-env:
-    @echo "Updating the virtual environment and dependencies..."
+    @echo 'print("\x1b[1;36;40m" + "Updating the virtual environment and dependencies..." + "\x1b[0m")' | uv run -
     uv self update
     uv lock --upgrade
     uv sync
@@ -25,7 +25,7 @@ update-env:
 This includes updating and running pre-commit hooks,
 which includes linting and formatting.')]
 qa:
-    @echo "Running quality assurance checks..."
+    @echo 'print("\x1b[1;36;40m" + "Running quality assurance checks..." + "\x1b[0m")' | uv run -
     uv run pre-commit-update
     uv run pre-commit run --all-files
 
@@ -33,14 +33,14 @@ qa:
 This includes the unit tests in the `tests` directory,
 as well as the doctests in the codebase.')]
 tests:
-    @echo "Running tests..."
+    @echo 'print("\x1b[1;36;40m" + "Running tests..." + "\x1b[0m")' | uv run -
     uv run pytest tests -vv
     uv run pytest src/pyresiflex --doctest-modules -vv --ignore src/pyresiflex/data
 
 [doc('Run `just tests-cov` to run all the tests with coverage.
 This includes generating coverage reports in various formats.')]
 tests-cov:
-    @echo "Running tests with coverage..."
+    @echo 'print("\x1b[1;36;40m" + "Running tests with coverage..." + "\x1b[0m")' | uv run -
     uv run coverage run -m pytest tests -vv
     uv run coverage report --show-missing --omit="*/tests/*"
     uv run coverage xml -o coverage/coverage.xml --omit="*/tests/*"
@@ -51,7 +51,7 @@ tests-cov:
 This uses mypy to check the types in the codebase.
 See https://mypy.readthedocs.io/en/stable/command_line.html for more information.')]
 type-check:
-    @echo "Running type checker..."
+    @echo 'print("\x1b[1;36;40m" + "Running type checker..." + "\x1b[0m")' | uv run -
     uv run mypy . --exclude docs --exclude out --exclude data
 
 [doc('Run `just build-docs` to build the documentation.
@@ -64,11 +64,15 @@ For example, to rebuild only the API docs, run `just build-docs _api`.
 To rebuild all except examples, run `just build-docs "_api _build source/backreferences"`.')]
 [working-directory: 'docs']
 build-docs rebuild='all':
-    @echo "Building documentation..."
+    @echo 'print("\x1b[1;36;40m" + "Building documentation..." + "\x1b[0m")' | uv run -
     uv run python prepare_docs.py --folders {{rebuild}}
     uv run sphinx-build -M html . _build --fail-on-warning --nitpicky
 
 [doc('Run `just stub-gen` to generate type hint stubs.')]
 stub-gen:
-    @echo "Generating type hint stubs..."
+    @echo 'print("\x1b[1;36;40m" + "Generating type hint stubs..." + "\x1b[0m")' | uv run -
     uv run stubgen .\src\pyresiflex
+
+[doc('Print that all tasks are complete.')]
+all-done:
+    @echo 'print("\x1b[1;32;40m" + "All tasks complete!" + "\x1b[0m")' | uv run -
