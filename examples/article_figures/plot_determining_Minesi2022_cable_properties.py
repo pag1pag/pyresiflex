@@ -146,7 +146,7 @@ plt.show()
 # We will then use the time delay to get the length of the cable.
 
 
-# In [Minesi2022]_, the cable used was a AlphaWire 9011A.
+# In [Minesi2022]_, the cable used was a AlphaWire 9011A RG11A/U.
 # The datasheet of this cable is available in the data folder.
 # The cable has the following properties:
 c_datasheet = 0.66 * u.c  # [m/s]

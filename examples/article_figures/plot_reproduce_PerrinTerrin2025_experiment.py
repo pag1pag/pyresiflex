@@ -301,16 +301,6 @@ else:
 
 fig, ax_v = plt.subplots()
 
-# .. Set title
-suptitle = "Voltage"
-if plot_current and plot_energy:
-    suptitle += ", current and energy"
-elif plot_current:
-    suptitle += " and current"
-elif plot_energy:
-    suptitle += " and energy"
-suptitle += f" at x = {x:.2f} m"
-
 # Plot voltage.
 plot_line_v = ax_v.plot(
     times_shifted * 1e9,

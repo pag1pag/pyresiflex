@@ -157,7 +157,7 @@ cable = PerfectCable(
 # ---------------------
 
 # Impedance of the generator.
-R_g = 10  # [Ohm]  (Chosen between 1 and 10 Ohm in the article)
+R_g = 10  # [Ohm]  (Chosen between either '1' or '10' Ohm in the article)
 # Attenuation coefficient.
 alpha_g = Z_c / (Z_c + R_g)  # [-]
 # Pulse duration.
@@ -286,16 +286,6 @@ else:
     x_label = r"$\mathregular{t \, [ns]}$"
 
 fig, ax_v = plt.subplots()
-
-# .. Set title.
-suptitle = "Voltage"
-if plot_current and plot_energy:
-    suptitle += ", current and energy"
-elif plot_current:
-    suptitle += " and current"
-elif plot_energy:
-    suptitle += " and energy"
-suptitle += f" at x = {x:.2f} m"
 
 # Plot voltage.
 plot_line_v = ax_v.plot(

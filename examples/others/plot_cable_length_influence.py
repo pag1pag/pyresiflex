@@ -18,6 +18,9 @@ following assumption
 - Trapezoidal pulse shape.
 """  # noqa: D205
 
+# This sets the following figure as the thumbnail for the example gallery.
+# sphinx_gallery_thumbnail_number = 3
+
 # %%
 # First, we import the required libraries.
 # -----------------------------------------
@@ -187,10 +190,6 @@ currents = np.array([solution.I(x_current, t) for t in times])
 # %%
 # Plot the voltage and current at a given position.
 # -------------------------------------------------
-
-# This sets the following figure as the thumbnail for the example gallery.
-# sphinx_gallery_thumbnail_number = 3
-
 
 fig, ax = plt.subplots(1, figsize=(20, 10))
 ax_i = ax.twinx()

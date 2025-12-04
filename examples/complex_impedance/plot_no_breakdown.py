@@ -9,6 +9,9 @@ capacitance (representing the electrode and the surrounding environment).
 Let us observe what are the current and voltage in this case.
 """  # noqa: D205
 
+# This sets the following figure as the thumbnail for the example gallery.
+# sphinx_gallery_thumbnail_number = 5
+
 # %%
 # First, we import the required libraries.
 # -----------------------------------------
@@ -109,10 +112,6 @@ energy = solution.energy
 # %%
 # Plot voltage, current, and energy at remote configuration.
 # ----------------------------------------------------------
-
-# This sets the following figure as the thumbnail for the example gallery.
-# sphinx_gallery_thumbnail_number = 5
-
 
 fig, ax_v = plt.subplots()
 
