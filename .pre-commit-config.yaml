@@ -24,7 +24,7 @@ repos:
   hooks:
   - id: blackdoc
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.14.6
+  rev: v0.14.8
   hooks:
   - id: ruff
     args: [--fix, --show-fixes]
@@ -41,6 +41,6 @@ repos:
   - id: pretty-format-toml
     args: [--autofix]
 - repo: https://github.com/gitleaks/gitleaks
-  rev: v8.29.1
+  rev: v8.30.0
   hooks:
   - id: gitleaks
