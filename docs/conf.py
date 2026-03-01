@@ -48,6 +48,10 @@ extensions = [
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "pyresiflex/data/*"]
 
+# See https://github.com/sphinx-doc/sphinx/issues/12300
+# This is to avoid `WARNING: cannot cache unpickable configuration value`
+suppress_warnings = ["config.cache"]
+
 
 # -- autodoc configuration ----------------------------------------------------
 
@@ -55,6 +59,13 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "pyresiflex/data/*"]
 autoclass_content = "both"
 # https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#confval-autodoc_inherit_docstrings
 autodoc_inherit_docstrings = False
+
+
+# -- autosummary configuration ------------------------------------------------
+
+# Used for mini-galleries.
+# https://sphinx-gallery.github.io/stable/configuration.html#add-mini-galleries-for-api-documentation
+autosummary_generate = True
 
 
 # -- Intersphinx configuration ------------------------------------------------
@@ -147,21 +158,14 @@ sphinx_gallery_conf = {
     "matplotlib_animations": True,
 }
 
-# Used for mini-galleries.
-# https://sphinx-gallery.github.io/stable/configuration.html#add-mini-galleries-for-api-documentation
-autosummary_generate = True
-
-# See https://github.com/sphinx-doc/sphinx/issues/12300
-# This is to avoid `WARNING: cannot cache unpickable configuration value`
-suppress_warnings = ["config.cache"]
-
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.
 html_theme = "pydata_sphinx_theme"
 
-html_show_sourcelink = False  # remove 'view source code' from top of page
+# Remove 'view source code' from top of page.
+html_show_sourcelink = False
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
