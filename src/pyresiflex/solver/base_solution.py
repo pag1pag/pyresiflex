@@ -550,6 +550,7 @@ class BaseSolution(ABC):
     def animation(
         self,
         interval: int = 100,
+        with_current: bool = True,
         y_min_max_voltage: tuple[float, float] | None = None,
         y_min_max_current: tuple[float, float] | None = None,
         show: bool = True,
@@ -569,11 +570,10 @@ class BaseSolution(ABC):
         show : bool, optional
             If True, display the animation using plt.show(). Default is True.
         """
-        fig, ax_voltage = plt.subplots(1, figsize=(20, 10))
-        ax_current = ax_voltage.twinx()
+        fig, ax_voltage = plt.subplots()
 
-        (plot_line_voltage,) = ax_voltage.plot([], [], "k-", label="Voltage")
-        (plot_line_current,) = ax_current.plot([], [], "r--", label="Current")
+        # Set up the plot elements to be updated.
+        # .. Title that will be updated.
         animation_title = ax_voltage.text(
             0.5,
             0.89,
@@ -582,18 +582,32 @@ class BaseSolution(ABC):
             transform=ax_voltage.transAxes,
             ha="center",
         )
+        # .. Voltage line that will be updated.
+        (plot_line_voltage,) = ax_voltage.plot([], [], "k-", label="Voltage")
+        # .. Current line that will be updated.
+        if with_current:
+            ax_current = ax_voltage.twinx()
+            (plot_line_current,) = ax_current.plot(
+                [], [], "r--", label="Current"
+            )
 
         def _update_line(idx_t: int) -> tuple:
-            plot_line_voltage.set_data(self.x, self.voltage[:, idx_t] * 1e-3)
-            plot_line_current.set_data(self.x, self.current[:, idx_t])
+            # Update title with load impedance at current time.
             Z_l = self.load.load_impedance(self.t[idx_t])
             animation_title.set_text(
                 f"t = {self.t[idx_t] * 1e9:.0f} ns\n"
                 f"($Z_l$ = {Z_l:.1e} "
                 r"$\Omega$)"
             )
+            # Update voltage line.
+            plot_line_voltage.set_data(self.x, self.voltage[:, idx_t] * 1e-3)
 
-            return plot_line_voltage, plot_line_current, animation_title
+            if with_current:
+                # Update current line.
+                plot_line_current.set_data(self.x, self.current[:, idx_t])
+                return plot_line_voltage, plot_line_current, animation_title
+            else:
+                return plot_line_voltage, animation_title
 
         # Set y-limits if provided for voltage.
         if y_min_max_voltage is None:
@@ -603,19 +617,20 @@ class BaseSolution(ABC):
             ax_voltage.set_ylim(y_min_max_voltage)
         else:
             raise ValueError(
-                "`y_min_max_voltage` must be a tuple of two floats or None."
+                "`y_min_max_voltage` must be a tuple of 2 floats or None."
             )
 
         # Set y-limits if provided for current.
-        if y_min_max_current is None:
-            max_abs_current = np.max(np.abs(self.current)) * 1.1
-            ax_current.set_ylim(-max_abs_current, max_abs_current)
-        if isinstance(y_min_max_current, tuple):
-            ax_current.set_ylim(y_min_max_current)
-        else:
-            raise ValueError(
-                "`y_min_max_current` must be a tuple of two floats or None."
-            )
+        if with_current:
+            if y_min_max_current is None:
+                max_abs_current = np.max(np.abs(self.current)) * 1.1
+                ax_current.set_ylim(-max_abs_current, max_abs_current)
+            if isinstance(y_min_max_current, tuple):
+                ax_current.set_ylim(y_min_max_current)
+            else:
+                raise ValueError(
+                    "`y_min_max_current` must be a tuple of 2 floats or None."
+                )
 
         # Plot options..
         # .. for voltage.
@@ -623,13 +638,16 @@ class BaseSolution(ABC):
         ax_voltage.set_xlabel(r"$\mathregular{x \, [m]}$")
         ax_voltage.set_ylabel(r"$\mathregular{V \, [kV]}$")
         ax_voltage.grid(visible=True)
-        ax_voltage.legend(loc="upper left")
+        if with_current:
+            # Only add legends if both voltage and current are plotted.
+            ax_voltage.legend(loc="upper left")
         # .. for current.
-        ax_current.set_ylabel(r"$\mathregular{I \, [A]}$", color="r")
-        ax_current.grid(visible=False)
-        ax_current.spines["right"].set_color("r")
-        ax_current.tick_params(axis="y", colors="r", labelcolor="r")
-        ax_current.legend(loc="upper right")
+        if with_current:
+            ax_current.set_ylabel(r"$\mathregular{I \, [A]}$", color="r")
+            ax_current.grid(visible=False)
+            ax_current.spines["right"].set_color("r")
+            ax_current.tick_params(axis="y", colors="r", labelcolor="r")
+            ax_current.legend(loc="upper right")
 
         # Create the animation.
         ani = FuncAnimation(
