@@ -2,10 +2,7 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/anaconda.
 {
     "name": "Python 3.14",
-    "build": {
-		"context": "..",
-		"dockerfile": "Dockerfile"
-	},
+    "image": "mcr.microsoft.com/devcontainers/python:3.14",
     "customizations": {
         "vscode": {
             "settings": {
@@ -47,5 +44,5 @@
     "postCreateCommand": "pip install uv && uv sync --python 3.14",
 
     // Use 'postAttachCommand' to run commands after the container is attached.
-	"postAttachCommand": "source .venv/bin/activate && just update-env && just qa"
+	"postAttachCommand": "source .venv/bin/activate && just update-env-codespace && just qa"
 }

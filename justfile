@@ -20,6 +20,14 @@ update-env:
     uv self update
     uv lock --upgrade
     uv sync
+[doc('Run `just update-env-codespace` to update the virtual environment in a codespace.
+This will update the dependencies in `uv.lock`.')]
+update-env-codespace:
+    @echo 'print("\x1b[1;36;40m" + "Updating the virtual environment and dependencies..." + "\x1b[0m")' | uv run -
+    pip install --upgrade pip
+    pip install --upgrade uv
+    uv lock --upgrade
+    uv sync
 
 [doc('Run `just qa` to run all the quality assurance checks.
 This includes updating and running pre-commit hooks,
