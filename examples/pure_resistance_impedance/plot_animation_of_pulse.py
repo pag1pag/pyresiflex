@@ -291,7 +291,7 @@ ani = solution.animation(
 )
 
 # Save the animation as a .mp4 file.
-ani.save("animation_of_pulse_propagation.mp4", writer="ffmpeg", fps=10)
+# ani.save("animation_of_pulse_propagation.mp4", writer="ffmpeg", fps=10)
 
 # # %%
 # # Save the animation as a .gif file.
