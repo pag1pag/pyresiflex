@@ -1,8 +1,8 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/anaconda.
 {
-    "name": "Python 3.13",
-    "image": "mcr.microsoft.com/devcontainers/python:3.13-bullseye",
+    "name": "Python 3.14",
+    "image": "mcr.microsoft.com/devcontainers/python:3.14",
     "features": {
         "ghcr.io/devcontainers/features/node:1": {
             "version": "latest"
@@ -29,17 +29,13 @@
                 "mhutchie.git-graph",  // Display a graph of the git history.
                 "eamodio.gitlens",  // GitLens (shows git commit and git blame, i.e. who is the last to have modified a specific line).
                 // GitHub extensions.
-                "GitHub.copilot",
                 "GitHub.copilot-chat",
                 "GitHub.vscode-pull-request-github",
                 "GitHub.codespaces",
                 "github.vscode-github-actions",
                 // VS Code extensions.
-                "VisualStudioExptTeam.vscodeintellicode",  // Browse real code exemple of a function.
-                "VisualStudioExptTeam.intellicode-api-usage-examples",
                 "vscode-icons-team.vscode-icons",
                 // Docker extensions.
-                "ms-azuretools.vscode-docker",
                 "ms-vscode-remote.remote-containers",
                 // Utility extensions.
                 "tomoki1207.pdf",  // PDF viewer in VS Code.
@@ -50,7 +46,7 @@
     },
     // Use 'postCreateCommand' to run commands after the container is created.
 	// Initialize Python after creation of container.
-    "postCreateCommand": "pip install uv && uv sync --python 3.13",
+    "postCreateCommand": "pip install uv && uv sync --python 3.14",
 
     // Use 'postAttachCommand' to run commands after the container is attached.
 	"postAttachCommand": "source .venv/bin/activate && just update-env && just qa"
