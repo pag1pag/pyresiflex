@@ -2,12 +2,10 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/anaconda.
 {
     "name": "Python 3.14",
-    "image": "mcr.microsoft.com/devcontainers/python:3.14",
-    "features": {
-        "ghcr.io/devcontainers/features/node:1": {
-            "version": "latest"
-        }
-    },
+    "build": {
+		"context": "..",
+		"dockerfile": "Dockerfile"
+	},
     "customizations": {
         "vscode": {
             "settings": {
