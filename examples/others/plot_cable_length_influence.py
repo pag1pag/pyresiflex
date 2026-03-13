@@ -133,7 +133,7 @@ for solution in solutions:
     L = solution.cable.L
 
     # Position where measurements are taken [m].
-    x_meas = L / 2
+    x_meas = L / 2  # Mid-point of the cable.
 
     # Time array for the simulation.
     start_time = 0  # Start time for the simulation [s].
@@ -256,7 +256,8 @@ for solution in solutions:
 
     if save_fig:
         # Save the figure.
-        save_figure(fig, name=f"cable_length_influence_L={L:.1f}m")
+        name = f"cable_length_influence_L={L:.1f}m_xmeas={x_meas:.2f}m"
+        save_figure(fig, name=name)
 
     plt.show()
 
