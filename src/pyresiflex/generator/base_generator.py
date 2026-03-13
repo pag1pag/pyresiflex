@@ -21,67 +21,6 @@ class BaseGenerator(ABC):
         """Flag to indicate if the generator impedance is purely resistive."""
 
     @abstractmethod
-    def generator_impedance(self, *args) -> np.ndarray | float:
-        r"""Impedance of the generator.
-
-        The generator impedance can depend on the frequency.
-        This function should be implemented in the derived class.
-
-        Other Parameters
-        ----------------
-        frequency : numpy.ndarray
-            Array of frequency in Hz.
-
-        Return
-        ------
-        numpy.ndarray or float
-            Array of generator impedance in Ohm, or a single value if the
-            impedance is constant. Can be complex if the generator is a
-            capacitor or an inductor. The impedance is the same for all
-            frequencies if the generator is a resistance.
-
-        Notes
-        -----
-        For a constant resistance, the impedance is the same for all
-        frequencies, therefore:
-
-        .. math::
-
-            Z_g(f) = R_g
-
-        where:
-
-        - :math:`R_g` is the resistance in Ohm.
-
-
-        For a capacitor, the impedance is:
-
-        .. math::
-
-            Z_g(f) = \frac{1}{j 2 \pi f C_g}
-
-        where:
-
-        - :math:`j` is the imaginary unit,
-        - :math:`f` is the frequency in Hz,
-        - :math:`C_g` is the capacitance in Farad.
-
-
-        For an inductor, the impedance is:
-
-        .. math::
-
-            Z_g(f) = j 2 \pi f L_g
-
-        where:
-
-        - :math:`L_g` is the inductance in Henry.
-        """
-        raise NotImplementedError(
-            "Define the generator impedance calculation in the derived class."
-        )
-
-    @abstractmethod
     def generator_voltage(self, t: float) -> float:
         r"""Voltage of the generator.
 

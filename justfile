@@ -56,11 +56,11 @@ tests-cov:
     uv run genbadge coverage -i coverage/coverage.xml -o coverage/coverage.svg
 
 [doc('Run `just type-check` to run the type checker.
-This uses mypy to check the types in the codebase.
-See https://mypy.readthedocs.io/en/stable/command_line.html for more information.')]
+This uses `ty` to check the types in the codebase.
+See https://docs.astral.sh/ty/ for more information.')]
 type-check:
     @echo 'print("\x1b[1;36;40m" + "Running type checker..." + "\x1b[0m")' | uv run -
-    uv run mypy . --exclude docs --exclude out --exclude data
+    uv run ty check
 
 [doc('Run `just build-docs` to build the documentation.
 This uses Sphinx to build the docs in the `docs` directory.

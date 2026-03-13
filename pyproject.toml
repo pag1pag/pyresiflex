@@ -22,8 +22,8 @@ dev = [
   "pre-commit-update",  # To update pre-commit hooks.
   "ruff",  # Linter and code formatter.
   "rust-just",  # To use `just` command defined in `./justfile`
-  # Type checking dependencies.
-  "mypy"  # To check type hints.
+  # Type checking dependencies.  # To check type hints.
+  "ty>=0.0.23"
 ]
 
 [project]
@@ -94,3 +94,7 @@ max-line-length = 79
 [tool.ruff.lint.pydocstyle]
 # See https://numpydoc.readthedocs.io/en/latest/format.html.
 convention = "numpy"
+
+[tool.ty.src]
+exclude = ["docs", "out"]
+include = ["src", "tests"]

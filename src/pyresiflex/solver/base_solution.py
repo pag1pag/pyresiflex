@@ -5,8 +5,14 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 
 from pyresiflex.cable.cable import PerfectCable
-from pyresiflex.generator.base_generator import BaseGenerator
-from pyresiflex.load.base_load import BaseLoad
+from pyresiflex.generator.base_generator import (
+    ComplexImpedanceBaseGenerator,
+    PurelyResistiveBaseGenerator,
+)
+from pyresiflex.load.base_load import (
+    ComplexImpedanceBaseLoad,
+    PurelyResistiveBaseLoad,
+)
 
 
 class BaseSolution(ABC):
@@ -22,9 +28,9 @@ class BaseSolution(ABC):
     ----------
     cable : PerfectCable
         Perfect transmission line object.
-    generator : BaseGenerator
+    generator : PurelyResistiveBaseGenerator or ComplexImpedanceBaseGenerator
         Generator object that provides the voltage source.
-    load : BaseLoad
+    load : PurelyResistiveBaseLoad or ComplexImpedanceBaseLoad
         Load object that provides the impedance at the end of the line.
 
     Notes
@@ -63,23 +69,36 @@ class BaseSolution(ABC):
     def __init__(
         self,
         cable: PerfectCable,
-        generator: BaseGenerator,
-        load: BaseLoad,
+        generator: PurelyResistiveBaseGenerator
+        | ComplexImpedanceBaseGenerator,
+        load: PurelyResistiveBaseLoad | ComplexImpedanceBaseLoad,
     ):
         if not isinstance(cable, PerfectCable):
             raise TypeError("`cable` must be an instance of `PerfectCable`.")
-        if not isinstance(generator, BaseGenerator):
+        if not isinstance(
+            generator,
+            (PurelyResistiveBaseGenerator, ComplexImpedanceBaseGenerator),
+        ):
             raise TypeError(
-                "`generator` must be an instance of `BaseGenerator`."
+                "`generator` must be an instance of "
+                "`PurelyResistiveBaseGenerator`"
+                " or `ComplexImpedanceBaseGenerator`."
             )
-        if not isinstance(load, BaseLoad):
-            raise TypeError("`load` must be an instance of `BaseLoad`.")
+        if not isinstance(
+            load, (PurelyResistiveBaseLoad, ComplexImpedanceBaseLoad)
+        ):
+            raise TypeError(
+                "`load` must be an instance of `PurelyResistiveBaseLoad`"
+                " or `ComplexImpedanceBaseLoad`."
+            )
 
         self.cable: PerfectCable = cable
         """Perfect transmission line object."""
-        self.generator: BaseGenerator = generator
+        self.generator: (
+            PurelyResistiveBaseGenerator | ComplexImpedanceBaseGenerator
+        ) = generator
         """Generator object that provides the voltage source."""
-        self.load: BaseLoad = load
+        self.load: PurelyResistiveBaseLoad | ComplexImpedanceBaseLoad = load
         """Load object that provides the impedance at the end of the line."""
 
         # Cable parameters.

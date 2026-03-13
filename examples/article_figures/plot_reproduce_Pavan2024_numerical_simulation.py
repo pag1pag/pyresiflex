@@ -10,7 +10,7 @@ analytical and numerical results.
 Voltage from Figure 8 of [Pavan2025]_ was digitized for this comparison.
 
 This example also show how to create a custom load which inherits from
-:py:class:`~pyresiflex.load.base_load.BaseSteadyImpedance`.
+:py:class:`~pyresiflex.load.base_load.ComplexImpedanceBaseLoad`.
 """  # noqa: D205
 
 # This sets the first figure as the thumbnail for the example gallery.
@@ -33,7 +33,7 @@ import numpy as np
 
 from pyresiflex.cable.cable import PerfectCable
 from pyresiflex.generator.generator_complex_impedance import GaussianGenerator
-from pyresiflex.load.base_load import BaseSteadyImpedance
+from pyresiflex.load.base_load import ComplexImpedanceBaseLoad
 from pyresiflex.misc.plot import set_mpl_style
 from pyresiflex.misc.utils import get_path_to_data
 from pyresiflex.solver.steady_impedance_solution import SteadyImpedanceSolution
@@ -89,7 +89,7 @@ pavan_cable = PerfectCable(
 # we create a custom load class.
 
 
-class PavanLoad(BaseSteadyImpedance):
+class PavanLoad(ComplexImpedanceBaseLoad):
     def __init__(self, R_l: float, C_l: float):
         """Create a load class for the Pavan2025 case.
 
@@ -225,7 +225,7 @@ alpha = 0.5
 for label, pavan_dict in pavan_loads.items():
     # Extract load and color from the dictionary.
     pavan_load = pavan_dict["load"]
-    assert isinstance(pavan_load, BaseSteadyImpedance)
+    assert isinstance(pavan_load, ComplexImpedanceBaseLoad)
     color = pavan_dict["color"]
     assert isinstance(color, str)
 
@@ -422,7 +422,7 @@ fig_e, ax_e = plt.subplots()
 for label, pavan_dict in pavan_loads.items():
     # Extract load and color from the dictionary.
     pavan_load = pavan_dict["load"]
-    assert isinstance(pavan_load, BaseSteadyImpedance)
+    assert isinstance(pavan_load, ComplexImpedanceBaseLoad)
     color = pavan_dict["color"]
     assert isinstance(color, str)
 

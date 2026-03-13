@@ -1,9 +1,9 @@
 import numpy as np
 
-from pyresiflex.load.base_load import BaseSteadyImpedance
+from pyresiflex.load.base_load import ComplexImpedanceBaseLoad
 
 
-class ConstantResistance(BaseSteadyImpedance):
+class ConstantResistance(ComplexImpedanceBaseLoad):
     """Constant capacitance load.
 
     Parameters
@@ -49,7 +49,7 @@ class ConstantResistance(BaseSteadyImpedance):
         return self.R * np.ones_like(frequency)
 
 
-class Capacitance(BaseSteadyImpedance):
+class Capacitance(ComplexImpedanceBaseLoad):
     """Constant capacitance load.
 
     Parameters
@@ -97,7 +97,7 @@ class Capacitance(BaseSteadyImpedance):
         return 1 / (1j * 2 * np.pi * frequency * self.C)
 
 
-class Inductance(BaseSteadyImpedance):
+class Inductance(ComplexImpedanceBaseLoad):
     """Constant inductance load.
 
     Parameters

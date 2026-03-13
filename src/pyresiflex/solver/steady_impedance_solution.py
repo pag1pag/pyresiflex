@@ -5,7 +5,7 @@ import numpy as np
 
 from pyresiflex.cable.cable import PerfectCable
 from pyresiflex.generator.base_generator import ComplexImpedanceBaseGenerator
-from pyresiflex.load.base_load import BaseSteadyImpedance
+from pyresiflex.load.base_load import ComplexImpedanceBaseLoad
 from pyresiflex.solver.base_solution import BaseSolution
 
 
@@ -30,7 +30,7 @@ class SteadyImpedanceSolution(BaseSolution):
         Perfect transmission line object.
     generator : ComplexImpedanceBaseGenerator
         Generator object that provides the voltage source.
-    load : BaseSteadyImpedance
+    load : ComplexImpedanceBaseLoad
         Load object that provides the impedance at the end of the line.
     nb_points_ft : int, optional
         Number of points for the Fourier transform of the generator voltage.
@@ -76,7 +76,7 @@ class SteadyImpedanceSolution(BaseSolution):
         self,
         cable: PerfectCable,
         generator: ComplexImpedanceBaseGenerator,
-        load: BaseSteadyImpedance,
+        load: ComplexImpedanceBaseLoad,
         nb_points_ft: int = 1000,
         max_time_ft: float = 1e-7,
     ):
@@ -87,9 +87,9 @@ class SteadyImpedanceSolution(BaseSolution):
                 "`generator` must be an instance of"
                 " `ComplexImpedanceBaseGenerator`."
             )
-        if not isinstance(load, BaseSteadyImpedance):
+        if not isinstance(load, ComplexImpedanceBaseLoad):
             raise TypeError(
-                "`load` must be an instance of `BaseSteadyImpedance`."
+                "`load` must be an instance of `ComplexImpedanceBaseLoad`."
             )
 
         if load.time_varying:

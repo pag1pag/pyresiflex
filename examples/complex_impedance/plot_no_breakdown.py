@@ -27,7 +27,7 @@ import numpy as np
 
 from pyresiflex.cable.cable import PerfectCable
 from pyresiflex.generator.generator_complex_impedance import GaussianGenerator
-from pyresiflex.load.base_load import BaseSteadyImpedance
+from pyresiflex.load.base_load import ComplexImpedanceBaseLoad
 from pyresiflex.misc.utils import get_path_to_data
 from pyresiflex.solver.steady_impedance_solution import SteadyImpedanceSolution
 
@@ -66,7 +66,7 @@ cable = PerfectCable(
 # --------------------------------------------
 
 
-class NoBreakdownPlasma(BaseSteadyImpedance):
+class NoBreakdownPlasma(ComplexImpedanceBaseLoad):
     def __init__(self, R_l, C_l):
         super().__init__(purely_resistive=False)
         self.R_l = R_l
