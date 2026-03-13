@@ -436,6 +436,7 @@ class BaseSolution(ABC):
         ----------
         x : numpy.ndarray or float
             Position in meters. Can be a single value or an array of values.
+            All values must be between 0 and L.
         t : numpy.ndarray or float
             Time in seconds. Can be a single value or an array of values.
 
@@ -490,6 +491,9 @@ class BaseSolution(ABC):
             x_array = x.astype(float)
         else:
             raise ValueError("x must be a 1D array or a single value.")
+        # Check that all x values are within the cable length.
+        if np.any(x_array < 0) or np.any(x_array > self.L):
+            raise ValueError("All x values must be between 0 and L.")
 
         # Ensure t is a 1D numpy array or a single value.
         t_array: np.ndarray
@@ -537,6 +541,7 @@ class BaseSolution(ABC):
             current = current.flatten()
             power = power.flatten()
             energy = energy.flatten()
+            x_array = x_array.flatten()
 
         self.voltage = voltage
         self.current = current
