@@ -2,7 +2,7 @@ from typing import Callable
 
 from pyresiflex.cable.cable import PerfectCable
 from pyresiflex.generator.base_generator import PurelyResistiveBaseGenerator
-from pyresiflex.load.base_load import BaseResistance
+from pyresiflex.load.base_load import PurelyResistiveBaseLoad
 from pyresiflex.solver.base_solution import BaseSolution
 
 
@@ -26,7 +26,7 @@ class PurelyResistiveSolution(BaseSolution):
         Perfect transmission line object.
     generator : PurelyResistiveBaseGenerator
         Generator object that provides the voltage source.
-    load : BaseResistance
+    load : PurelyResistiveBaseLoad
         Load object that provides the impedance at the end of the line.
 
     Notes
@@ -86,7 +86,7 @@ class PurelyResistiveSolution(BaseSolution):
         self,
         cable: PerfectCable,
         generator: PurelyResistiveBaseGenerator,
-        load: BaseResistance,
+        load: PurelyResistiveBaseLoad,
     ):
         if not isinstance(cable, PerfectCable):
             raise TypeError("`cable` must be an instance of `PerfectCable`.")
@@ -95,8 +95,10 @@ class PurelyResistiveSolution(BaseSolution):
                 "`generator` must be an instance of"
                 " `PurelyResistiveBaseGenerator`."
             )
-        if not isinstance(load, BaseResistance):
-            raise TypeError("`load` must be an instance of `BaseResistance`.")
+        if not isinstance(load, PurelyResistiveBaseLoad):
+            raise TypeError(
+                "`load` must be an instance of `PurelyResistiveBaseLoad`."
+            )
 
         if not load.purely_resistive:
             raise ValueError(

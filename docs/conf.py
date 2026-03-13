@@ -9,8 +9,8 @@
 import os
 import sys
 
-import sphinx_gallery.gen_rst  # type: ignore
-from sphinx_gallery.sorting import FileNameSortKey  # type: ignore
+import sphinx_gallery.gen_rst
+from sphinx_gallery.sorting import FileNameSortKey
 
 import pyresiflex
 
@@ -93,8 +93,8 @@ napoleon_type_aliases = {
     "ComplexImpedanceBaseGenerator": "~pyresiflex.generator.base_generator.ComplexImpedanceBaseGenerator",  # noqa: E501
     # Load
     "BaseLoad": "~pyresiflex.load.base_load.BaseLoad",  # noqa: E501
-    "BaseResistance": "~pyresiflex.load.base_load.BaseResistance",  # noqa: E501
-    "BaseSteadyImpedance": "~pyresiflex.load.base_load.BaseSteadyImpedance",  # noqa: E501
+    "PurelyResistiveBaseLoad": "~pyresiflex.load.base_load.PurelyResistiveBaseLoad",  # noqa: E501
+    "ComplexImpedanceBaseLoad": "~pyresiflex.load.base_load.ComplexImpedanceBaseLoad",  # noqa: E501
     # Matplotlib
     "Figure": "matplotlib.figure.Figure",
     "Axes": "matplotlib.axes.Axes",

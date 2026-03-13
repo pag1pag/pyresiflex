@@ -43,7 +43,7 @@ import numpy as np
 
 from pyresiflex.cable.cable import PerfectCable
 from pyresiflex.generator.generator_complex_impedance import GaussianGenerator
-from pyresiflex.load.base_load import BaseSteadyImpedance
+from pyresiflex.load.base_load import ComplexImpedanceBaseLoad
 from pyresiflex.misc.utils import get_path_to_data
 from pyresiflex.solver.steady_impedance_solution import SteadyImpedanceSolution
 
@@ -82,7 +82,7 @@ cable = PerfectCable(
 # --------------------------------------------
 
 
-class ReactorImpedance(BaseSteadyImpedance):
+class ReactorImpedance(ComplexImpedanceBaseLoad):
     def __init__(self, R_wire, L_wire, C_electrode, R_plasma):
         super().__init__(purely_resistive=False)
         self.R_wire = R_wire

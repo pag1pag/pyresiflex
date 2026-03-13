@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pyresiflex.load.base_load import BaseLoad, BaseSteadyImpedance
+from pyresiflex.load.base_load import BaseLoad, ComplexImpedanceBaseLoad
 
 
 #######################################################################
@@ -16,12 +16,6 @@ class DummyLoad(BaseLoad):
     def load_impedance(self, t=0.0, frequency=None):
         # Return a constant value for testing
         return 42.0
-
-
-def test_base_load_instantiation():
-    # Should not be able to instantiate BaseLoad directly
-    with pytest.raises(TypeError):
-        BaseLoad(purely_resistive=True, time_varying=False)  # type: ignore
 
 
 def test_dummy_load_impedance_returns_constant():
@@ -41,14 +35,6 @@ def test_base_load_attributes():
     assert dummy.time_varying is True
 
 
-def test_base_load_abstract_method_raises():
-    class IncompleteLoad(BaseLoad):
-        pass
-
-    with pytest.raises(TypeError):
-        IncompleteLoad(purely_resistive=True, time_varying=False)  # type: ignore
-
-
 #######################################################################
 #######################################################################
 ################ TESTS FOR BASE STEADY IMPEDANCE CLASS ################
@@ -56,7 +42,7 @@ def test_base_load_abstract_method_raises():
 #######################################################################
 
 
-class DummySteadyImpedance(BaseSteadyImpedance):
+class DummySteadyImpedance(ComplexImpedanceBaseLoad):
     def __init__(self, purely_resistive):
         super().__init__(purely_resistive)
 

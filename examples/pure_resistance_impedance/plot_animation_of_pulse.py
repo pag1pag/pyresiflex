@@ -274,11 +274,11 @@ plt.show()
 # ---------------------------------------------------------
 
 # Define the space and time vectors.
-N_x = 100  # number of points in space.
+N_x = 10  # Number of points in space (Increase it as needed).
 xs = np.linspace(0, L, N_x, dtype=float)  # Space vector [m]
 
 t_max = 200e-9  # Maximum time [s]
-N_t = 100  # Number of points in time.
+N_t = 10  # Number of points in time (Increase it as needed).
 times = np.linspace(0, t_max, N_t, dtype=float)  # Time vector [s]
 
 solution.solve(xs, times)
