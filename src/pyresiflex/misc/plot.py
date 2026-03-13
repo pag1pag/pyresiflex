@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from pyresiflex.misc.utils import get_path_to_data
+from pyresiflex.misc.utils import get_path_to_data, get_root
 
 
 def set_mpl_style(nb_columns: int = 2) -> None:
@@ -21,6 +21,26 @@ def set_mpl_style(nb_columns: int = 2) -> None:
         plt.style.use(get_path_to_data("article_two_columns_figure.mplstyle"))
     else:
         raise ValueError("`nb_columns` must be 1 or 2.")
+
+
+def save_figure(fig: Figure, name: str, dpi: int = 300) -> None:
+    """Save a matplotlib figure to `./figures/<name>`.
+
+    Parameters
+    ----------
+    fig : Figure
+        The matplotlib figure to save.
+    name : str
+        The file name.
+    dpi : int, optional
+        The resolution in dots per inch. By default 300.
+    """
+    path_to_figure = get_root() / ".." / ".." / "figures"
+    path_to_figure = path_to_figure.resolve()
+    if not path_to_figure.exists():
+        path_to_figure.mkdir(parents=True, exist_ok=True)
+    path = path_to_figure / f"{name}.png"
+    fig.savefig(path, dpi=dpi, bbox_inches="tight")
 
 
 # Time units.
