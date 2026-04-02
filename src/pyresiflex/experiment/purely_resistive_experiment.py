@@ -503,7 +503,7 @@ class PurelyResistiveExperiment:
         if t <= L / c:
             return np.nan
 
-        # Define types for the variables to avoid mypy errors.
+        # Define types for the variables to avoid type-checking errors.
         num: float
         denom: float
         num_sum: float
@@ -630,7 +630,7 @@ class PurelyResistiveExperiment:
         if x_meas > L or x_meas < 0:
             raise ValueError("x_meas must be between 0 and L")
 
-        # Define types for the variables to avoid mypy errors.
+        # Define types for the variables to avoid type-checking errors.
         num: float
         denom: float
         num_sum: float
