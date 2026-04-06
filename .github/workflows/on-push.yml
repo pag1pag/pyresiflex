@@ -40,7 +40,7 @@ jobs:
       uses: astral-sh/setup-uv@v7
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: extractions/setup-just@v3
+    - uses: extractions/setup-just@v4
     - name: Test with python ${{ matrix.python-version }}
       run: just tests
 
@@ -52,7 +52,7 @@ jobs:
       uses: astral-sh/setup-uv@v7
       with:
         version: "latest"
-    - uses: extractions/setup-just@v3
+    - uses: extractions/setup-just@v4
     - name: Run code quality checks.
       run: just type-check
 
@@ -64,7 +64,7 @@ jobs:
       uses: astral-sh/setup-uv@v7
       with:
         version: "latest"
-    - uses: extractions/setup-just@v3
+    - uses: extractions/setup-just@v4
     - name: Build the documentation.
       run: just build-docs
     - uses: actions/upload-pages-artifact@v4
