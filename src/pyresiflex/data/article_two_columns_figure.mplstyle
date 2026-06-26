@@ -1,0 +1,34 @@
+# Custom matplotlib style for two-column figures in articles.
+
+# To check more available options see:
+# https://matplotlib.org/stable/users/explain/customizing.html#matplotlibrc-sample
+
+# .. Figure style
+figure.dpi : 300
+figure.figsize : 16, 9
+figure.constrained_layout.use : True
+
+# .. Axes style
+axes.labelsize : x-large
+
+# .. Line style
+lines.linewidth : 6
+
+# .. Legend style
+legend.fontsize : x-large
+legend.loc : upper right
+
+# .. Grid style
+axes.grid : True
+axes.grid.axis : both
+axes.grid.which : both
+grid.linestyle : --
+grid.linewidth : 3
+grid.alpha : 0.7
+
+# .. Font style
+font.size : 20
+
+# .. Savefig style
+savefig.format : svg
+savefig.dpi : 300

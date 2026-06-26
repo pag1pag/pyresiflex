@@ -1,0 +1,4 @@
+# Ignore everything in this directory, but not this file.
+# This is to avoid committing large files by mistake.
+*
+!.gitignore

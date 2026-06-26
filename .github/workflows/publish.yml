@@ -1,0 +1,24 @@
+name: Upload Python Package to PyPI when a Release is created.
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  pypi-publish:
+    name: Publish release to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pyresiflex
+    permissions:
+      id-token: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+    - name: Build package
+      run: uv build
+    - name: Publish package distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
