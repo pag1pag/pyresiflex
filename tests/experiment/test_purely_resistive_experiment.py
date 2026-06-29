@@ -1,5 +1,3 @@
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
@@ -7,11 +5,8 @@ from pyresiflex.cable.cable import PerfectCable
 from pyresiflex.experiment.purely_resistive_experiment import (
     PurelyResistiveExperiment,
 )
-from pyresiflex.generator.generator_real_impedance import TrapezoidalGenerator
 from pyresiflex.load.time_varying_resistance import PlasmaResistanceLinearFall
 from pyresiflex.solver.purely_resistive_solution import PurelyResistiveSolution
-
-matplotlib.use("Agg")  # Non-interactive backend for testing.
 
 
 # ---------------------------------------------------------------------------
@@ -49,7 +44,7 @@ def test_ohms_law_recovered_at_load():
     expected = np.interp(times, t_arr, voltage) / np.interp(
         times, t_arr, current
     )
-    assert np.allclose(R_p, expected)
+    assert np.allclose(R_p / expected, 1, rtol=0, atol=1e-12)
 
 
 def test_ohms_law_not_recovered_away_from_load():
@@ -81,7 +76,7 @@ def test_ohms_law_not_recovered_away_from_load():
     expected = np.interp(times, t_arr, voltage) / np.interp(
         times, t_arr, current
     )
-    assert not np.allclose(R_p, expected)
+    assert not np.allclose(R_p / expected, 1, rtol=0, atol=1e-12)
 
 
 def test_get_resistance_from_gamma_round_trip():
@@ -90,7 +85,7 @@ def test_get_resistance_from_gamma_round_trip():
     R = 137.0
     gamma = (R - Z_c) / (R + Z_c)
     Z_l = PurelyResistiveExperiment.get_resistance_from_gamma(Z_c, gamma)
-    assert np.isclose(Z_l, R)
+    assert np.isclose(Z_l / R, 1, rtol=0, atol=1e-12)
 
 
 def test_time_correction_shifts_signals():
@@ -113,17 +108,33 @@ def test_time_correction_shifts_signals():
         correct_time_zero=True,
     )
     t = 50e-9
-    assert np.isclose(expe.V_meas(t), np.interp(t - x_v / c, t_arr, voltage))
-    assert np.isclose(expe.I_meas(t), np.interp(t - x_i / c, t_arr, current))
+    assert np.isclose(
+        expe.V_meas(t) / np.interp(t - x_v / c, t_arr, voltage),
+        1,
+        rtol=0,
+        atol=1e-12,
+    )
+    assert np.isclose(
+        expe.I_meas(t) / np.interp(t - x_i / c, t_arr, current),
+        1,
+        rtol=0,
+        atol=1e-12,
+    )
 
 
 # ---------------------------------------------------------------------------
 # Reconstruction from the generator voltage (gamma round-trip).
 # ---------------------------------------------------------------------------
-def _reconstruction_setup():
-    L, c, Z_c = 0.3, 1.66e8, 75.0
-    cable = PerfectCable(L=L, Z_c=Z_c, c=c)
-    generator = TrapezoidalGenerator(R_g=1.0, U_on=10e3)
+@pytest.fixture
+def reconstruction(perfect_cable, trapezoidal_generator):
+    """Signals generated from a known linear-fall plasma load.
+
+    Returns the experiment together with the generator, true load, cable,
+    time array and probe position used to build it.
+    """
+    cable = perfect_cable
+    generator = trapezoidal_generator
+    L, c = cable.L, cable.c
     plasma = PlasmaResistanceLinearFall(
         Z_start=1e3,
         Z_end=10.0,
@@ -150,9 +161,9 @@ def _reconstruction_setup():
     return expe, generator, plasma, cable, times, x_meas
 
 
-def test_gamma_reconstruction_round_trip():
+def test_gamma_reconstruction_round_trip(reconstruction):
     """The reconstructed load resistance matches the true plasma load."""
-    expe, generator, plasma, cable, times, x_meas = _reconstruction_setup()
+    expe, generator, plasma, cable, times, x_meas = reconstruction
     expe.compute_plasma_resistance_from_vmeas_and_vg(
         times, generator=generator, max_n=6
     )
@@ -164,26 +175,25 @@ def test_gamma_reconstruction_round_trip():
     R_v = expe.get_resistance_from_gamma(Z_c, gamma_v)
     R_i = expe.get_resistance_from_gamma(Z_c, gamma_i)
     true_R = plasma.load_impedance(t_probe)
-    assert np.isclose(R_v, true_R, rtol=5e-3)
-    assert np.isclose(R_i, true_R, rtol=5e-3)
+    assert np.isclose(R_v / true_R, 1, rtol=0, atol=1e-3)
+    assert np.isclose(R_i / true_R, 1, rtol=0, atol=1e-3)
 
 
-def test_reconstruct_gamma_x_meas_out_of_range():
+def test_reconstruct_gamma_x_meas_out_of_range(reconstruction):
     """A probe position outside the cable raises a ValueError."""
-    expe, generator, plasma, cable, times, x_meas = _reconstruction_setup()
+    expe, _generator, _plasma, cable, _times, _x_meas = reconstruction
     expe.x_meas_voltage = 2 * cable.L  # outside [0, L]
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="x_meas must be between 0 and L"):
         expe.get_gamma_load_from_measured_voltage(10e-9, max_n=5)
 
 
-def test_compute_from_vg_requires_generator():
+def test_compute_from_vg_requires_generator(reconstruction):
     """A non-generator argument raises a TypeError."""
-    expe, generator, plasma, cable, times, x_meas = _reconstruction_setup()
+    expe, _generator, _plasma, _cable, times, _x_meas = reconstruction
     bad_generator = "not a generator"
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="generator must be an instance"):
         expe.compute_plasma_resistance_from_vmeas_and_vg(
-            times,
-            generator=bad_generator,
+            times, generator=bad_generator
         )
 
 
@@ -260,7 +270,7 @@ def test_division_by_zero_warns():
         c=c,
         correct_time_zero=False,
     )
-    with pytest.warns(UserWarning):
+    with pytest.warns(UserWarning, match="denominator are zero"):
         R_p = expe.compute_plasma_resistance_from_vmeas_and_imeas(t_arr)
     assert np.all(R_p == 1e6)
 
@@ -276,54 +286,80 @@ def _arrays():
 def test_constructor_with_cable():
     t_arr, v, i = _arrays()
     cable = PerfectCable(L=1.0, Z_c=50.0, c=2.0e8)
-    expe = PurelyResistiveExperiment(t_arr, v, 0.5, t_arr, i, 0.5, cable=cable)
+    expe = PurelyResistiveExperiment(
+        experimental_voltage_time=t_arr,
+        experimental_voltage_value=v,
+        x_meas_voltage=0.5,
+        experimental_current_time=t_arr,
+        experimental_current_value=i,
+        x_meas_current=0.5,
+        cable=cable,
+    )
     assert expe.cable is cable
 
 
 def test_constructor_cable_and_parameters_conflict():
     t_arr, v, i = _arrays()
     cable = PerfectCable(L=1.0, Z_c=50.0, c=2.0e8)
-    with pytest.raises(ValueError):
-        # Conflict: L is provided both in the cable and as parameters.
+    with pytest.raises(ValueError, match="If cable is not None"):
         PurelyResistiveExperiment(
-            t_arr, v, 0.5, t_arr, i, 0.5, cable=cable, L=1.0
+            experimental_voltage_time=t_arr,
+            experimental_voltage_value=v,
+            x_meas_voltage=0.5,
+            experimental_current_time=t_arr,
+            experimental_current_value=i,
+            x_meas_current=0.5,
+            cable=cable,
+            L=1.0,
         )
 
 
 def test_constructor_bad_cable_type():
     t_arr, v, i = _arrays()
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="cable must be an instance"):
         PurelyResistiveExperiment(
-            t_arr,
-            v,
-            0.5,
-            t_arr,
-            i,
-            0.5,
+            experimental_voltage_time=t_arr,
+            experimental_voltage_value=v,
+            x_meas_voltage=0.5,
+            experimental_current_time=t_arr,
+            experimental_current_value=i,
+            x_meas_current=0.5,
             cable="not a cable",  # type: ignore
         )
 
 
 def test_constructor_missing_parameters():
     t_arr, v, i = _arrays()
-    with pytest.raises(ValueError):
-        # Either a cable or the parameters L, Z_c, c must be provided.
-        PurelyResistiveExperiment(t_arr, v, 0.5, t_arr, i, 0.5)
+    with pytest.raises(ValueError, match=r"Either `cable`, or all of"):
+        PurelyResistiveExperiment(
+            experimental_voltage_time=t_arr,
+            experimental_voltage_value=v,
+            x_meas_voltage=0.5,
+            experimental_current_time=t_arr,
+            experimental_current_value=i,
+            x_meas_current=0.5,
+        )
 
 
 def test_compute_requires_equal_positions():
     t_arr, v, i = _arrays()
     expe = PurelyResistiveExperiment(
-        t_arr, v, 0.4, t_arr, i, 0.6, L=1.0, Z_c=50.0, c=2.0e8
+        experimental_voltage_time=t_arr,
+        experimental_voltage_value=v,
+        x_meas_voltage=0.4,
+        experimental_current_time=t_arr,
+        experimental_current_value=i,
+        x_meas_current=0.6,
+        L=1.0,
+        Z_c=50.0,
+        c=2.0e8,
     )
-    with pytest.raises(ValueError):
-        # The voltage and current probe positions must be equal for
-        # the reconstruction with V_meas and I_meas.
+    with pytest.raises(ValueError, match=r"`x_meas_voltage` must be equal"):
         expe.compute_plasma_resistance_from_vmeas_and_imeas(t_arr)
 
 
 # ---------------------------------------------------------------------------
-# Plotting.
+# Plotting (figures are closed by the autouse fixture in conftest).
 # ---------------------------------------------------------------------------
 @pytest.mark.parametrize("correct_time_zero", [False, True])
 def test_plot_voltage_and_current(correct_time_zero):
@@ -342,7 +378,6 @@ def test_plot_voltage_and_current(correct_time_zero):
     )
     fig, ax_v, ax_i = expe.plot_voltage_and_current()
     assert fig is not None
-    plt.close(fig)
 
 
 def test_plot_resistance_before_compute_raises():
@@ -358,9 +393,7 @@ def test_plot_resistance_before_compute_raises():
         Z_c=50.0,
         c=2.0e8,
     )
-    with pytest.raises(ValueError):
-        # `compute_plasma_resistance_from_vmeas_and_imeas` must be called
-        # before plotting the resistance.
+    with pytest.raises(ValueError, match="resistance has not been computed"):
         expe.plot_resistance(t_arr)
 
 
@@ -381,10 +414,9 @@ def test_plot_resistance_all_options():
     # Re-use an existing figure/axes.
     fig2, ax2 = expe.plot_resistance(t_arr, figax=(fig, ax), legend=False)
     assert fig2 is fig
-    plt.close(fig)
 
 
-def test_plot_resistance_show(monkeypatch: pytest.MonkeyPatch):
+def test_plot_resistance_show(monkeypatch):
     expe, t_arr = _masking_experiment()
     expe.compute_plasma_resistance_from_vmeas_and_imeas(
         t_arr, threshold=1e-6, channel_formation_time=20e-9
@@ -393,9 +425,8 @@ def test_plot_resistance_show(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "matplotlib.pyplot.show", lambda *a, **k: called.setdefault("s", True)
     )
-    fig, ax = expe.plot_resistance(t_arr, show=True)
+    expe.plot_resistance(t_arr, show=True)
     assert called.get("s", False)
-    plt.close(fig)
 
 
 if __name__ == "__main__":

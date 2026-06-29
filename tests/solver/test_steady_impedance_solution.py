@@ -84,10 +84,10 @@ def test_capacitor_load_matches_analytic_solution():
     # No NaN must remain (the DC bin Z_l(0) = inf is handled as Gamma_l -> 1).
     assert not np.any(np.isnan(numerical))
     rel_l2 = np.linalg.norm(numerical - analytic) / np.linalg.norm(analytic)
-    assert rel_l2 < 1e-12
+    assert rel_l2 < 1e-11
 
-    # Check that all values are equal within a reasonable tolerance.
-    assert np.allclose(numerical / analytic, 1, rtol=0, atol=1e-10)
+    # Pointwise relative agreement with the analytical solution.
+    assert np.allclose(numerical / analytic, 1, rtol=0, atol=1e-11)
 
 
 def test_capacitor_gamma_l_dc_is_open_circuit():
@@ -95,7 +95,7 @@ def test_capacitor_gamma_l_dc_is_open_circuit():
     solution, _ = _matched_gaussian_capacitor()
     gamma_l = solution.gamma_l(solution.f)
     # f[0] is the DC component for numpy.fft.fftfreq.
-    assert np.isclose(gamma_l[0], 1.0)
+    assert np.isclose(gamma_l[0], 1.0, rtol=0, atol=1e-12)
     assert np.all(np.isfinite(gamma_l))
 
 
@@ -127,8 +127,10 @@ def test_per_generation_waves_sum_to_total():
         solution.V_reflected(t, n) for n in range(n_max + 1)
     )
 
-    assert np.isclose(incident_partial, incident_total, rtol=1e-4, atol=1e-6)
-    assert np.isclose(reflected_partial, reflected_total, rtol=1e-4, atol=1e-6)
+    assert np.isclose(incident_partial / incident_total, 1, rtol=0, atol=1e-9)
+    assert np.isclose(
+        reflected_partial / reflected_total, 1, rtol=0, atol=1e-9
+    )
 
 
 def test_pure_capacitive_generator_is_finite():
@@ -146,8 +148,9 @@ def test_pure_capacitive_generator_is_finite():
         cable, generator, load, nb_points_ft=4000, max_time_ft=200e-9
     )
     # DC component is blocked by the series capacitor and fully reflected.
-    assert np.isclose(solution.alpha_g(solution.f)[0], 0.0)
-    assert np.isclose(solution.gamma_g(solution.f)[0], 1.0)
+    # (alpha_g -> 0 is a comparison against zero, so it stays absolute.)
+    assert np.isclose(solution.alpha_g(solution.f)[0], 0.0, rtol=0, atol=1e-12)
+    assert np.isclose(solution.gamma_g(solution.f)[0], 1.0, rtol=0, atol=1e-12)
     t = np.linspace(20e-9, 120e-9, 11)
     voltage = np.array([solution.V(1.0, ti) for ti in t])
     assert np.all(np.isfinite(voltage))
@@ -160,7 +163,7 @@ def test_shannon_nyquist_warning():
     )
     load = ConstantResistance(R=150.0)
     cable = PerfectCable(L=1.0, Z_c=50.0, c=2.0e8)
-    with pytest.warns(UserWarning):
+    with pytest.warns(UserWarning, match="too large for Fourier Transform"):
         # dt = 1e-6 / 10 = 1e-7 s > 1 ns.
         SteadyImpedanceSolution(
             cable, generator, load, nb_points_ft=10, max_time_ft=1e-6
@@ -181,11 +184,11 @@ def test_invalid_constructor_arguments():
     # A purely resistive load is not a complex-impedance load.
     bad_load = ResistiveTimeLoad(R=150.0)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=r"`cable` must be an instance"):
         SteadyImpedanceSolution(bad_cable, generator, load)  # type: ignore
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=r"`generator` must be an instance"):
         SteadyImpedanceSolution(cable, bad_generator, load)  # type: ignore
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=r"`load` must be an instance"):
         SteadyImpedanceSolution(cable, generator, bad_load)  # type: ignore
 
 

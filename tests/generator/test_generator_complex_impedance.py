@@ -117,7 +117,7 @@ def test_gaussian_generator_pure_capacitance():
     assert np.isinf(np.abs(imp[0]))
     # Matches the ideal-capacitor impedance at non-zero frequency.
     expected = 1 / (1j * 2 * np.pi * freq[1:] * C_g)
-    assert np.allclose(imp[1:], expected)
+    assert np.allclose(imp[1:] / expected, 1, rtol=0, atol=1e-12)
 
 
 def test_gaussian_function_shape():
@@ -127,11 +127,12 @@ def test_gaussian_function_shape():
     mean = 0.0
     FWHM = 1.0
     val = GaussianGenerator.gaussian(t, height, mean, FWHM)
-    assert np.isclose(val, height)
-    # At t = mean + FWHM/2, value should be about half the height
+    assert np.isclose(val / height, 1, rtol=0, atol=1e-12)
+    # At t = mean + FWHM/2 the value is exactly half the height (by the
+    # definition of the full width at half maximum).
     t_half = mean + FWHM / 2
     val_half = GaussianGenerator.gaussian(t_half, height, mean, FWHM)
-    assert np.isclose(val_half, height / 2, rtol=0.05)
+    assert np.isclose(val_half / (height / 2), 1, rtol=0, atol=1e-12)
 
 
 if __name__ == "__main__":

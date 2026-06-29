@@ -1,4 +1,3 @@
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -11,8 +10,6 @@ from pyresiflex.misc.plot import (
     save_figure,
     set_mpl_style,
 )
-
-matplotlib.use("Agg")  # Use non-interactive backend for testing
 
 
 def test_plot_voltage_current_basic():
@@ -105,67 +102,29 @@ def test_plot_voltage_current_fig_axes():
     assert ax_i2 is ax_i
 
 
-def test_plot_voltage_current_invalid_units():
+@pytest.mark.parametrize(
+    "kwargs, match",
+    [
+        ({"voltage_time_unit": "invalid"}, r"Invalid `voltage_time_unit`"),
+        ({"current_time_unit": "invalid"}, r"Invalid `current_time_unit`"),
+        ({"voltage_value_unit": "invalid"}, r"Invalid `voltage_value_unit`"),
+        ({"current_value_unit": "invalid"}, r"Invalid `current_value_unit`"),
+    ],
+)
+def test_plot_voltage_current_invalid_units(kwargs, match):
     voltage_time = np.array([0, 1, 2])
     voltage_value = np.array([1, 2, 3])
     current_time = np.array([0, 1, 2])
     current_value = np.array([1, 2, 3])
 
-    # Invalid voltage_time_unit
-    try:
+    with pytest.raises(ValueError, match=match):
         plot_voltage_current(
             voltage_time,
             voltage_value,
             current_time,
             current_value,
-            voltage_time_unit="invalid",
+            **kwargs,
         )
-    except ValueError as e:
-        assert "Invalid `voltage_time_unit`" in str(e)
-    else:
-        assert False, "Expected `ValueError` for invalid `voltage_time_unit`"
-
-    # Invalid current_time_unit
-    try:
-        plot_voltage_current(
-            voltage_time,
-            voltage_value,
-            current_time,
-            current_value,
-            current_time_unit="invalid",
-        )
-    except ValueError as e:
-        assert "Invalid `current_time_unit`" in str(e)
-    else:
-        assert False, "Expected `ValueError` for invalid `current_time_unit`"
-
-    # Invalid voltage_value_unit
-    try:
-        plot_voltage_current(
-            voltage_time,
-            voltage_value,
-            current_time,
-            current_value,
-            voltage_value_unit="invalid",
-        )
-    except ValueError as e:
-        assert "Invalid `voltage_value_unit`" in str(e)
-    else:
-        assert False, "Expected `ValueError` for invalid `voltage_value_unit`"
-
-    # Invalid current_value_unit
-    try:
-        plot_voltage_current(
-            voltage_time,
-            voltage_value,
-            current_time,
-            current_value,
-            current_value_unit="invalid",
-        )
-    except ValueError as e:
-        assert "Invalid `current_value_unit`" in str(e)
-    else:
-        assert False, "Expected `ValueError` for invalid `current_value_unit`"
 
 
 def test_plot_voltage_current_unit_conversion():
@@ -226,7 +185,7 @@ def test_set_mpl_style_one_and_two_columns():
 
 
 def test_set_mpl_style_invalid():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=r"`nb_columns` must be 1 or 2"):
         set_mpl_style(nb_columns=3)
 
 

@@ -64,7 +64,7 @@ def test_check_frequency_valid():
 
 def test_check_frequency_not_numpy_array():
     dummy = DummySteadyImpedance(purely_resistive=True)
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="Frequency must be a numpy array"):
         # Not a numpy array
         dummy.check_frequency([0.0, 1.0, 2.0])  # type: ignore
 
@@ -72,21 +72,21 @@ def test_check_frequency_not_numpy_array():
 def test_check_frequency_not_1d():
     dummy = DummySteadyImpedance(purely_resistive=True)
     freq = np.array([[1.0, 2.0], [3.0, 4.0]])
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="must be a one-dimensional array"):
         dummy.check_frequency(freq)
 
 
 def test_check_frequency_not_real():
     dummy = DummySteadyImpedance(purely_resistive=True)
     freq = np.array([1.0, 2.0 + 1j])
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Frequency values must be real"):
         dummy.check_frequency(freq)
 
 
 def test_check_frequency_not_finite():
     dummy = DummySteadyImpedance(purely_resistive=True)
     freq = np.array([1.0, np.inf, 3.0])
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Frequency values must be finite"):
         dummy.check_frequency(freq)
 
 
@@ -98,7 +98,7 @@ def test_purely_resistive_load_impedance_not_implemented():
         def load_impedance(self, t: float) -> float:
             return super().load_impedance(t)
 
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(NotImplementedError, match="Define the load impedance"):
         TestLoad().load_impedance(0.0)
 
 
@@ -111,7 +111,7 @@ def test_complex_load_impedance_not_implemented():
             return super().load_impedance(frequency)
 
     # Check_frequency passes, then the base implementation raises.
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(NotImplementedError, match="Define the load impedance"):
         TestLoad().load_impedance(np.array([1.0, 2.0]))
 
 

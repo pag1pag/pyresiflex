@@ -65,7 +65,9 @@ def test_base_generator_voltage_not_implemented():
         def generator_voltage(self, t: float) -> float:
             return super().generator_voltage(t)
 
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(
+        NotImplementedError, match="Define the generator voltage"
+    ):
         TestGen().generator_voltage(0.0)
 
 
@@ -78,7 +80,9 @@ def test_complex_generator_impedance_not_implemented():
             return super().generator_impedance(frequency)
 
     # check_frequency passes, then the base implementation raises.
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(
+        NotImplementedError, match="Define the generator impedance"
+    ):
         TestGen().generator_impedance(np.array([1.0, 2.0]))
 
 
