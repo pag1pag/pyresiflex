@@ -1,10 +1,16 @@
 import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
+import pytest
 from matplotlib import colors
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from pyresiflex.misc.plot import plot_voltage_current
+from pyresiflex.misc.plot import (
+    plot_voltage_current,
+    save_figure,
+    set_mpl_style,
+)
 
 matplotlib.use("Agg")  # Use non-interactive backend for testing
 
@@ -213,7 +219,36 @@ def test_plot_voltage_current_axis_colors():
         assert colors.same_color(label.get_color(), "r")
 
 
-if __name__ == "__main__":
-    import pytest
+def test_set_mpl_style_one_and_two_columns():
+    # Both supported column counts apply a known matplotlib style file.
+    set_mpl_style(nb_columns=1)
+    set_mpl_style(nb_columns=2)
 
+
+def test_set_mpl_style_invalid():
+    with pytest.raises(ValueError):
+        set_mpl_style(nb_columns=3)
+
+
+def test_save_figure(monkeypatch, tmp_path):
+    fig, ax = plt.subplots()
+    ax.plot([0, 1], [0, 1])
+    saved = {}
+
+    def fake_savefig(path, *args, **kwargs):
+        saved["path"] = path
+
+    # Point the figures directory at a fresh (non-existent) temp location so
+    # the directory-creation branch is exercised.
+    monkeypatch.setattr(
+        "pyresiflex.misc.plot.get_root", lambda: tmp_path / "a" / "b"
+    )
+    monkeypatch.setattr(fig, "savefig", fake_savefig)
+    save_figure(fig, "test_figure", dpi=100)
+    assert str(saved["path"]).endswith("test_figure.png")
+    assert (tmp_path / "figures").exists()
+    plt.close(fig)
+
+
+if __name__ == "__main__":
     pytest.main([__file__, "-s"])
