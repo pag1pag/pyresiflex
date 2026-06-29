@@ -72,10 +72,10 @@ path = "src/pyresiflex/__init__.py"
 # Treat warnings as errors so they cannot silently accumulate (matches the
 # `-W error` flag used by the `just` recipes).
 filterwarnings = ["error"]
-testpaths = ["tests"]
 # Put the repo root on sys.path so tests can import shared helpers
 # (`from tests.helpers import ...`).
 pythonpath = ["."]
+testpaths = ["tests"]
 
 [tool.ruff]
 indent-width = 4
