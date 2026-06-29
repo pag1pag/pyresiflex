@@ -2,7 +2,47 @@
 
 from pathlib import Path
 
+import numpy as np
+
 ROOT_FOLDER_PATH: Path = Path(__file__).parent.parent
+
+
+def gaussian_sigma_from_fwhm(fwhm: float) -> float:
+    r"""Return the Gaussian width ``sigma`` for a given FWHM.
+
+    The pulse is parametrised as :math:`\exp(-((t - \mu) / \sigma)^2)`
+    (note: no factor of two in the exponent denominator), for which the
+    full width at half maximum is :math:`2 \sqrt{\ln 2}\, \sigma`.
+
+    Parameters
+    ----------
+    fwhm : float
+        Full width at half maximum of the Gaussian pulse.
+
+    Returns
+    -------
+    float
+        The corresponding standard-deviation-like width ``sigma``.
+    """
+    return fwhm * np.sqrt(2) / (np.sqrt(2 * np.log(2)) * 2)
+
+
+def gaussian_fwhm_from_sigma(sigma: float) -> float:
+    r"""Return the FWHM for a given Gaussian width ``sigma``.
+
+    Inverse of :func:`gaussian_sigma_from_fwhm`.
+
+    Parameters
+    ----------
+    sigma : float
+        Standard-deviation-like width of the Gaussian pulse.
+
+    Returns
+    -------
+    float
+        The corresponding full width at half maximum.
+    """
+    return 2 * np.sqrt(np.log(2)) * sigma
 
 
 def get_root() -> Path:
