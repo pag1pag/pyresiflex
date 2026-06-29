@@ -189,17 +189,14 @@ def test_abstract_wave_methods_raise(
         sol.V_reflected(0.0, 0)
 
 
-def _run_frames(ani: FuncAnimation, n_frames: int) -> None:
-    """Invoke the animation update function for every frame.
+def _render_all_frames(ani: FuncAnimation) -> None:
+    """Render every frame of ``ani`` to exercise the update closure.
 
-    Reach into the private ``_func`` attribute -- the frame-update closure
-    built inside ``animation`` -- and call it once per frame so the drawing
-    code is exercised without an event loop.
+    ``to_jshtml`` drives the frame-update closure built inside ``animation``
+    for all frames through matplotlib's public API (no reliance on private
+    attributes), so the drawing code is exercised without an event loop.
     """
-    # `_func` is the (private) frame-update closure built in `animation`.
-    update = getattr(ani, "_func")
-    for idx in range(n_frames):
-        update(idx)
+    assert ani.to_jshtml()
 
 
 def test_animation_with_current(
@@ -212,7 +209,7 @@ def test_animation_with_current(
     """
     ani = solved_solution.animation(with_current=True, show=False)
     assert isinstance(ani, FuncAnimation)
-    _run_frames(ani, len(solved_solution.t))
+    _render_all_frames(ani)
 
 
 def test_animation_without_current(
@@ -224,7 +221,7 @@ def test_animation_without_current(
     """
     ani = solved_solution.animation(with_current=False, show=False)
     assert isinstance(ani, FuncAnimation)
-    _run_frames(ani, len(solved_solution.t))
+    _render_all_frames(ani)
 
 
 def test_animation_explicit_limits(
