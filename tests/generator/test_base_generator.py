@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from pyresiflex.generator.base_generator import (
+    BaseGenerator,
     ComplexImpedanceBaseGenerator,
 )
 
@@ -54,6 +55,31 @@ def test_abstract_generator_impedance_raises():
 
     with pytest.raises(TypeError):
         TestGen()
+
+
+def test_base_generator_voltage_not_implemented():
+    class TestGen(BaseGenerator):
+        def __init__(self):
+            super().__init__(purely_resistive=True)
+
+        def generator_voltage(self, t: float) -> float:
+            return super().generator_voltage(t)
+
+    with pytest.raises(NotImplementedError):
+        TestGen().generator_voltage(0.0)
+
+
+def test_complex_generator_impedance_not_implemented():
+    class TestGen(ComplexImpedanceBaseGenerator):
+        def generator_voltage(self, t: float) -> float:
+            return 1.0
+
+        def generator_impedance(self, frequency: np.ndarray) -> np.ndarray:
+            return super().generator_impedance(frequency)
+
+    # check_frequency passes, then the base implementation raises.
+    with pytest.raises(NotImplementedError):
+        TestGen().generator_impedance(np.array([1.0, 2.0]))
 
 
 if __name__ == "__main__":
