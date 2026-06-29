@@ -68,6 +68,12 @@ allow-direct-references = true
 [tool.hatch.version]
 path = "src/pyresiflex/__init__.py"
 
+[tool.pytest.ini_options]
+# Treat warnings as errors so they cannot silently accumulate (matches the
+# `-W error` flag used by the `just` recipes).
+filterwarnings = ["error"]
+testpaths = ["tests"]
+
 [tool.ruff]
 indent-width = 4
 line-length = 79
@@ -96,12 +102,6 @@ max-line-length = 79
 [tool.ruff.lint.pydocstyle]
 # See https://numpydoc.readthedocs.io/en/latest/format.html.
 convention = "numpy"
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-# Treat warnings as errors so they cannot silently accumulate (matches the
-# `-W error` flag used by the `just` recipes).
-filterwarnings = ["error"]
 
 [tool.ty.src]
 exclude = ["docs", "out"]
