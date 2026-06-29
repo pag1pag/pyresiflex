@@ -163,6 +163,34 @@ def test_pure_capacitive_generator_is_finite() -> None:
     assert np.all(np.isfinite(voltage))
 
 
+def test_capacitive_generator_and_capacitive_load_is_finite() -> None:
+    """Check a capacitive generator AND capacitive load stay NaN-free.
+
+    Both ends are open at DC (ω=0), so ``gamma_g = gamma_l = 1`` and the
+    geometric-series denominator ``1 - gamma_g * gamma_l`` vanishes at the
+    DC bin. The numerator vanishes too (``alpha_g = 0``), so the 0/0 term
+    must resolve to 0 rather than poisoning the sum with NaN. Regression
+    guard for the unguarded ``V_incident_total``/``V_reflected_total``
+    denominators (also a hard error under ``filterwarnings = ['error']``).
+    """
+    generator = GaussianGenerator(
+        height=1.0, mean=30e-9, FWHM=8e-9, R_g=0.0, C_g=1e-10
+    )
+    load = Capacitance(C=1e-10)
+    cable = PerfectCable(L=1.0, Z_c=50.0, c=2.0e8)
+    solution = SteadyImpedanceSolution(
+        cable, generator, load, nb_points_ft=2000, max_time_ft=200e-9
+    )
+    # The closed-form total waves must be finite at the DC bin...
+    assert np.isfinite(solution.V_incident_total(30e-9))
+    assert np.isfinite(solution.V_reflected_total(30e-9))
+    # ... and so must a full solve (voltage, current and energy).
+    solution.solve(np.linspace(0, cable.L, 4), np.linspace(20e-9, 120e-9, 11))
+    assert np.all(np.isfinite(solution.voltage))
+    assert np.all(np.isfinite(solution.current))
+    assert np.all(np.isfinite(solution.energy))
+
+
 def test_shannon_nyquist_warning() -> None:
     """Check a too-large FFT time step triggers a Shannon-Nyquist warning.
 
