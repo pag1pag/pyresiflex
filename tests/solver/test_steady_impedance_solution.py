@@ -131,6 +131,28 @@ def test_per_generation_waves_sum_to_total():
     assert np.isclose(reflected_partial, reflected_total, rtol=1e-4, atol=1e-6)
 
 
+def test_pure_capacitive_generator_is_finite():
+    """A purely capacitive generator (open at DC) yields a finite solution.
+
+    ``Z_g(0) = inf`` blocks the DC component (``alpha_g -> 0``) and fully
+    reflects it (``gamma_g -> 1``); the solution must remain NaN-free.
+    """
+    generator = GaussianGenerator(
+        height=1.0, mean=30e-9, FWHM=8e-9, R_g=0.0, C_g=1e-10
+    )
+    load = ConstantResistance(R=150.0)
+    cable = PerfectCable(L=1.0, Z_c=50.0, c=2.0e8)
+    solution = SteadyImpedanceSolution(
+        cable, generator, load, nb_points_ft=4000, max_time_ft=200e-9
+    )
+    # DC component is blocked by the series capacitor and fully reflected.
+    assert np.isclose(solution.alpha_g(solution.f)[0], 0.0)
+    assert np.isclose(solution.gamma_g(solution.f)[0], 1.0)
+    t = np.linspace(20e-9, 120e-9, 11)
+    voltage = np.array([solution.V(1.0, ti) for ti in t])
+    assert np.all(np.isfinite(voltage))
+
+
 def test_shannon_nyquist_warning():
     """A too-large FFT time step triggers a Shannon-Nyquist warning."""
     generator = GaussianGenerator(

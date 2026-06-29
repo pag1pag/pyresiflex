@@ -278,9 +278,16 @@ class SteadyImpedanceSolution(BaseSolution):
         - :math:`f` is the frequency in Hz,
         - :math:`Z_c` is the characteristic impedance of the transmission line
           in Ohm.
+
+        At a frequency where the generator impedance is infinite (open
+        circuit, e.g. the DC component of a purely capacitive generator), no
+        voltage is launched into the line, so :math:`\alpha_g \to 0`.
         """
-        Z_g = self.Z_g(frequency)
-        return 1 / (1 + Z_g / self.Z_c)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            Z_g = self.Z_g(frequency)
+            alpha_g = 1 / (1 + Z_g / self.Z_c)
+        # Open-circuit limit: |Z_g| -> infinity gives alpha_g -> 0.
+        return np.where(np.isfinite(alpha_g), alpha_g, 0.0)
 
     def V_incident(self, t: float, n: int) -> float:
         r"""Incident wave.

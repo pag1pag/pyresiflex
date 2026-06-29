@@ -106,10 +106,18 @@ def test_gaussian_generator_impedance_resistive_capacitive():
     assert np.abs(imp[1]) < R_g
 
 
-def test_gaussian_generator_invalid_capacitance():
-    # Should raise ValueError if C_g != 0 and R_g == 0
-    with pytest.raises(ValueError):
-        GaussianGenerator(height=1.0, mean=0.0, FWHM=1.0, R_g=0.0, C_g=1e-9)
+def test_gaussian_generator_pure_capacitance():
+    # A purely capacitive generator (R_g == 0, C_g != 0) is allowed and
+    # behaves as Z_g(f) = 1 / (j 2 pi f C_g), infinite at DC.
+    C_g = 1e-9
+    gen = GaussianGenerator(height=1.0, mean=0.0, FWHM=1.0, R_g=0.0, C_g=C_g)
+    freq = np.array([0.0, 1e3, 1e6])
+    imp = gen.generator_impedance(freq)
+    # Infinite impedance at zero frequency (the capacitor blocks DC).
+    assert np.isinf(np.abs(imp[0]))
+    # Matches the ideal-capacitor impedance at non-zero frequency.
+    expected = 1 / (1j * 2 * np.pi * freq[1:] * C_g)
+    assert np.allclose(imp[1:], expected)
 
 
 def test_gaussian_function_shape():
