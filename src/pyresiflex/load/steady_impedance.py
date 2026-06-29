@@ -60,6 +60,8 @@ class Capacitance(ComplexImpedanceBaseLoad):
 
     def __init__(self, C: float):
         super().__init__(purely_resistive=False)
+        if C <= 0:
+            raise ValueError("Capacitance `C` must be positive.")
         self.C: float = C
 
     def load_impedance(
@@ -114,6 +116,8 @@ class Inductance(ComplexImpedanceBaseLoad):
 
     def __init__(self, L: float):
         super().__init__(purely_resistive=False)
+        if L <= 0:
+            raise ValueError("Inductance `L` must be positive.")
         self.L: float = L
 
     def load_impedance(
