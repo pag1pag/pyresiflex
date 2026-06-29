@@ -1,7 +1,11 @@
 import numpy as np
 import pytest
 
-from pyresiflex.load.base_load import BaseLoad, ComplexImpedanceBaseLoad
+from pyresiflex.load.base_load import (
+    BaseLoad,
+    ComplexImpedanceBaseLoad,
+    PurelyResistiveBaseLoad,
+)
 
 
 #######################################################################
@@ -77,6 +81,38 @@ def test_check_frequency_not_real():
     freq = np.array([1.0, 2.0 + 1j])
     with pytest.raises(ValueError):
         dummy.check_frequency(freq)
+
+
+def test_check_frequency_not_finite():
+    dummy = DummySteadyImpedance(purely_resistive=True)
+    freq = np.array([1.0, np.inf, 3.0])
+    with pytest.raises(ValueError):
+        dummy.check_frequency(freq)
+
+
+def test_purely_resistive_load_impedance_not_implemented():
+    class TestLoad(PurelyResistiveBaseLoad):
+        def __init__(self):
+            super().__init__(time_varying=False)
+
+        def load_impedance(self, t: float) -> float:
+            return super().load_impedance(t)
+
+    with pytest.raises(NotImplementedError):
+        TestLoad().load_impedance(0.0)
+
+
+def test_complex_load_impedance_not_implemented():
+    class TestLoad(ComplexImpedanceBaseLoad):
+        def __init__(self):
+            super().__init__(purely_resistive=False)
+
+        def load_impedance(self, frequency: np.ndarray) -> np.ndarray:
+            return super().load_impedance(frequency)
+
+    # Check_frequency passes, then the base implementation raises.
+    with pytest.raises(NotImplementedError):
+        TestLoad().load_impedance(np.array([1.0, 2.0]))
 
 
 if __name__ == "__main__":
