@@ -97,6 +97,12 @@ max-line-length = 79
 # See https://numpydoc.readthedocs.io/en/latest/format.html.
 convention = "numpy"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Treat warnings as errors so they cannot silently accumulate (matches the
+# `-W error` flag used by the `just` recipes).
+filterwarnings = ["error"]
+
 [tool.ty.src]
 exclude = ["docs", "out"]
 include = ["src", "tests"]
