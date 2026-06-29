@@ -107,11 +107,13 @@ def test_reconstruct_resistance_from_signals(
         ]
     )
 
-    # Compute R_p(vmeas, imeas)
-    expe.compute_plasma_resistance_from_vmeas_and_imeas(
-        setup_experiment["times"],
-        threshold=1e-6,
-    )
+    # Compute R_p(vmeas, imeas). Before the pulse arrives the signals are
+    # zero, so the denominator legitimately vanishes and the method warns.
+    with pytest.warns(UserWarning):
+        expe.compute_plasma_resistance_from_vmeas_and_imeas(
+            setup_experiment["times"],
+            threshold=1e-6,
+        )
     resistance_v_i = expe.Rp_corrected_with_nan
     assert resistance_v_i is not None
 

@@ -87,7 +87,7 @@ def test_capacitor_load_matches_analytic_solution():
     assert rel_l2 < 1e-12
 
     # Check that all values are equal within a reasonable tolerance.
-    assert np.allclose(numerical/analytic, 1, rtol=0, atol=1e-10)
+    assert np.allclose(numerical / analytic, 1, rtol=0, atol=1e-10)
 
 
 def test_capacitor_gamma_l_dc_is_open_circuit():
