@@ -23,7 +23,7 @@ pip install radis
 Calculate a CO equilibrium spectrum from the HITRAN database:
 
 ```python
-# Import necessary libraries
+# Import necessary libraries.
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -54,6 +54,8 @@ ax.set_ylabel(r"$\mathregular{V \, [kV]}$")
 ax.set_title("Load voltage against time")
 plt.show()
 ```
+
+![Result of the Python script](./docs/img/smallest_example.png)
 
 ## Example
 
