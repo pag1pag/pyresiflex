@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from pyresiflex.generator.generator_real_impedance import (
+    ConstantGenerator,
     FromMeasurementGenerator,
     GaussianGenerator,
     TrapezoidalGenerator,
@@ -71,6 +72,20 @@ def test_from_measurement_generator_voltage():
 def test_from_measurement_generator_impedance():
     gen = FromMeasurementGenerator(R_g=7.7, V_meas=lambda t: t)
     assert gen.generator_impedance() == 7.7
+
+
+def test_constant_generator_voltage():
+    gen = ConstantGenerator(R_g=3.0, U_g=12.0)
+    # No voltage before t = 0.
+    assert gen.generator_voltage(-1.0) == 0.0
+    # Constant voltage afterwards.
+    assert gen.generator_voltage(0.0) == 12.0
+    assert gen.generator_voltage(5.0) == 12.0
+
+
+def test_constant_generator_impedance():
+    gen = ConstantGenerator(R_g=4.5, U_g=1.0)
+    assert gen.generator_impedance() == 4.5
 
 
 if __name__ == "__main__":
