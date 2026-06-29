@@ -270,7 +270,7 @@ class SteadyImpedanceSolution(BaseSolution):
 
         .. math::
 
-            \alpha_g(f) = \frac{Z_g(f)}{Z_g(f) + Z_c}
+            \alpha_g(f) = \frac{Z_c}{Z_g(f) + Z_c}
 
         where:
 
@@ -405,14 +405,19 @@ class SteadyImpedanceSolution(BaseSolution):
 
         # Compute the total incident wave.
         ω = 2 * np.pi * self.f
-        v_incident_total = (
-            alpha_g_ω
-            * self.V_g_hat
-            * np.exp(1j * ω * t)
-            / (
-                1
-                - gamma_g_ω * gamma_l_ω * np.exp(-1j * ω * 2 * self.L / self.c)
-            )
+        numerator = alpha_g_ω * self.V_g_hat * np.exp(1j * ω * t)
+        denominator = 1 - gamma_g_ω * gamma_l_ω * np.exp(
+            -1j * ω * 2 * self.L / self.c
+        )
+        # At the DC point (ω=0), a purely reflective generator and load
+        # (Γ_g = Γ_l = 1, e.g. a capacitive generator feeding a capacitive
+        # load) make the denominator vanish; there the numerator vanishes
+        # too (α_g = 0, the series capacitor blocks DC), so the 0/0 term
+        # launches no wave and is set to 0.
+        with np.errstate(divide="ignore", invalid="ignore"):
+            v_incident_total = numerator / denominator
+        v_incident_total = np.where(
+            (denominator == 0) & (numerator == 0), 0.0, v_incident_total
         )
         return np.real(np.sum(v_incident_total))
 
@@ -428,15 +433,21 @@ class SteadyImpedanceSolution(BaseSolution):
 
         # Compute the total reflected wave.
         ω = 2 * np.pi * self.f
-        v_reflected_total = (
+        numerator = (
             alpha_g_ω
             * self.V_g_hat
             * gamma_l_ω
             * np.exp(1j * ω * (t - 2 * self.L / self.c))
-            / (
-                1
-                - gamma_g_ω * gamma_l_ω * np.exp(-1j * ω * 2 * self.L / self.c)
-            )
+        )
+        denominator = 1 - gamma_g_ω * gamma_l_ω * np.exp(
+            -1j * ω * 2 * self.L / self.c
+        )
+        # See ``V_incident_total``: the DC 0/0 term (open generator + open
+        # load) launches no wave and is set to 0.
+        with np.errstate(divide="ignore", invalid="ignore"):
+            v_reflected_total = numerator / denominator
+        v_reflected_total = np.where(
+            (denominator == 0) & (numerator == 0), 0.0, v_reflected_total
         )
 
         return np.real(np.sum(v_reflected_total))
