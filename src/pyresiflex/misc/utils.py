@@ -1,4 +1,4 @@
-"""Library useful functions to retrieve data."""
+"""Library of useful helper functions."""
 
 from pathlib import Path
 
