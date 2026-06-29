@@ -130,6 +130,10 @@ class GaussianGenerator(ComplexImpedanceBaseGenerator):
         C_g: float = 0.0,
     ):
         super().__init__()
+        if R_g < 0:
+            raise ValueError("Generator resistance `R_g` must be >= 0.")
+        if C_g < 0:
+            raise ValueError("Generator capacitance `C_g` must be >= 0.")
         self.height = height
         self.mean = mean
         self.FWHM = FWHM
