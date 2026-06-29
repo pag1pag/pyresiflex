@@ -1,5 +1,7 @@
 """Shared fixtures and configuration for the test suite."""
 
+from collections.abc import Iterator
+
 import matplotlib
 import matplotlib.pyplot as plt
 import pytest
@@ -13,7 +15,7 @@ matplotlib.use("Agg")
 
 
 @pytest.fixture(autouse=True)
-def _close_figures():
+def _close_figures() -> Iterator[None]:
     """Close every matplotlib figure after each test.
 
     Figures created through pyplot are held for the whole session, so they

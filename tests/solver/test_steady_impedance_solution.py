@@ -19,10 +19,12 @@ from pyresiflex.solver.steady_impedance_solution import (
 )
 
 
-def _matched_gaussian_capacitor():
+def _matched_gaussian_capacitor() -> tuple[
+    SteadyImpedanceSolution, dict[str, float]
+]:
     """Build a matched-generator / capacitor-load configuration.
 
-    Returns the solution together with the physical parameters needed to
+    Return the solution together with the physical parameters needed to
     evaluate the analytical solution at the load.
     """
     Z_c, c, L = 50.0, 2.0e8, 1.0
@@ -46,8 +48,8 @@ def _matched_gaussian_capacitor():
     return solution, dict(Z_c=Z_c, c=c, L=L, V0=V0, a=a, t0=t0, tau=tau)
 
 
-def test_capacitor_load_matches_analytic_solution():
-    r"""Pure capacitive load driven by a matched Gaussian generator.
+def test_capacitor_load_matches_analytic_solution() -> None:
+    r"""Check the capacitor load voltage matches its analytic solution.
 
     With a matched generator (:math:`Z_g = Z_c`, hence :math:`\Gamma_g = 0`)
     and a Gaussian generator voltage :math:`V_g(t) = V_0 e^{-a (t-t_0)^2}`,
@@ -67,7 +69,8 @@ def test_capacitor_load_matches_analytic_solution():
     c, L = p["c"], p["L"]
     V0, a, t0, tau = p["V0"], p["a"], p["t0"], p["tau"]
 
-    def analytic_at_load(t_lab):
+    def analytic_at_load(t_lab: float) -> float:
+        """Return the closed-form load voltage at lab time ``t_lab``."""
         # t_lab is the absolute (lab) time at the load x = L.
         s = t_lab - L / c - t0
         prefactor = np.sqrt(np.pi / a) * V0 / (2 * tau)
@@ -90,8 +93,12 @@ def test_capacitor_load_matches_analytic_solution():
     assert np.allclose(numerical / analytic, 1, rtol=0, atol=1e-11)
 
 
-def test_capacitor_gamma_l_dc_is_open_circuit():
-    """At DC the capacitor is an open circuit, so Gamma_l(0) -> 1."""
+def test_capacitor_gamma_l_dc_is_open_circuit() -> None:
+    """Check the capacitor load reflection at DC tends to an open circuit.
+
+    At DC the capacitor is an open circuit, so the load reflection
+    coefficient ``gamma_l(0)`` must equal 1 and stay finite everywhere.
+    """
     solution, _ = _matched_gaussian_capacitor()
     gamma_l = solution.gamma_l(solution.f)
     # f[0] is the DC component for numpy.fft.fftfreq.
@@ -99,8 +106,8 @@ def test_capacitor_gamma_l_dc_is_open_circuit():
     assert np.all(np.isfinite(gamma_l))
 
 
-def test_per_generation_waves_sum_to_total():
-    """Partial sums of per-generation waves converge to the closed form.
+def test_per_generation_waves_sum_to_total() -> None:
+    """Check partial sums of per-generation waves match the closed form.
 
     ``V_incident_total`` is the closed-form geometric-series sum of the
     per-generation incident waves ``V_incident(t, n)`` (and likewise for
@@ -133,8 +140,8 @@ def test_per_generation_waves_sum_to_total():
     )
 
 
-def test_pure_capacitive_generator_is_finite():
-    """A purely capacitive generator (open at DC) yields a finite solution.
+def test_pure_capacitive_generator_is_finite() -> None:
+    """Check a purely capacitive generator yields a finite solution.
 
     ``Z_g(0) = inf`` blocks the DC component (``alpha_g -> 0``) and fully
     reflects it (``gamma_g -> 1``); the solution must remain NaN-free.
@@ -156,8 +163,12 @@ def test_pure_capacitive_generator_is_finite():
     assert np.all(np.isfinite(voltage))
 
 
-def test_shannon_nyquist_warning():
-    """A too-large FFT time step triggers a Shannon-Nyquist warning."""
+def test_shannon_nyquist_warning() -> None:
+    """Check a too-large FFT time step triggers a Shannon-Nyquist warning.
+
+    With ``dt = max_time_ft / nb_points_ft`` above 1 ns, the constructor
+    must emit the under-sampling ``UserWarning``.
+    """
     generator = GaussianGenerator(
         height=1.0, mean=30e-9, FWHM=8e-9, R_g=10.0, C_g=0.0
     )
@@ -170,8 +181,13 @@ def test_shannon_nyquist_warning():
         )
 
 
-def test_invalid_constructor_arguments():
-    """The constructor validates the cable, generator and load types."""
+def test_invalid_constructor_arguments() -> None:
+    """Check the constructor validates cable/generator/load types.
+
+    A non-cable object, a purely resistive (non-complex-impedance)
+    generator, and a purely resistive load must each raise ``TypeError``
+    naming the offending argument.
+    """
     generator = GaussianGenerator(
         height=1.0, mean=30e-9, FWHM=8e-9, R_g=10.0, C_g=0.0
     )

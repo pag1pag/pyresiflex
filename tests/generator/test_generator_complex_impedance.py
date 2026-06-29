@@ -7,7 +7,8 @@ from pyresiflex.generator.generator_complex_impedance import (
 )
 
 
-def test_trapezoidal_generator_voltage_off_before_start():
+def test_trapezoidal_generator_voltage_off_before_start() -> None:
+    """Check the trapezoidal voltage is at ``U_off`` before the pulse."""
     gen = TrapezoidalGenerator(
         U_off=1.0, U_on=5.0, t_rise=2.0, t_on=4.0, t_fall=2.0
     )
@@ -15,7 +16,12 @@ def test_trapezoidal_generator_voltage_off_before_start():
     assert np.isclose(gen.generator_voltage(-1.0), 1.0)
 
 
-def test_trapezoidal_generator_voltage_rising():
+def test_trapezoidal_generator_voltage_rising() -> None:
+    """Verify the linear rising edge of the trapezoidal voltage.
+
+    Check the voltage interpolates linearly from ``U_off`` to ``U_on``
+    during ``t_rise``.
+    """
     gen = TrapezoidalGenerator(
         U_off=0.0, U_on=10.0, t_rise=2.0, t_on=4.0, t_fall=2.0
     )
@@ -25,7 +31,8 @@ def test_trapezoidal_generator_voltage_rising():
     assert np.isclose(gen.generator_voltage(t), expected)
 
 
-def test_trapezoidal_generator_voltage_plateau():
+def test_trapezoidal_generator_voltage_plateau() -> None:
+    """Check the trapezoidal voltage holds at ``U_on`` on the plateau."""
     gen = TrapezoidalGenerator(
         U_off=0.0, U_on=10.0, t_rise=2.0, t_on=4.0, t_fall=2.0
     )
@@ -36,7 +43,12 @@ def test_trapezoidal_generator_voltage_plateau():
     assert np.isclose(gen.generator_voltage(t), 10.0)
 
 
-def test_trapezoidal_generator_voltage_falling():
+def test_trapezoidal_generator_voltage_falling() -> None:
+    """Verify the linear falling edge of the trapezoidal voltage.
+
+    Check the voltage interpolates linearly from ``U_on`` back to
+    ``U_off`` during ``t_fall``.
+    """
     gen = TrapezoidalGenerator(
         U_off=0.0, U_on=10.0, t_rise=2.0, t_on=4.0, t_fall=2.0
     )
@@ -49,7 +61,8 @@ def test_trapezoidal_generator_voltage_falling():
     assert np.isclose(gen.generator_voltage(t), expected)
 
 
-def test_trapezoidal_generator_voltage_after_pulse():
+def test_trapezoidal_generator_voltage_after_pulse() -> None:
+    """Check the trapezoidal voltage returns to ``U_off`` after the pulse."""
     gen = TrapezoidalGenerator(
         U_off=2.0, U_on=8.0, t_rise=1.0, t_on=2.0, t_fall=1.0
     )
@@ -58,14 +71,16 @@ def test_trapezoidal_generator_voltage_after_pulse():
     assert np.isclose(gen.generator_voltage(t), 2.0)
 
 
-def test_trapezoidal_generator_impedance_constant():
+def test_trapezoidal_generator_impedance_constant() -> None:
+    """Check the trapezoidal impedance equals ``R_g`` at every frequency."""
     gen = TrapezoidalGenerator(R_g=15.0)
     freq = np.array([0.0, 1.0, 10.0, 1e6])
     imp = gen.generator_impedance(freq)
     assert np.allclose(imp, 15.0)
 
 
-def test_gaussian_generator_voltage_peak():
+def test_gaussian_generator_voltage_peak() -> None:
+    """Check the gaussian voltage equals ``height`` at the mean (peak)."""
     height = 5.0
     mean = 1e-6
     FWHM = 2e-6
@@ -74,27 +89,35 @@ def test_gaussian_generator_voltage_peak():
     assert np.isclose(gen.generator_voltage(mean), height)
 
 
-def test_gaussian_generator_voltage_far_from_mean():
+def test_gaussian_generator_voltage_far_from_mean() -> None:
+    """Check the gaussian voltage decays to near zero far from the mean."""
     gen = GaussianGenerator(height=5.0, mean=0.0, FWHM=1.0)
     # Far from mean, voltage should be close to zero
     assert gen.generator_voltage(100.0) < 1e-6
 
 
-def test_gaussian_generator_impedance_ideal():
+def test_gaussian_generator_impedance_ideal() -> None:
+    """Check an ideal source (no ``R_g``/``C_g``) has zero impedance."""
     gen = GaussianGenerator(height=1.0, mean=0.0, FWHM=1.0)
     freq = np.array([0.0, 1.0, 10.0])
     imp = gen.generator_impedance(freq)
     assert np.allclose(imp, 0.0)
 
 
-def test_gaussian_generator_impedance_resistive():
+def test_gaussian_generator_impedance_resistive() -> None:
+    """Check a resistive gaussian source has impedance ``R_g`` at all f."""
     gen = GaussianGenerator(height=1.0, mean=0.0, FWHM=1.0, R_g=10.0)
     freq = np.array([0.0, 1.0, 10.0])
     imp = gen.generator_impedance(freq)
     assert np.allclose(imp, 10.0)
 
 
-def test_gaussian_generator_impedance_resistive_capacitive():
+def test_gaussian_generator_impedance_resistive_capacitive() -> None:
+    """Verify the RC source impedance is ``R_g`` at DC and rolls off.
+
+    Check the impedance equals ``R_g`` at zero frequency and that its
+    magnitude decreases at high frequency.
+    """
     R_g = 10.0
     C_g = 1e-9
     gen = GaussianGenerator(height=1.0, mean=0.0, FWHM=1.0, R_g=R_g, C_g=C_g)
@@ -106,9 +129,13 @@ def test_gaussian_generator_impedance_resistive_capacitive():
     assert np.abs(imp[1]) < R_g
 
 
-def test_gaussian_generator_pure_capacitance():
-    # A purely capacitive generator (R_g == 0, C_g != 0) is allowed and
-    # behaves as Z_g(f) = 1 / (j 2 pi f C_g), infinite at DC.
+def test_gaussian_generator_pure_capacitance() -> None:
+    """Verify the pure-capacitance branch is infinite at DC.
+
+    A purely capacitive source (``R_g == 0``, ``C_g != 0``) follows
+    ``Z_g(f) = 1 / (j 2 pi f C_g)``: infinite at DC and matching the
+    ideal-capacitor impedance at non-zero frequencies.
+    """
     C_g = 1e-9
     gen = GaussianGenerator(height=1.0, mean=0.0, FWHM=1.0, R_g=0.0, C_g=C_g)
     freq = np.array([0.0, 1e3, 1e6])
@@ -120,7 +147,13 @@ def test_gaussian_generator_pure_capacitance():
     assert np.allclose(imp[1:] / expected, 1, rtol=0, atol=1e-12)
 
 
-def test_gaussian_function_shape():
+def test_gaussian_function_shape() -> None:
+    """Verify the gaussian static method peaks and halves correctly.
+
+    Check the value equals ``height`` at the mean and is exactly half
+    the height at ``mean + FWHM/2`` (the full-width-at-half-maximum
+    definition).
+    """
     # Test the gaussian static method directly
     t = 0.0
     height = 2.0

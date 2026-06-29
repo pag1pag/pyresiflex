@@ -2,6 +2,8 @@ import numpy as np
 import pytest
 from matplotlib.animation import FuncAnimation
 
+from pyresiflex.cable.cable import PerfectCable
+from pyresiflex.generator.generator_real_impedance import TrapezoidalGenerator
 from pyresiflex.load.time_varying_resistance import (
     ConstantResistance,
     PlasmaResistanceLinearFall,
@@ -31,7 +33,10 @@ class _SuperCallSolution(BaseSolution):
 
 
 @pytest.fixture
-def solution(perfect_cable, trapezoidal_generator):
+def solution(
+    perfect_cable: PerfectCable,
+    trapezoidal_generator: TrapezoidalGenerator,
+) -> PurelyResistiveSolution:
     """Return an unsolved purely resistive solution (constant load)."""
     return PurelyResistiveSolution(
         cable=perfect_cable,
@@ -41,7 +46,10 @@ def solution(perfect_cable, trapezoidal_generator):
 
 
 @pytest.fixture
-def solved_solution(perfect_cable, trapezoidal_generator):
+def solved_solution(
+    perfect_cable: PerfectCable,
+    trapezoidal_generator: TrapezoidalGenerator,
+) -> PurelyResistiveSolution:
     """Return a solution already solved on a position/time grid."""
     load = PlasmaResistanceLinearFall(
         Z_start=1e3, Z_end=10.0, t_start_fall=10e-9, t_end_fall=20e-9
@@ -53,8 +61,15 @@ def solved_solution(perfect_cable, trapezoidal_generator):
     return sol
 
 
-def test_solve_grid_matches_pointwise_V_and_I(solution):
-    """`solve` on a grid is consistent with pointwise `V` and `I`."""
+def test_solve_grid_matches_pointwise_V_and_I(
+    solution: PurelyResistiveSolution,
+) -> None:
+    """Check `solve` on a grid matches pointwise `V` and `I`.
+
+    The grid arrays stored by ``solve`` must equal element-by-element the
+    values returned by the scalar ``V``/``I`` accessors, and the derived
+    ``power``/``energy`` arrays must follow from them.
+    """
     x = np.linspace(0, solution.L, 5)
     t = np.linspace(0, 20e-9, 7)
     solution.solve(x, t)
@@ -71,8 +86,14 @@ def test_solve_grid_matches_pointwise_V_and_I(solution):
     assert solution.voltage.shape == (5, 7)
 
 
-def test_solve_single_position_flattens(solution):
-    """A scalar position produces 1-D output arrays."""
+def test_solve_single_position_flattens(
+    solution: PurelyResistiveSolution,
+) -> None:
+    """Verify a scalar position yields 1-D output arrays.
+
+    A single position collapses the spatial axis, so the voltage and
+    current arrays are 1-D over time while ``x`` keeps a single entry.
+    """
     t = np.linspace(0, 20e-9, 7)
     solution.solve(0.1, t)
     assert solution.voltage.shape == (7,)
@@ -80,8 +101,11 @@ def test_solve_single_position_flattens(solution):
     assert solution.x.shape == (1,)
 
 
-def test_solve_scalar_time(solution):
-    """A scalar time is accepted as well."""
+def test_solve_scalar_time(solution: PurelyResistiveSolution) -> None:
+    """Ensure a scalar time is accepted by `solve`.
+
+    A single position and a single time produce a length-one voltage array.
+    """
     solution.solve(0.1, 5e-9)
     assert solution.voltage.shape == (1,)
 
@@ -97,13 +121,28 @@ def test_solve_scalar_time(solution):
         (0.1, "bad", "t must be a 1D array"),
     ],
 )
-def test_solve_invalid_inputs(solution, x, t, match):
+def test_solve_invalid_inputs(
+    solution: PurelyResistiveSolution, x, t, match: str
+) -> None:
+    """Check `solve` rejects wrong-shape or out-of-range positions/times.
+
+    ``x`` and ``t`` are deliberately invalid mixed types (bad shapes,
+    strings, out-of-range values) fed to ``solve`` to trigger errors, so
+    they are left unannotated on purpose.
+    """
     with pytest.raises(ValueError, match=match):
         solution.solve(x, t)
 
 
-def test_base_solution_type_checks(perfect_cable, trapezoidal_generator):
-    """The base constructor validates cable, generator and load types."""
+def test_base_solution_type_checks(
+    perfect_cable: PerfectCable,
+    trapezoidal_generator: TrapezoidalGenerator,
+) -> None:
+    """Check the base constructor validates cable/generator/load types.
+
+    Passing a wrong type for each argument in turn must raise ``TypeError``
+    with a message identifying the offending argument.
+    """
     cable, gen = perfect_cable, trapezoidal_generator
     load = ConstantResistance(R=200.0)
     with pytest.raises(TypeError, match=r"`cable` must be an instance"):
@@ -115,9 +154,14 @@ def test_base_solution_type_checks(perfect_cable, trapezoidal_generator):
 
 
 def test_purely_resistive_solution_type_checks(
-    perfect_cable, trapezoidal_generator
-):
-    """`PurelyResistiveSolution` validates cable, generator and load types."""
+    perfect_cable: PerfectCable,
+    trapezoidal_generator: TrapezoidalGenerator,
+) -> None:
+    """Check `PurelyResistiveSolution` validates constructor types.
+
+    Like the base class, a wrong cable/generator/load type must raise
+    ``TypeError`` naming the offending argument.
+    """
     cable, gen = perfect_cable, trapezoidal_generator
     load = ConstantResistance(R=200.0)
     with pytest.raises(TypeError, match=r"`cable` must be an instance"):
@@ -128,8 +172,15 @@ def test_purely_resistive_solution_type_checks(
         PurelyResistiveSolution(cable, gen, "bad")  # type: ignore
 
 
-def test_abstract_wave_methods_raise(perfect_cable, trapezoidal_generator):
-    """The abstract incident/reflected waves raise NotImplementedError."""
+def test_abstract_wave_methods_raise(
+    perfect_cable: PerfectCable,
+    trapezoidal_generator: TrapezoidalGenerator,
+) -> None:
+    """Check the abstract wave methods raise ``NotImplementedError``.
+
+    ``_SuperCallSolution`` delegates to the base implementations, so calling
+    the incident/reflected waves must raise ``NotImplementedError``.
+    """
     load = ConstantResistance(R=200.0)
     sol = _SuperCallSolution(perfect_cable, trapezoidal_generator, load)
     with pytest.raises(NotImplementedError, match="incident wave"):
@@ -139,26 +190,51 @@ def test_abstract_wave_methods_raise(perfect_cable, trapezoidal_generator):
 
 
 def _run_frames(ani: FuncAnimation, n_frames: int) -> None:
-    """Invoke the animation update function for every frame."""
+    """Invoke the animation update function for every frame.
+
+    Reach into the private ``_func`` attribute -- the frame-update closure
+    built inside ``animation`` -- and call it once per frame so the drawing
+    code is exercised without an event loop.
+    """
     # `_func` is the (private) frame-update closure built in `animation`.
     update = getattr(ani, "_func")
     for idx in range(n_frames):
         update(idx)
 
 
-def test_animation_with_current(solved_solution):
+def test_animation_with_current(
+    solved_solution: PurelyResistiveSolution,
+) -> None:
+    """Check `animation` with current returns a runnable ``FuncAnimation``.
+
+    Render every frame to confirm the voltage-and-current update closure
+    runs without error.
+    """
     ani = solved_solution.animation(with_current=True, show=False)
     assert isinstance(ani, FuncAnimation)
     _run_frames(ani, len(solved_solution.t))
 
 
-def test_animation_without_current(solved_solution):
+def test_animation_without_current(
+    solved_solution: PurelyResistiveSolution,
+) -> None:
+    """Check `animation` without current returns a runnable animation.
+
+    Render every frame to confirm the voltage-only update closure runs.
+    """
     ani = solved_solution.animation(with_current=False, show=False)
     assert isinstance(ani, FuncAnimation)
     _run_frames(ani, len(solved_solution.t))
 
 
-def test_animation_explicit_limits(solved_solution):
+def test_animation_explicit_limits(
+    solved_solution: PurelyResistiveSolution,
+) -> None:
+    """Check `animation` accepts explicit voltage/current axis limits.
+
+    Supplying both ``y_min_max_*`` tuples must still build a valid
+    ``FuncAnimation``.
+    """
     ani = solved_solution.animation(
         with_current=True,
         show=False,
@@ -175,12 +251,29 @@ def test_animation_explicit_limits(solved_solution):
         ({"y_min_max_current": [0.0, 1.0]}, r"`y_min_max_current` must be"),
     ],
 )
-def test_animation_invalid_limits(solved_solution, kwargs, match):
+def test_animation_invalid_limits(
+    solved_solution: PurelyResistiveSolution,
+    kwargs,  # bare: spread via **kwargs into typed params (keeps ty happy)
+    match: str,
+) -> None:
+    """Check `animation` rejects malformed axis-limit arguments.
+
+    A list (instead of the expected 2-tuple) for either limit must raise
+    ``ValueError`` naming the offending keyword.
+    """
     with pytest.raises(ValueError, match=match):
         solved_solution.animation(with_current=True, show=False, **kwargs)
 
 
-def test_animation_show(solved_solution, monkeypatch):
+def test_animation_show(
+    solved_solution: PurelyResistiveSolution,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Check `animation` calls ``pyplot.show`` when ``show=True``.
+
+    Patch ``matplotlib.pyplot.show`` so the test records whether it ran
+    rather than opening a window.
+    """
     called = {}
     monkeypatch.setattr(
         "matplotlib.pyplot.show", lambda *a, **k: called.setdefault("s", True)

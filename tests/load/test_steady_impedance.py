@@ -7,7 +7,8 @@ from pyresiflex.load.steady_impedance import (
 )
 
 
-def test_constant_resistance_impedance():
+def test_constant_resistance_impedance() -> None:
+    """Check a resistor impedance equals R at every frequency."""
     R = 10.0
     freq = np.array([1, 10, 100])
     cr = ConstantResistance(R)
@@ -16,7 +17,8 @@ def test_constant_resistance_impedance():
     assert impedance.shape == freq.shape
 
 
-def test_capacitance_impedance():
+def test_capacitance_impedance() -> None:
+    """Verify capacitor impedance matches 1 / (j 2 pi f C)."""
     C = 1e-6  # 1 uF
     freq = np.array([1, 10, 100])
     cap = Capacitance(C)
@@ -26,7 +28,8 @@ def test_capacitance_impedance():
     assert impedance.shape == freq.shape
 
 
-def test_capacitance_impedance_zero_frequency():
+def test_capacitance_impedance_zero_frequency() -> None:
+    """Check a capacitor impedance is infinite at DC (zero frequency)."""
     C = 1e-6
     freq = np.array([0.0])
     cap = Capacitance(C)
@@ -34,7 +37,8 @@ def test_capacitance_impedance_zero_frequency():
     assert np.isinf(np.abs(impedance[0]))
 
 
-def test_inductance_impedance():
+def test_inductance_impedance() -> None:
+    """Verify inductor impedance matches j 2 pi f L."""
     L = 1e-3  # 1 mH
     freq = np.array([1, 10, 100])
     ind = Inductance(L)
@@ -44,7 +48,8 @@ def test_inductance_impedance():
     assert impedance.shape == freq.shape
 
 
-def test_inductance_impedance_zero_frequency():
+def test_inductance_impedance_zero_frequency() -> None:
+    """Check an inductor impedance is zero at DC (zero frequency)."""
     L = 1e-3
     freq = np.array([0.0])
     ind = Inductance(L)

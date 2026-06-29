@@ -3,7 +3,8 @@ import pytest
 from pyresiflex.misc import units
 
 
-def test_physical_constants_values():
+def test_physical_constants_values() -> None:
+    """Check physical constants match 2022 CODATA recommended values."""
     # 2022 CODATA recommended values (exact for c_0, e, k_b).
     assert units.c_0 == 299_792_458
     assert units.e == pytest.approx(1.602_176_634e-19)

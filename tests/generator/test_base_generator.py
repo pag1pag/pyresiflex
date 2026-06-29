@@ -8,16 +8,21 @@ from pyresiflex.generator.base_generator import (
 
 
 class DummyComplexImpedanceGenerator(ComplexImpedanceBaseGenerator):
+    """Concrete generator that echoes the frequency as its impedance."""
+
     def generator_impedance(self, frequency: np.ndarray) -> np.ndarray:
+        """Validate ``frequency`` then return it unchanged as impedance."""
         self.check_frequency(frequency)
         # Dummy implementation: return frequency as impedance
         return frequency
 
     def generator_voltage(self, t: float) -> float:
+        """Return a constant voltage of ``1.0`` V for any time."""
         return 1.0
 
 
-def test_check_frequency_valid():
+def test_check_frequency_valid() -> None:
+    """Check that a valid 1D real finite array passes validation."""
     freq = np.array([0.0, 1.0, 10.0])
     # Should not raise
     ComplexImpedanceBaseGenerator.check_frequency(freq)
@@ -32,7 +37,12 @@ def test_check_frequency_valid():
         np.array([1.0, np.inf, 3.0]),  # non-finite
     ],
 )
-def test_check_frequency_invalid(freq):
+def test_check_frequency_invalid(freq) -> None:
+    """Check that invalid inputs raise TypeError or ValueError.
+
+    Non-array inputs raise ``TypeError``; arrays that are not 1D,
+    complex, or non-finite raise ``ValueError``.
+    """
     if not isinstance(freq, np.ndarray):
         with pytest.raises(TypeError):
             ComplexImpedanceBaseGenerator.check_frequency(freq)
@@ -41,14 +51,21 @@ def test_check_frequency_invalid(freq):
             ComplexImpedanceBaseGenerator.check_frequency(freq)
 
 
-def test_generator_impedance_returns_expected():
+def test_generator_impedance_returns_expected() -> None:
+    """Verify the dummy impedance returns the input frequency array."""
     dummy = DummyComplexImpedanceGenerator()
     freq = np.array([1.0, 2.0, 3.0])
     result = dummy.generator_impedance(freq)
     assert np.array_equal(result, freq)
 
 
-def test_abstract_generator_impedance_raises():
+def test_abstract_generator_impedance_raises() -> None:
+    """Check that omitting ``generator_impedance`` blocks instantiation.
+
+    A subclass that does not implement the abstract impedance method
+    cannot be instantiated and raises ``TypeError``.
+    """
+
     class TestGen(ComplexImpedanceBaseGenerator):
         def generator_voltage(self, t: float) -> float:
             return 1.0
@@ -57,9 +74,15 @@ def test_abstract_generator_impedance_raises():
         TestGen()
 
 
-def test_base_generator_voltage_not_implemented():
+def test_base_generator_voltage_not_implemented() -> None:
+    """Check that the base voltage method raises NotImplementedError.
+
+    Calling ``super().generator_voltage`` reaches the abstract base
+    implementation, which raises ``NotImplementedError``.
+    """
+
     class TestGen(BaseGenerator):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(purely_resistive=True)
 
         def generator_voltage(self, t: float) -> float:
@@ -71,7 +94,13 @@ def test_base_generator_voltage_not_implemented():
         TestGen().generator_voltage(0.0)
 
 
-def test_complex_generator_impedance_not_implemented():
+def test_complex_generator_impedance_not_implemented() -> None:
+    """Check that the base impedance method raises NotImplementedError.
+
+    The base implementation validates the frequency first, then raises
+    ``NotImplementedError`` when reached via ``super()``.
+    """
+
     class TestGen(ComplexImpedanceBaseGenerator):
         def generator_voltage(self, t: float) -> float:
             return 1.0
