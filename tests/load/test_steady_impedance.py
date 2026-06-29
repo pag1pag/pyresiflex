@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from pyresiflex.load.steady_impedance import (
     Capacitance,
@@ -55,6 +56,20 @@ def test_inductance_impedance_zero_frequency() -> None:
     ind = Inductance(L)
     impedance = ind.load_impedance(freq)
     assert np.allclose(impedance, 0.0)
+
+
+@pytest.mark.parametrize("C", [0.0, -1e-9])
+def test_capacitance_rejects_non_positive(C: float) -> None:
+    """Check a zero or negative capacitance is rejected at construction."""
+    with pytest.raises(ValueError, match="must be positive"):
+        Capacitance(C)
+
+
+@pytest.mark.parametrize("L", [0.0, -1e-3])
+def test_inductance_rejects_non_positive(L: float) -> None:
+    """Check a zero or negative inductance is rejected at construction."""
+    with pytest.raises(ValueError, match="must be positive"):
+        Inductance(L)
 
 
 if __name__ == "__main__":

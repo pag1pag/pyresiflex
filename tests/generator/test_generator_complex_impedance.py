@@ -5,6 +5,7 @@ from pyresiflex.generator.generator_complex_impedance import (
     GaussianGenerator,
     TrapezoidalGenerator,
 )
+from tests.helpers import relative_close
 
 
 def test_trapezoidal_generator_voltage_off_before_start() -> None:
@@ -144,7 +145,16 @@ def test_gaussian_generator_pure_capacitance() -> None:
     assert np.isinf(np.abs(imp[0]))
     # Matches the ideal-capacitor impedance at non-zero frequency.
     expected = 1 / (1j * 2 * np.pi * freq[1:] * C_g)
-    assert np.allclose(imp[1:] / expected, 1, rtol=0, atol=1e-12)
+    assert relative_close(imp[1:], expected, 1e-12)
+
+
+@pytest.mark.parametrize("R_g, C_g", [(-1.0, 0.0), (0.0, -1e-9)])
+def test_gaussian_generator_rejects_negative_components(
+    R_g: float, C_g: float
+) -> None:
+    """Check negative generator resistance or capacitance is rejected."""
+    with pytest.raises(ValueError, match="must be >= 0"):
+        GaussianGenerator(height=1.0, mean=0.0, FWHM=1.0, R_g=R_g, C_g=C_g)
 
 
 def test_gaussian_function_shape() -> None:
@@ -160,12 +170,12 @@ def test_gaussian_function_shape() -> None:
     mean = 0.0
     FWHM = 1.0
     val = GaussianGenerator.gaussian(t, height, mean, FWHM)
-    assert np.isclose(val / height, 1, rtol=0, atol=1e-12)
+    assert relative_close(val, height, 1e-12)
     # At t = mean + FWHM/2 the value is exactly half the height (by the
     # definition of the full width at half maximum).
     t_half = mean + FWHM / 2
     val_half = GaussianGenerator.gaussian(t_half, height, mean, FWHM)
-    assert np.isclose(val_half / (height / 2), 1, rtol=0, atol=1e-12)
+    assert relative_close(val_half, height / 2, 1e-12)
 
 
 if __name__ == "__main__":

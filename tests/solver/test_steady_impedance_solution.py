@@ -14,25 +14,32 @@ from pyresiflex.load.steady_impedance import Capacitance, ConstantResistance
 from pyresiflex.load.time_varying_resistance import (
     ConstantResistance as ResistiveTimeLoad,
 )
+from pyresiflex.misc.utils import gaussian_fwhm_from_sigma
 from pyresiflex.solver.steady_impedance_solution import (
     SteadyImpedanceSolution,
 )
+from tests.helpers import relative_close
+
+# Solution built by the ``matched_gaussian_capacitor`` fixture, paired with
+# the physical parameters needed to evaluate the analytical solution.
+MatchedCapacitor = tuple[SteadyImpedanceSolution, dict[str, float]]
 
 
-def _matched_gaussian_capacitor() -> tuple[
-    SteadyImpedanceSolution, dict[str, float]
-]:
+@pytest.fixture(scope="module")
+def matched_gaussian_capacitor() -> MatchedCapacitor:
     """Build a matched-generator / capacitor-load configuration.
 
-    Return the solution together with the physical parameters needed to
-    evaluate the analytical solution at the load.
+    Module-scoped: the (expensive) 8000-point FFT solution is only read by
+    the tests, so it is built once and shared. Returns the solution together
+    with the physical parameters needed to evaluate the analytical solution
+    at the load.
     """
     Z_c, c, L = 50.0, 2.0e8, 1.0
     V0 = 1.0
     sigma = 3e-9
     a = 1.0 / sigma**2
     t0 = 50e-9  # Center the Gaussian inside the FFT window.
-    FWHM = 2 * np.sqrt(np.log(2)) * sigma
+    FWHM = gaussian_fwhm_from_sigma(sigma)
     C = 1e-10
     tau = Z_c * C  # = 5 ns
 
@@ -48,7 +55,9 @@ def _matched_gaussian_capacitor() -> tuple[
     return solution, dict(Z_c=Z_c, c=c, L=L, V0=V0, a=a, t0=t0, tau=tau)
 
 
-def test_capacitor_load_matches_analytic_solution() -> None:
+def test_capacitor_load_matches_analytic_solution(
+    matched_gaussian_capacitor: MatchedCapacitor,
+) -> None:
     r"""Check the capacitor load voltage matches its analytic solution.
 
     With a matched generator (:math:`Z_g = Z_c`, hence :math:`\Gamma_g = 0`)
@@ -65,7 +74,7 @@ def test_capacitor_load_matches_analytic_solution() -> None:
         \exp\!\left(\tfrac{1}{4 a \tau^2} - \tfrac{t}{\tau}\right)
         \mathrm{erfc}\!\left(\tfrac{1}{2 \tau \sqrt{a}} - \sqrt{a}\, t\right).
     """
-    solution, p = _matched_gaussian_capacitor()
+    solution, p = matched_gaussian_capacitor
     c, L = p["c"], p["L"]
     V0, a, t0, tau = p["V0"], p["a"], p["t0"], p["tau"]
 
@@ -90,19 +99,21 @@ def test_capacitor_load_matches_analytic_solution() -> None:
     assert rel_l2 < 1e-11
 
     # Pointwise relative agreement with the analytical solution.
-    assert np.allclose(numerical / analytic, 1, rtol=0, atol=1e-11)
+    assert relative_close(numerical, analytic, 1e-11)
 
 
-def test_capacitor_gamma_l_dc_is_open_circuit() -> None:
+def test_capacitor_gamma_l_dc_is_open_circuit(
+    matched_gaussian_capacitor: MatchedCapacitor,
+) -> None:
     """Check the capacitor load reflection at DC tends to an open circuit.
 
     At DC the capacitor is an open circuit, so the load reflection
     coefficient ``gamma_l(0)`` must equal 1 and stay finite everywhere.
     """
-    solution, _ = _matched_gaussian_capacitor()
+    solution, _ = matched_gaussian_capacitor
     gamma_l = solution.gamma_l(solution.f)
     # f[0] is the DC component for numpy.fft.fftfreq.
-    assert np.isclose(gamma_l[0], 1.0, rtol=0, atol=1e-12)
+    assert relative_close(gamma_l[0], 1.0, 1e-12)
     assert np.all(np.isfinite(gamma_l))
 
 
@@ -134,10 +145,8 @@ def test_per_generation_waves_sum_to_total() -> None:
         solution.V_reflected(t, n) for n in range(n_max + 1)
     )
 
-    assert np.isclose(incident_partial / incident_total, 1, rtol=0, atol=1e-9)
-    assert np.isclose(
-        reflected_partial / reflected_total, 1, rtol=0, atol=1e-9
-    )
+    assert relative_close(incident_partial, incident_total, 1e-9)
+    assert relative_close(reflected_partial, reflected_total, 1e-9)
 
 
 def test_pure_capacitive_generator_is_finite() -> None:
@@ -157,7 +166,7 @@ def test_pure_capacitive_generator_is_finite() -> None:
     # DC component is blocked by the series capacitor and fully reflected.
     # (alpha_g -> 0 is a comparison against zero, so it stays absolute.)
     assert np.isclose(solution.alpha_g(solution.f)[0], 0.0, rtol=0, atol=1e-12)
-    assert np.isclose(solution.gamma_g(solution.f)[0], 1.0, rtol=0, atol=1e-12)
+    assert relative_close(solution.gamma_g(solution.f)[0], 1.0, 1e-12)
     t = np.linspace(20e-9, 120e-9, 11)
     voltage = np.array([solution.V(1.0, ti) for ti in t])
     assert np.all(np.isfinite(voltage))

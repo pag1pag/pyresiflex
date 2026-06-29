@@ -9,6 +9,7 @@ from pyresiflex.generator.base_generator import PurelyResistiveBaseGenerator
 from pyresiflex.generator.generator_real_impedance import TrapezoidalGenerator
 from pyresiflex.load.time_varying_resistance import PlasmaResistanceLinearFall
 from pyresiflex.solver.purely_resistive_solution import PurelyResistiveSolution
+from tests.helpers import relative_close
 
 # Bundle returned by the ``reconstruction`` fixture: the experiment under
 # test plus everything needed to rebuild and check it (generator, true
@@ -58,7 +59,7 @@ def test_ohms_law_recovered_at_load() -> None:
     expected = np.interp(times, t_arr, voltage) / np.interp(
         times, t_arr, current
     )
-    assert np.allclose(R_p / expected, 1, rtol=0, atol=1e-12)
+    assert relative_close(R_p, expected, 1e-12)
 
 
 def test_ohms_law_not_recovered_away_from_load() -> None:
@@ -90,7 +91,7 @@ def test_ohms_law_not_recovered_away_from_load() -> None:
     expected = np.interp(times, t_arr, voltage) / np.interp(
         times, t_arr, current
     )
-    assert not np.allclose(R_p / expected, 1, rtol=0, atol=1e-12)
+    assert not relative_close(R_p, expected, 1e-12)
 
 
 def test_get_resistance_from_gamma_round_trip() -> None:
@@ -103,7 +104,7 @@ def test_get_resistance_from_gamma_round_trip() -> None:
     R = 137.0
     gamma = (R - Z_c) / (R + Z_c)
     Z_l = PurelyResistiveExperiment.get_resistance_from_gamma(Z_c, gamma)
-    assert np.isclose(Z_l / R, 1, rtol=0, atol=1e-12)
+    assert relative_close(Z_l, R, 1e-12)
 
 
 def test_time_correction_shifts_signals() -> None:
@@ -130,17 +131,11 @@ def test_time_correction_shifts_signals() -> None:
         correct_time_zero=True,
     )
     t = 50e-9
-    assert np.isclose(
-        expe.V_meas(t) / np.interp(t - x_v / c, t_arr, voltage),
-        1,
-        rtol=0,
-        atol=1e-12,
+    assert relative_close(
+        expe.V_meas(t), np.interp(t - x_v / c, t_arr, voltage), 1e-12
     )
-    assert np.isclose(
-        expe.I_meas(t) / np.interp(t - x_i / c, t_arr, current),
-        1,
-        rtol=0,
-        atol=1e-12,
+    assert relative_close(
+        expe.I_meas(t), np.interp(t - x_i / c, t_arr, current), 1e-12
     )
 
 
@@ -207,8 +202,8 @@ def test_gamma_reconstruction_round_trip(
     R_v = expe.get_resistance_from_gamma(Z_c, gamma_v)
     R_i = expe.get_resistance_from_gamma(Z_c, gamma_i)
     true_R = plasma.load_impedance(t_probe)
-    assert np.isclose(R_v / true_R, 1, rtol=0, atol=1e-3)
-    assert np.isclose(R_i / true_R, 1, rtol=0, atol=1e-3)
+    assert relative_close(R_v, true_R, 1e-3)
+    assert relative_close(R_i, true_R, 1e-3)
 
 
 def test_reconstruct_gamma_x_meas_out_of_range(
