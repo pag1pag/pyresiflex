@@ -215,6 +215,22 @@ nb_point_ft = 5_000  # Increase for better results (but higher cost).
 # .. Maximum time for Fourier transform.
 max_time_ft = 5_000e-9  # [s]  # Increase for better results (but higher cost).
 
+# The generator, cable and Fourier-transform settings are shared by the four
+# loads, so build each solution once here and reuse it for both Fig. 8 (probe
+# at x = L) and Fig. 9 (probe at x = L / 2) below; only the load and the probe
+# position passed to ``solve`` change.
+solutions: dict[str, SteadyImpedanceSolution] = {}
+for label, pavan_dict in pavan_loads.items():
+    pavan_load = pavan_dict["load"]
+    assert isinstance(pavan_load, ComplexImpedanceBaseLoad)
+    solutions[label] = SteadyImpedanceSolution(
+        generator=pavan_generator,
+        load=pavan_load,
+        cable=pavan_cable,
+        nb_points_ft=nb_point_ft,
+        max_time_ft=max_time_ft,
+    )
+
 fig_v, ax_v = plt.subplots()
 fig_i, ax_i = plt.subplots()
 fig_e, ax_e = plt.subplots()
@@ -224,22 +240,12 @@ marker_symbol = "x"
 alpha = 0.5
 
 for label, pavan_dict in pavan_loads.items():
-    # Extract load and color from the dictionary.
-    pavan_load = pavan_dict["load"]
-    assert isinstance(pavan_load, ComplexImpedanceBaseLoad)
+    # Extract the colour from the dictionary.
     color = pavan_dict["color"]
     assert isinstance(color, str)
 
-    # Create the solution object with the generator, load and cable.
-    solution = SteadyImpedanceSolution(
-        generator=pavan_generator,
-        load=pavan_load,
-        cable=pavan_cable,
-        nb_points_ft=nb_point_ft,
-        max_time_ft=max_time_ft,
-    )
-
-    # Solve for voltage, current, and energy.
+    # Reuse the pre-built solution; only the probe position changes.
+    solution = solutions[label]
     solution.solve(x, t=times)
 
     # Plot the results.
@@ -421,22 +427,12 @@ fig_e, ax_e = plt.subplots()
 
 
 for label, pavan_dict in pavan_loads.items():
-    # Extract load and color from the dictionary.
-    pavan_load = pavan_dict["load"]
-    assert isinstance(pavan_load, ComplexImpedanceBaseLoad)
+    # Extract the colour from the dictionary.
     color = pavan_dict["color"]
     assert isinstance(color, str)
 
-    # Create the solution object with the generator, load and cable.
-    solution = SteadyImpedanceSolution(
-        generator=pavan_generator,
-        load=pavan_load,
-        cable=pavan_cable,
-        nb_points_ft=nb_point_ft,
-        max_time_ft=max_time_ft,
-    )
-
-    # Solve for voltage, current, and energy.
+    # Reuse the pre-built solution; only the probe position changes.
+    solution = solutions[label]
     solution.solve(x, t=times)
 
     # Plot the results.
