@@ -15,12 +15,12 @@ Full user documentation (advanced install and examples) are available on the [Py
 Assuming you have Python installed with the [Anaconda](https://www.anaconda.com/download/) distribution you can use `pip`:
 
 ```bash
-pip install radis
+pip install pyresiflex
 ```
 
 ### Quick Start
 
-Calculate a CO equilibrium spectrum from the HITRAN database:
+Compute the voltage at the load, for a 5-m cable and a time-varying resistance:
 
 ```python
 # Import necessary libraries.
@@ -43,7 +43,7 @@ solution = PurelyResistiveSolution(
 
 # Solve the system at specific time points.
 times = np.linspace(0, 40e-9, 1000)
-# Here, the solution is computed at 6 meters.
+# Here, the solution is computed at 5 meters.
 solution.solve(x=5, t=times)
 
 # Plot the voltage response over time.
@@ -55,7 +55,7 @@ ax.set_title("Load voltage against time")
 plt.show()
 ```
 
-![Result of the Python script](./docs/img/smallest_example.png)
+![Image showing the result of the Python script](./docs/img/smallest_example.png)
 
 ## Example
 
