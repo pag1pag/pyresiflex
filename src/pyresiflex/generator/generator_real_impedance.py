@@ -3,6 +3,7 @@ from typing import Callable
 import numpy as np
 
 from pyresiflex.generator.base_generator import PurelyResistiveBaseGenerator
+from pyresiflex.misc.utils import gaussian_sigma_from_fwhm
 
 
 class TrapezoidalGenerator(PurelyResistiveBaseGenerator):
@@ -195,7 +196,7 @@ class GaussianGenerator(PurelyResistiveBaseGenerator):
         >>> bool(np.isclose(peak, 3.0))
         True
         """
-        sigma = FWHM * np.sqrt(2) / (np.sqrt(2 * np.log(2)) * 2)
+        sigma = gaussian_sigma_from_fwhm(FWHM)
         return height * np.exp(-(((t - mean) / sigma) ** 2))
 
 
