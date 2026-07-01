@@ -25,6 +25,11 @@ class TrapezoidalGenerator(PurelyResistiveBaseGenerator):
         Time to stay at U_on, by default 10e-9 s.
     t_fall : float, optional
         Time to go from U_on to U_off, by default 3e-9 s.
+
+    Examples
+    --------
+    .. minigallery::
+        pyresiflex.generator.generator_real_impedance.TrapezoidalGenerator
     """
 
     def __init__(
@@ -62,6 +67,17 @@ class TrapezoidalGenerator(PurelyResistiveBaseGenerator):
         -------
         float
             Generator voltage in Volts.
+
+        Examples
+        --------
+        >>> from pyresiflex.generator.generator_real_impedance import (
+        ...     TrapezoidalGenerator,
+        ... )
+        >>> gen = TrapezoidalGenerator()
+        >>> gen.generator_voltage(5e-9)
+        10000.0
+        >>> gen.generator_voltage(-1e-9)
+        0.0
         """
         if t < 0:
             return self._U_off
@@ -99,6 +115,11 @@ class GaussianGenerator(PurelyResistiveBaseGenerator):
         Full width at half maximum of the Gaussian pulse [s].
     R_g : float, optional
         Generator resistance [Ohm], by default 0.0 Ohm.
+
+    Examples
+    --------
+    .. minigallery::
+        pyresiflex.generator.generator_real_impedance.GaussianGenerator
     """
 
     def __init__(
@@ -127,6 +148,15 @@ class GaussianGenerator(PurelyResistiveBaseGenerator):
         -------
         float
             Generator voltage in Volts.
+
+        Examples
+        --------
+        >>> from pyresiflex.generator.generator_real_impedance import (
+        ...     GaussianGenerator,
+        ... )
+        >>> gen = GaussianGenerator(height=2.0, mean=0.0, FWHM=1e-9)
+        >>> round(float(gen.generator_voltage(0.0)), 3)
+        2.0
         """
         return self.gaussian(
             t,
@@ -154,6 +184,16 @@ class GaussianGenerator(PurelyResistiveBaseGenerator):
         -------
         float
             Value of the Gaussian pulse at time t [V].
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pyresiflex.generator.generator_real_impedance import (
+        ...     GaussianGenerator,
+        ... )
+        >>> peak = GaussianGenerator.gaussian(0.0, 3.0, 0.0, 1e-9)
+        >>> bool(np.isclose(peak, 3.0))
+        True
         """
         sigma = FWHM * np.sqrt(2) / (np.sqrt(2 * np.log(2)) * 2)
         return height * np.exp(-(((t - mean) / sigma) ** 2))
@@ -168,6 +208,11 @@ class FromMeasurementGenerator(PurelyResistiveBaseGenerator):
         Resistance of the generator [Ohm].
     V_meas : Callable
         Function that returns the generator voltage at a given time.
+
+    Examples
+    --------
+    .. minigallery::
+        pyresiflex.generator.generator_real_impedance.FromMeasurementGenerator
     """
 
     def __init__(self, R_g: float, V_meas: Callable[[float], float]):
@@ -188,6 +233,15 @@ class FromMeasurementGenerator(PurelyResistiveBaseGenerator):
         -------
         float
             Generator voltage in Volts.
+
+        Examples
+        --------
+        >>> from pyresiflex.generator.generator_real_impedance import (
+        ...     FromMeasurementGenerator,
+        ... )
+        >>> gen = FromMeasurementGenerator(R_g=50.0, V_meas=lambda t: 2.0 * t)
+        >>> gen.generator_voltage(3.0)
+        6.0
         """
         return self._V_meas(t)
 
@@ -201,6 +255,11 @@ class ConstantGenerator(PurelyResistiveBaseGenerator):
         Resistance of the generator [Ohm].
     U_g : float
         Voltage of the generator [V].
+
+    Examples
+    --------
+    .. minigallery::
+        pyresiflex.generator.generator_real_impedance.ConstantGenerator
     """
 
     def __init__(self, R_g: float, U_g: float):
@@ -221,6 +280,17 @@ class ConstantGenerator(PurelyResistiveBaseGenerator):
         -------
         float
             Generator voltage in Volts.
+
+        Examples
+        --------
+        >>> from pyresiflex.generator.generator_real_impedance import (
+        ...     ConstantGenerator,
+        ... )
+        >>> gen = ConstantGenerator(R_g=50.0, U_g=5.0)
+        >>> gen.generator_voltage(1e-9)
+        5.0
+        >>> gen.generator_voltage(-1e-9)
+        0.0
         """
         if t < 0:
             return 0.0

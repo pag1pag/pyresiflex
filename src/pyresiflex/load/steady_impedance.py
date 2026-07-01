@@ -10,6 +10,17 @@ class ConstantResistance(ComplexImpedanceBaseLoad):
     ----------
     R : float, optional
         Load resistance in Ohm.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyresiflex.load.steady_impedance import ConstantResistance
+    >>> load = ConstantResistance(R=50.0)
+    >>> Z = load.load_impedance(np.array([1e6, 2e6]))
+    >>> bool(np.allclose(Z, 50.0))
+    True
+
+    .. minigallery:: pyresiflex.load.steady_impedance.ConstantResistance
     """
 
     def __init__(self, R: float):
@@ -56,6 +67,18 @@ class Capacitance(ComplexImpedanceBaseLoad):
     ----------
     C : float, optional
         Load capacitance in Farad.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyresiflex.load.steady_impedance import Capacitance
+    >>> load = Capacitance(C=1e-9)
+    >>> Z = load.load_impedance(np.array([1e6]))
+    >>> expected = 1 / (1j * 2 * np.pi * 1e6 * 1e-9)
+    >>> bool(np.allclose(Z, expected))
+    True
+
+    .. minigallery:: pyresiflex.load.steady_impedance.Capacitance
     """
 
     def __init__(self, C: float):
@@ -104,6 +127,18 @@ class Inductance(ComplexImpedanceBaseLoad):
     ----------
     L : float, optional
         Load inductance in Henry.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyresiflex.load.steady_impedance import Inductance
+    >>> load = Inductance(L=1e-6)
+    >>> Z = load.load_impedance(np.array([1e6]))
+    >>> expected = 1j * 2 * np.pi * 1e6 * 1e-6
+    >>> bool(np.allclose(Z, expected))
+    True
+
+    .. minigallery:: pyresiflex.load.steady_impedance.Inductance
     """
 
     def __init__(self, L: float):

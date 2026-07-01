@@ -23,6 +23,20 @@ class TrapezoidalGenerator(ComplexImpedanceBaseGenerator):
         Time to stay at U_on, by default 10e-9 s.
     t_fall : float, optional
         Time to go from U_on to U_off, by default 3e-9 s.
+
+    Examples
+    --------
+    >>> from pyresiflex.generator.generator_complex_impedance import (
+    ...     TrapezoidalGenerator,
+    ... )
+    >>> gen = TrapezoidalGenerator()
+    >>> gen.generator_voltage(5e-9)
+    10000.0
+    >>> gen.generator_voltage(-1e-9)
+    0.0
+
+    .. minigallery::
+        pyresiflex.generator.generator_complex_impedance.TrapezoidalGenerator
     """
 
     def __init__(
@@ -96,6 +110,17 @@ class TrapezoidalGenerator(ComplexImpedanceBaseGenerator):
         -------
         numpy.ndarray
             Generator impedance in Ohm.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pyresiflex.generator.generator_complex_impedance import (
+        ...     TrapezoidalGenerator,
+        ... )
+        >>> gen = TrapezoidalGenerator(R_g=50.0)
+        >>> freq = np.array([1e6, 2e6, 3e6])
+        >>> bool(np.allclose(gen.generator_impedance(freq), 50.0))
+        True
         """
         self.check_frequency(frequency)
         return self.R_g * np.ones_like(frequency)
@@ -119,6 +144,11 @@ class GaussianGenerator(ComplexImpedanceBaseGenerator):
         Generator resistance, by default 0.0 Ohm.
     C_g : float, optional
         Generator capacitance, by default 0.0 F.
+
+    Examples
+    --------
+    .. minigallery::
+        pyresiflex.generator.generator_complex_impedance.GaussianGenerator
     """
 
     def __init__(
@@ -156,6 +186,17 @@ class GaussianGenerator(ComplexImpedanceBaseGenerator):
         -------
         numpy.ndarray
             The generator impedance.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pyresiflex.generator.generator_complex_impedance import (
+        ...     GaussianGenerator,
+        ... )
+        >>> gen = GaussianGenerator(height=1.0, mean=0.0, FWHM=1e-9, R_g=50.0)
+        >>> freq = np.array([1e6, 2e6, 3e6])
+        >>> bool(np.allclose(gen.generator_impedance(freq), 50.0))
+        True
         """
         self.check_frequency(frequency)
         if self.R_g == 0.0 and self.C_g == 0.0:
@@ -186,6 +227,15 @@ class GaussianGenerator(ComplexImpedanceBaseGenerator):
         -------
         float
             The generator voltage, in volts.
+
+        Examples
+        --------
+        >>> from pyresiflex.generator.generator_complex_impedance import (
+        ...     GaussianGenerator,
+        ... )
+        >>> gen = GaussianGenerator(height=2.0, mean=0.0, FWHM=1e-9)
+        >>> round(float(gen.generator_voltage(0.0)), 3)
+        2.0
         """
         return self.gaussian(
             t,
@@ -213,6 +263,16 @@ class GaussianGenerator(ComplexImpedanceBaseGenerator):
         -------
         float
             The Gaussian pulse.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pyresiflex.generator.generator_complex_impedance import (
+        ...     GaussianGenerator,
+        ... )
+        >>> peak = GaussianGenerator.gaussian(0.0, 3.0, 0.0, 1e-9)
+        >>> bool(np.isclose(peak, 3.0))
+        True
         """
         sigma = FWHM * np.sqrt(2) / (np.sqrt(2 * np.log(2)) * 2)
         return height * np.exp(-(((t - mean) / sigma) ** 2))

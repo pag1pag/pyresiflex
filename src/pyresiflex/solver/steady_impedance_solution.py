@@ -70,6 +70,41 @@ class SteadyImpedanceSolution(BaseSolution):
 
     To fully describe the behavior of the transmission line, we need to
     specify the boundary conditions at the ends of the transmission line.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyresiflex.cable.cable import PerfectCable
+    >>> from pyresiflex.generator.generator_complex_impedance import (
+    ...     GaussianGenerator,
+    ... )
+    >>> from pyresiflex.load.steady_impedance import ConstantResistance
+    >>> sol = SteadyImpedanceSolution(
+    ...     PerfectCable(L=1.0, Z_c=50.0, c=2e8),
+    ...     GaussianGenerator(height=1.0, mean=30e-9, FWHM=8e-9, R_g=50.0),
+    ...     ConstantResistance(R=50.0),
+    ...     nb_points_ft=2000,
+    ...     max_time_ft=200e-9,
+    ... )
+    >>> round(float(sol.alpha_g(np.array([1e8]))[0].real), 3)
+    0.5
+    >>> V_g_hat, f = sol.fourier_transform_generator_voltage(
+    ...     nb_points_ft=2000, max_time_ft=200e-9
+    ... )
+    >>> len(V_g_hat)
+    2000
+    >>> round(float(sol.gamma_g(np.array([1e8]))[0].real), 3)
+    0.0
+    >>> round(float(sol.gamma_l(np.array([1e8]))[0].real), 3)
+    0.0
+    >>> round(float(sol.alpha_g(np.array([1e8]))[0].real), 3)
+    0.5
+    >>> round(float(sol.V_incident(30e-9, 0)), 3)
+    0.5
+
+
+    .. minigallery::
+        pyresiflex.solver.steady_impedance_solution.SteadyImpedanceSolution
     """
 
     def __init__(
@@ -308,7 +343,7 @@ class SteadyImpedanceSolution(BaseSolution):
 
         .. math::
 
-            \alpha_g(f) = \frac{Z_g(f)}{Z_g(f) + Z_c}
+            \alpha_g(f) = \frac{Z_c}{Z_g(f) + Z_c}
 
         where:
 
@@ -386,7 +421,7 @@ class SteadyImpedanceSolution(BaseSolution):
         Returns
         -------
         float
-            Incident wave value in volts.
+            Reflected wave value in volts.
 
         Notes
         -----

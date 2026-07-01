@@ -13,6 +13,10 @@ class BaseGenerator(ABC):
     purely_resistive : bool
         Flag to indicate if the generator impedance is purely resistive.
         If True, the generator is a constant resistance.
+
+    Examples
+    --------
+    .. minigallery:: pyresiflex.generator.base_generator.BaseGenerator
     """
 
     def __init__(self, purely_resistive: bool):
@@ -49,6 +53,17 @@ class PurelyResistiveBaseGenerator(BaseGenerator):
     ----------
     R_g : float
         Resistance in Ohm.
+
+    Examples
+    --------
+    >>> from pyresiflex.generator.generator_real_impedance import (
+    ...     ConstantGenerator,
+    ... )
+    >>> gen = ConstantGenerator(R_g=50.0, U_g=5.0)
+    >>> gen.generator_impedance()
+    50.0
+
+    .. minigallery:: PurelyResistiveBaseGenerator
     """
 
     def __init__(self, R_g: float):
@@ -83,7 +98,13 @@ class PurelyResistiveBaseGenerator(BaseGenerator):
 
 
 class ComplexImpedanceBaseGenerator(BaseGenerator):
-    """A generator with a non-purely resistive impedance."""
+    """A generator with a non-purely resistive impedance.
+
+    Examples
+    --------
+    .. minigallery::
+        pyresiflex.generator.base_generator.ComplexImpedanceBaseGenerator
+    """
 
     def __init__(self):
         super().__init__(purely_resistive=False)
@@ -167,6 +188,16 @@ class ComplexImpedanceBaseGenerator(BaseGenerator):
             If frequency values are not real.
             If frequency values are negative.
             If frequency values are not finite.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pyresiflex.generator.base_generator import (
+        ...     ComplexImpedanceBaseGenerator,
+        ... )
+        >>> freq = np.array([0.0, 1e6, 2e6])
+        >>> ComplexImpedanceBaseGenerator.check_frequency(freq) is None
+        True
         """
         # Check that frequency is a numpy array.
         if not isinstance(frequency, np.ndarray):
