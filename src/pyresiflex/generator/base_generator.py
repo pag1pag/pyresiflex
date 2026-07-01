@@ -170,6 +170,34 @@ class ComplexImpedanceBaseGenerator(BaseGenerator):
             "Define the generator impedance calculation in the derived class."
         )
 
+    def maximum_frequency(self) -> float | None:
+        r"""Maximum significant frequency of the generator voltage.
+
+        This is the highest frequency :math:`f_{max}` at which the
+        generator-voltage spectrum carries non-negligible energy. It sets
+        the Shannon-Nyquist sampling requirement when the voltage is
+        Fourier-transformed: the sampling frequency :math:`f_s = 1/\Delta t`
+        must satisfy :math:`f_s \ge 2 f_{max}`, i.e.
+        :math:`\Delta t \le 1 / (2 f_{max})`.
+
+        Returns
+        -------
+        float or None
+            Highest significant frequency in Hz. Subclasses with a known
+            bandwidth should override this; the default returns ``None``
+            (bandwidth unknown), which disables the sampling check.
+
+        Examples
+        --------
+        >>> from pyresiflex.generator.generator_complex_impedance import (
+        ...     GaussianGenerator,
+        ... )
+        >>> gen = GaussianGenerator(height=1.0, mean=0.0, FWHM=1e-9)
+        >>> round(float(gen.maximum_frequency()) / 1e9, 3)
+        1.393
+        """
+        return None
+
     @staticmethod
     def check_frequency(frequency: np.ndarray) -> None:
         """Check that the frequency array is valid.
