@@ -34,6 +34,25 @@ class MinesiData:
 
 
 def load_minesi_data() -> MinesiData:
+    """Load the cable properties from the Minesi 2022 data set.
+
+    The values are read from the bundled ``cable_properties.yaml`` file and
+    returned together with their uncertainties.
+
+    Returns
+    -------
+    MinesiData
+        Dataclass holding the cable properties and their uncertainties.
+
+    Examples
+    --------
+    >>> from pyresiflex.misc.load_data import load_minesi_data
+    >>> data = load_minesi_data()
+    >>> round(data.L, 1)
+    6.2
+    >>> round(data.x_meas, 1)
+    3.1
+    """
     file_path = get_path_to_data("Minesi2022", "cable_properties.yaml")
     with open(file_path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)

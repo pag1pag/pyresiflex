@@ -10,6 +10,17 @@ class ConstantResistance(PurelyResistiveBaseLoad):
     ----------
     R : float
         Load resistance in Ohm.
+
+    Examples
+    --------
+    >>> from pyresiflex.load.time_varying_resistance import (
+    ...     ConstantResistance,
+    ... )
+    >>> load = ConstantResistance(R=50.0)
+    >>> round(float(load.load_impedance(t=1e-6)), 3)
+    50.0
+
+    .. minigallery:: pyresiflex.load.time_varying_resistance.ConstantResistance
     """
 
     def __init__(self, R: float):
@@ -67,6 +78,20 @@ class PlasmaResistanceLinearFall(PurelyResistiveBaseLoad):
         Start fall time in second.
     t_end_fall : float
         End fall time in second.
+
+    Examples
+    --------
+    >>> from pyresiflex.load.time_varying_resistance import (
+    ...     PlasmaResistanceLinearFall,
+    ... )
+    >>> load = PlasmaResistanceLinearFall(
+    ...     Z_start=100.0, Z_end=0.0, t_start_fall=0.0, t_end_fall=1.0
+    ... )
+    >>> round(float(load.load_impedance(t=0.5)), 3)
+    50.0
+
+    .. minigallery::
+       pyresiflex.load.time_varying_resistance.PlasmaResistanceLinearFall
     """
 
     def __init__(
@@ -154,6 +179,20 @@ class PlasmaResistanceExponentialFall(PurelyResistiveBaseLoad):
         Start fall time in second.
     t_end_fall : float
         End fall time in second.
+
+    Examples
+    --------
+    >>> from pyresiflex.load.time_varying_resistance import (
+    ...     PlasmaResistanceExponentialFall,
+    ... )
+    >>> load = PlasmaResistanceExponentialFall(
+    ...     Z_start=100.0, Z_end=0.0, t_start_fall=0.0, t_end_fall=1.0
+    ... )
+    >>> round(float(load.load_impedance(t=0.5)), 3)
+    50.0
+
+    .. minigallery::
+       pyresiflex.load.time_varying_resistance.PlasmaResistanceExponentialFall
     """
 
     def __init__(
@@ -222,6 +261,23 @@ class PlasmaResistanceInterpolate(PurelyResistiveBaseLoad):
     R_array : numpy.ndarray
         List of resistance points in Ohm.
         Must have the same length as t_array.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyresiflex.load.time_varying_resistance import (
+    ...     PlasmaResistanceInterpolate,
+    ... )
+    >>> t_array = np.array([0.0, 1.0])
+    >>> R_array = np.array([100.0, 0.0])
+    >>> load = PlasmaResistanceInterpolate(t_array, R_array)
+    >>> load.check_arrays(t_array, R_array) is None
+    True
+    >>> round(float(load.load_impedance(t=0.5)), 3)
+    50.0
+
+    .. minigallery::
+       pyresiflex.load.time_varying_resistance.PlasmaResistanceInterpolate
     """
 
     def __init__(self, t_array: np.ndarray, R_array: np.ndarray):

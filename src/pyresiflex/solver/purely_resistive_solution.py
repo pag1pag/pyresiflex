@@ -80,6 +80,30 @@ class PurelyResistiveSolution(BaseSolution):
     where:
 
     - :math:`R_l(t)` is the load resistance at time :math:`t`.
+
+    Examples
+    --------
+    >>> from pyresiflex.cable.cable import PerfectCable
+    >>> from pyresiflex.generator.generator_real_impedance import (
+    ...     TrapezoidalGenerator,
+    ... )
+    >>> from pyresiflex.load.time_varying_resistance import ConstantResistance
+    >>> sol = PurelyResistiveSolution(
+    ...     PerfectCable(L=1.0, Z_c=50.0, c=2e8),
+    ...     TrapezoidalGenerator(R_g=150.0),
+    ...     ConstantResistance(R=50.0),
+    ... )
+    >>> round(float(sol.gamma_g()), 3)
+    0.5
+    >>> round(float(sol.gamma_l(5e-9)), 3)
+    0.0
+    >>> round(float(sol.V_incident(5e-9, 0)), 3)
+    2500.0
+    >>> round(float(sol.V_reflected(5e-9, 0)), 3)
+    0.0
+
+    .. minigallery::
+        pyresiflex.solver.purely_resistive_solution.PurelyResistiveSolution
     """
 
     def __init__(

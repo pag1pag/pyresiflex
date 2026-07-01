@@ -49,6 +49,42 @@ class PurelyResistiveExperiment:
         If True, the time is corrected to account for the propagation delay
         from the generator to the measurement positions, by default True.
         Time is then referenced to the generator position.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyresiflex.experiment.purely_resistive_experiment import (
+    ...     PurelyResistiveExperiment,
+    ... )
+    >>> t = np.linspace(0, 1e-6, 51)
+    >>> v = np.ones_like(t)
+    >>> i = np.full_like(t, 0.04)
+    >>> exp = PurelyResistiveExperiment(
+    ...     t,
+    ...     v,
+    ...     1.0,
+    ...     t,
+    ...     i,
+    ...     1.0,
+    ...     L=2.0,
+    ...     Z_c=50.0,
+    ...     c=2e8,
+    ... )
+    >>> exp.cable.Z_c
+    50.0
+    >>> round(float(exp.V_meas(5e-7)), 3)
+    1.0
+    >>> round(float(exp.I_meas(5e-7)), 3)
+    0.04
+    >>> int(exp.N(5e-8))
+    2
+    >>> times = np.linspace(1e-8, 5e-7, 20)
+    >>> R_p = exp.compute_plasma_resistance_from_vmeas_and_imeas(times)
+    >>> R_p.shape
+    (20,)
+
+    .. minigallery::
+        pyresiflex.experiment.purely_resistive_experiment.PurelyResistiveExperiment
     """
 
     def __init__(
