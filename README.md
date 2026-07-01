@@ -57,7 +57,7 @@ plt.show()
 
 ![Image showing the result of the Python script](./docs/img/smallest_example.png)
 
-## Example
+## [Example](https://pag1pag.github.io/pyresiflex/auto_examples/index.html)
 
 ![GIF showing the reproduction of the Minesi2022 experiment](./docs/img/reproduce_Minesi2022_experiments.gif)
 
