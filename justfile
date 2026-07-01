@@ -42,14 +42,14 @@ This includes the unit tests in the `tests` directory,
 as well as the doctests in the codebase.')]
 tests:
     @echo 'print("\x1b[1;36;40m" + "Running tests..." + "\x1b[0m")' | uv run -
-    uv run pytest tests -vv
-    uv run pytest src/pyresiflex --doctest-modules -vv --ignore src/pyresiflex/data
+    uv run pytest tests -vv -W error
+    uv run pytest src/pyresiflex --doctest-modules -vv --ignore src/pyresiflex/data -W error
 
 [doc('Run `just tests-cov` to run all the tests with coverage.
 This includes generating coverage reports in various formats.')]
 tests-cov:
     @echo 'print("\x1b[1;36;40m" + "Running tests with coverage..." + "\x1b[0m")' | uv run -
-    uv run coverage run -m pytest tests -vv
+    uv run coverage run -m pytest tests -vv -W error
     uv run coverage report --show-missing --omit="*/tests/*"
     uv run coverage xml -o coverage/coverage.xml --omit="*/tests/*"
     uv run coverage html -d coverage/htmlcov --omit="*/tests/*"
