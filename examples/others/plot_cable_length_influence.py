@@ -139,7 +139,7 @@ for solution in solutions:
     start_time = 0  # Start time for the simulation [s].
     max_time = 10 * L / c  # Max time for the simulation [s].
     max_time = max(max_time, 50e-9)  # Ensure at least 50 ns for short cables.
-    nb_points = 10_000  # Number of time points for the simulation.
+    nb_points = 1_000  # Number of time points for the simulation.
     times = np.linspace(start_time, max_time, nb_points)  # Time array [s].
 
     print(f"Solving for cable length L = {L:.2f} m.")
@@ -171,7 +171,7 @@ energies_no_cable = np.cumulative_sum(
 # Plot the voltage and current at a given position.
 # -------------------------------------------------
 
-save_fig = True  # Set to True to save the figure.
+save_fig = False  # Set to True to save the figure.
 
 for solution in solutions:
     # Extract the voltage, current and energy at the measurement position.

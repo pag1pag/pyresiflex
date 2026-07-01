@@ -114,6 +114,59 @@ class SteadyImpedanceSolution(BaseSolution):
         # Load parameters.
         self.Z_l: Callable[[np.ndarray], np.ndarray] = load.load_impedance
 
+        # Pre-compute the frequency-domain coefficients of the total
+        # incident/reflected waves. They depend only on frequency (not on
+        # time or position), so caching them here avoids recomputing the
+        # reflection coefficients and the geometric-series denominator on
+        # every `V_incident_total`/`V_reflected_total` call during `solve`.
+        self._omega: np.ndarray
+        self._incident_coefficient: np.ndarray
+        self._reflected_coefficient: np.ndarray
+        self._precompute_total_wave_coefficients()
+
+    def _precompute_total_wave_coefficients(self) -> None:
+        r"""Cache the frequency-domain total-wave coefficients.
+
+        The total incident and reflected waves are inverse transforms
+
+        .. math::
+
+            V_i(t) = \Re \sum_\omega C_i(\omega)\, e^{j \omega t}, \quad
+            V_r(t) = \Re \sum_\omega C_r(\omega)\, e^{j \omega t},
+
+        whose coefficients :math:`C_i`, :math:`C_r` are independent of time
+        and position. They are computed once here from the geometric-series
+        sum of the multiple reflections.
+        """
+        omega = 2 * np.pi * self.f
+        gamma_g = self.gamma_g(self.f)
+        gamma_l = self.gamma_l(self.f)
+        alpha_g = self.alpha_g(self.f)
+        phase = np.exp(-1j * omega * 2 * self.L / self.c)
+
+        incident_num = alpha_g * self.V_g_hat
+        reflected_num = incident_num * gamma_l * phase
+        denominator = 1 - gamma_g * gamma_l * phase
+        with np.errstate(divide="ignore", invalid="ignore"):
+            incident_coefficient = incident_num / denominator
+            reflected_coefficient = reflected_num / denominator
+        # At the DC point (omega = 0) a purely reflective generator and load
+        # (Gamma_g = Gamma_l = 1, e.g. a capacitive generator feeding a
+        # capacitive load) make the denominator vanish; there the numerator
+        # vanishes too (alpha_g = 0, the series capacitor blocks DC), so the
+        # 0/0 term launches no wave and is set to 0.
+        self._omega = omega
+        self._incident_coefficient = np.where(
+            (denominator == 0) & (incident_num == 0),
+            0.0,
+            incident_coefficient,
+        )
+        self._reflected_coefficient = np.where(
+            (denominator == 0) & (reflected_num == 0),
+            0.0,
+            reflected_coefficient,
+        )
+
     def fourier_transform_generator_voltage(
         self,
         nb_points_ft: int,
@@ -372,49 +425,37 @@ class SteadyImpedanceSolution(BaseSolution):
         return np.real(np.sum(v_reflected))
 
     def V_incident_total(self, t: float) -> float:
-        # Get the reflection coefficient at the generator.
-        gamma_g_ω = self.gamma_g(self.f)
+        r"""Total incident voltage at time :math:`t`.
 
-        # Get the reflection coefficient at the load.
-        gamma_l_ω = self.gamma_l(self.f)
+        Parameters
+        ----------
+        t : float
+            Time in seconds.
 
-        # Get the attenuation factor at the generator.
-        alpha_g_ω = self.alpha_g(self.f)
-
-        # Compute the total incident wave.
-        ω = 2 * np.pi * self.f
-        v_incident_total = (
-            alpha_g_ω
-            * self.V_g_hat
-            * np.exp(1j * ω * t)
-            / (
-                1
-                - gamma_g_ω * gamma_l_ω * np.exp(-1j * ω * 2 * self.L / self.c)
-            )
+        Returns
+        -------
+        float
+            Total incident voltage value in volts.
+        """
+        # Inverse transform of the cached incident-wave coefficients.
+        return np.real(
+            np.sum(self._incident_coefficient * np.exp(1j * self._omega * t))
         )
-        return np.real(np.sum(v_incident_total))
 
     def V_reflected_total(self, t: float) -> float:
-        # Get the reflection coefficient at the generator.
-        gamma_g_ω = self.gamma_g(self.f)
+        r"""Total reflected voltage at time :math:`t`.
 
-        # Get the reflection coefficient at the load.
-        gamma_l_ω = self.gamma_l(self.f)
+        Parameters
+        ----------
+        t : float
+            Time in seconds.
 
-        # Get the attenuation factor at the generator.
-        alpha_g_ω = self.alpha_g(self.f)
-
-        # Compute the total reflected wave.
-        ω = 2 * np.pi * self.f
-        v_reflected_total = (
-            alpha_g_ω
-            * self.V_g_hat
-            * gamma_l_ω
-            * np.exp(1j * ω * (t - 2 * self.L / self.c))
-            / (
-                1
-                - gamma_g_ω * gamma_l_ω * np.exp(-1j * ω * 2 * self.L / self.c)
-            )
+        Returns
+        -------
+        float
+            Total reflected voltage value in volts.
+        """
+        # Inverse transform of the cached reflected-wave coefficients.
+        return np.real(
+            np.sum(self._reflected_coefficient * np.exp(1j * self._omega * t))
         )
-
-        return np.real(np.sum(v_reflected_total))
