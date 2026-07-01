@@ -17,7 +17,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-## [0.1.0] - yyyy-mm-dd
+## [0.2.0] - 2026-07-07
+
+### Added
+
+- Introduce Shannon-Nyquist criterion when using complex steady solver, replacing hard coded frequency/time-step. (#13)
+- Take care of infinite impedance when omega=0 for a capacitance (#14)
+- Add a lot more tests, with docstrings to explain what they are doing => Coverage is now >99% (#14)
+
+### Changed
+
+- Examples have been optimized to take less time to run (#11)
+- For complex steady solver, coefficients are precomputed to accelerate the computation (#11)
+- Update README, adding a small example and more links (#12)
+- Update docstring of class, adding example and minigallery (#12)
+
+### Fixed
+
+..
+
+## [0.1.0] - 2026-07-07
 
 ### Added
 
