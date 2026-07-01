@@ -83,6 +83,8 @@ class Capacitance(ComplexImpedanceBaseLoad):
 
     def __init__(self, C: float):
         super().__init__(purely_resistive=False)
+        if C <= 0:
+            raise ValueError("Capacitance `C` must be positive.")
         self.C: float = C
 
     def load_impedance(
@@ -115,9 +117,15 @@ class Capacitance(ComplexImpedanceBaseLoad):
         - :math:`j` is the imaginary unit,
         - :math:`f` is the frequency in Hz,
         - :math:`C_l` is the load capacitance in Farad.
+
+        At zero frequency (DC) the capacitor is an open circuit, so the
+        impedance is (positive) infinite.
         """
         self.check_frequency(frequency)
-        return 1 / (1j * 2 * np.pi * frequency * self.C)
+        # At f = 0 the capacitor is an open circuit (infinite impedance);
+        # silence the expected divide-by-zero rather than warn on it.
+        with np.errstate(divide="ignore", invalid="ignore"):
+            return 1 / (1j * 2 * np.pi * frequency * self.C)
 
 
 class Inductance(ComplexImpedanceBaseLoad):
@@ -143,6 +151,8 @@ class Inductance(ComplexImpedanceBaseLoad):
 
     def __init__(self, L: float):
         super().__init__(purely_resistive=False)
+        if L <= 0:
+            raise ValueError("Inductance `L` must be positive.")
         self.L: float = L
 
     def load_impedance(

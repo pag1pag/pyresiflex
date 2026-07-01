@@ -124,15 +124,6 @@ class PurelyResistiveSolution(BaseSolution):
                 "`load` must be an instance of `PurelyResistiveBaseLoad`."
             )
 
-        if not load.purely_resistive:
-            raise ValueError(
-                "The load must be purely resistive for this solution."
-            )
-        if not generator.purely_resistive:
-            raise ValueError(
-                "The generator must be purely resistive for this solution."
-            )
-
         super().__init__(cable, generator, load)
 
         # Generator parameters.
