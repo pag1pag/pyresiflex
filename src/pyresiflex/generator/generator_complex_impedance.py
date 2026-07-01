@@ -189,16 +189,15 @@ class GaussianGenerator(ComplexImpedanceBaseGenerator):
         C_g: float = 0.0,
     ):
         super().__init__()
+        if R_g < 0:
+            raise ValueError("Generator resistance `R_g` must be >= 0.")
+        if C_g < 0:
+            raise ValueError("Generator capacitance `C_g` must be >= 0.")
         self.height = height
         self.mean = mean
         self.FWHM = FWHM
         self.R_g = R_g
         self.C_g = C_g
-        if self.R_g == 0.0 and self.C_g != 0.0:
-            raise ValueError(
-                "If the generator has a capacitance, it must also have a "
-                "resistance, to avoid numerical issues."
-            )
 
     def generator_impedance(self, frequency: np.ndarray) -> np.ndarray:
         """Return the generator impedance.
@@ -239,10 +238,11 @@ class GaussianGenerator(ComplexImpedanceBaseGenerator):
             omega = 2 * np.pi * frequency
             return self.R_g / (1 + 1j * omega * self.C_g * self.R_g)
         else:
-            raise ValueError(
-                "If the generator has a capacitance, it must also have a "
-                "resistance, to avoid numerical issues."
-            )
+            # Purely capacitive generator: Z_g(f) = 1 / (j 2 pi f C_g).
+            # The impedance is infinite at f = 0 (the capacitor blocks DC).
+            omega = 2 * np.pi * frequency
+            with np.errstate(divide="ignore", invalid="ignore"):
+                return 1 / (1j * omega * self.C_g)
 
     def generator_voltage(self, t: float) -> float:
         """Return the generator voltage.

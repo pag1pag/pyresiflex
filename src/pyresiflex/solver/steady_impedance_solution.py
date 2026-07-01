@@ -301,9 +301,17 @@ class SteadyImpedanceSolution(BaseSolution):
         - :math:`f` is the frequency in Hz,
         - :math:`Z_c` is the characteristic impedance of the transmission line
           in Ohm.
+
+        At a frequency where the generator impedance is infinite (open
+        circuit, e.g. the DC component of a purely capacitive generator),
+        the reflection coefficient tends to its open-circuit limit
+        :math:`\Gamma_g \to 1`.
         """
-        Z_g = self.Z_g(frequency)
-        return (Z_g - self.Z_c) / (Z_g + self.Z_c)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            Z_g = self.Z_g(frequency)
+            gamma_g = (Z_g - self.Z_c) / (Z_g + self.Z_c)
+        # Open-circuit limit: |Z_g| -> infinity gives gamma_g -> 1.
+        return np.where(np.isfinite(gamma_g), gamma_g, 1.0)
 
     def gamma_l(self, frequency: np.ndarray) -> np.ndarray:
         r"""Calculate the load reflection coefficient.
@@ -332,9 +340,16 @@ class SteadyImpedanceSolution(BaseSolution):
         - :math:`f` is the frequency in Hz,
         - :math:`Z_c` is the characteristic impedance of the transmission line
           in Ohm.
+
+        At a frequency where the load impedance is infinite (open circuit,
+        e.g. the DC component of a purely capacitive load), the reflection
+        coefficient tends to its open-circuit limit :math:`\Gamma_l \to 1`.
         """
-        Z_l = self.Z_l(frequency)
-        return (Z_l - self.Z_c) / (Z_l + self.Z_c)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            Z_l = self.Z_l(frequency)
+            gamma_l = (Z_l - self.Z_c) / (Z_l + self.Z_c)
+        # Open-circuit limit: |Z_l| -> infinity gives gamma_l -> 1.
+        return np.where(np.isfinite(gamma_l), gamma_l, 1.0)
 
     def alpha_g(self, frequency: np.ndarray) -> np.ndarray:
         r"""Calculate the generator resistance voltage divider.
@@ -363,9 +378,16 @@ class SteadyImpedanceSolution(BaseSolution):
         - :math:`f` is the frequency in Hz,
         - :math:`Z_c` is the characteristic impedance of the transmission line
           in Ohm.
+
+        At a frequency where the generator impedance is infinite (open
+        circuit, e.g. the DC component of a purely capacitive generator), no
+        voltage is launched into the line, so :math:`\alpha_g \to 0`.
         """
-        Z_g = self.Z_g(frequency)
-        return 1 / (1 + Z_g / self.Z_c)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            Z_g = self.Z_g(frequency)
+            alpha_g = 1 / (1 + Z_g / self.Z_c)
+        # Open-circuit limit: |Z_g| -> infinity gives alpha_g -> 0.
+        return np.where(np.isfinite(alpha_g), alpha_g, 0.0)
 
     def V_incident(self, t: float, n: int) -> float:
         r"""Incident wave.
