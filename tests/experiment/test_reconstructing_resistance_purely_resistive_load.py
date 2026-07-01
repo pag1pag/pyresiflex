@@ -84,7 +84,17 @@ def setup_experiment() -> dict[str, object]:
 def test_reconstruct_resistance_from_signals(
     setup_experiment,
     plot: bool = False,
-):
+) -> None:
+    """Verify all three reconstructions recover the true plasma load.
+
+    Reconstructs R_p from (v_meas, i_meas), (v_meas, v_g) and
+    (i_meas, v_g), then requires each to match the true linear-fall
+    resistance to a relative L2-norm tolerance of 1e-1. The (v_meas,
+    i_meas) path warns about a zero denominator before the pulse arrives,
+    where the signals are still zero. Samples that are NaN or that precede
+    the reflected wave (``t < L/c + (L - x_meas)/c``) are excluded from
+    the norm. ``plot`` is for interactive debugging only.
+    """
     # Load the experiment setup.
     expe = PurelyResistiveExperiment(
         experimental_voltage_time=setup_experiment["times"],
@@ -107,13 +117,14 @@ def test_reconstruct_resistance_from_signals(
         ]
     )
 
-    # Compute R_p(vmeas, imeas)
-    expe.compute_plasma_resistance_from_vmeas_and_imeas(
-        setup_experiment["times"],
-        threshold=1e-6,
-    )
+    # Compute R_p(vmeas, imeas). Before the pulse arrives the signals are
+    # zero, so the denominator legitimately vanishes and the method warns.
+    with pytest.warns(UserWarning, match="denominator are zero"):
+        expe.compute_plasma_resistance_from_vmeas_and_imeas(
+            setup_experiment["times"],
+            threshold=1e-6,
+        )
     resistance_v_i = expe.Rp_corrected_with_nan
-    assert resistance_v_i is not None
 
     # Compute R_p(vmeas, vg)
     resistance_v_vg = expe.compute_plasma_resistance_from_vmeas_and_vg(
@@ -121,7 +132,6 @@ def test_reconstruct_resistance_from_signals(
         generator=setup_experiment["generator"],
         max_n=6,
     )
-    assert resistance_v_vg is not None
 
     # Compute R_p(imeas, vg)
     resistance_i_vg = expe.compute_plasma_resistance_from_imeas_and_vg(
@@ -129,11 +139,18 @@ def test_reconstruct_resistance_from_signals(
         generator=setup_experiment["generator"],
         max_n=6,
     )
-    assert resistance_i_vg is not None
 
     # .. Check the L2 norm of the difference.
 
-    def check_norms(resistance: np.ndarray, true_resistance: np.ndarray):
+    def check_norms(
+        resistance: np.ndarray,
+        true_resistance: np.ndarray,
+    ) -> np.floating:
+        """Return the relative L2-norm error against the true resistance.
+
+        Compares only the valid samples: non-NaN values at times after the
+        reflected wave has reached the probe.
+        """
         # Some values can be NaN, so we ignore them in the comparison.
         mask_nan = ~np.isnan(resistance) & ~np.isnan(true_resistance)
         # Furthermore, before the reflected wave reaches the measurement

@@ -6,7 +6,10 @@ import pytest
 from pyresiflex.misc.utils import get_path_to_data
 
 
-def test_get_path_to_data_returns_data_folder(monkeypatch):
+def test_get_path_to_data_returns_data_folder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Check get_path_to_data returns the resolved ``data`` folder."""
     # Patch get_root to a temp directory
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
@@ -18,7 +21,10 @@ def test_get_path_to_data_returns_data_folder(monkeypatch):
         assert path.exists()
 
 
-def test_get_path_to_data_with_subfolder(monkeypatch):
+def test_get_path_to_data_with_subfolder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Check get_path_to_data resolves an existing data subfolder."""
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         subfolder = root / "data" / "sub"
@@ -29,7 +35,10 @@ def test_get_path_to_data_with_subfolder(monkeypatch):
         assert path.exists()
 
 
-def test_get_path_to_data_file_not_found(monkeypatch):
+def test_get_path_to_data_file_not_found(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify a missing subfolder raises FileNotFoundError."""
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         (root / "data").mkdir()
@@ -38,7 +47,10 @@ def test_get_path_to_data_file_not_found(monkeypatch):
             get_path_to_data("nonexistent")
 
 
-def test_get_path_to_data_force_return(monkeypatch):
+def test_get_path_to_data_force_return(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Check force_return yields a missing path without raising."""
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         (root / "data").mkdir()
