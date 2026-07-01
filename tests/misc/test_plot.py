@@ -1,15 +1,21 @@
-import matplotlib
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import numpy as np
+import pytest
 from matplotlib import colors
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from pyresiflex.misc.plot import plot_voltage_current
+from pyresiflex.misc.plot import (
+    plot_voltage_current,
+    save_figure,
+    set_mpl_style,
+)
 
-matplotlib.use("Agg")  # Use non-interactive backend for testing
 
-
-def test_plot_voltage_current_basic():
+def test_plot_voltage_current_basic() -> None:
+    """Check returned objects are Figure/Axes with default unit labels."""
     voltage_time = np.linspace(0, 10, 100)
     voltage_value = np.sin(voltage_time)
     current_time = np.linspace(0, 10, 100)
@@ -36,7 +42,8 @@ def test_plot_voltage_current_basic():
     assert ax_i.get_ylabel() == r"$\mathregular{I \, [A]}$"
 
 
-def test_plot_voltage_current_units():
+def test_plot_voltage_current_units() -> None:
+    """Verify custom unit kwargs are reflected in the axis labels."""
     voltage_time = np.array([1, 2, 3])
     voltage_value = np.array([1, 2, 3])
     current_time = np.array([1, 2, 3])
@@ -59,15 +66,16 @@ def test_plot_voltage_current_units():
     assert ax_i.get_ylabel() == r"$\mathregular{I \, [kA]}$"
 
 
-def test_plot_voltage_current_show(monkeypatch):
+def test_plot_voltage_current_show(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify ``show=True`` invokes ``matplotlib.pyplot.show``."""
     voltage_time = np.linspace(0, 1, 10)
     voltage_value = np.ones(10)
     current_time = np.linspace(0, 1, 10)
     current_value = np.ones(10)
 
-    called = {}
+    called: dict[str, bool] = {}
 
-    def fake_show():
+    def fake_show() -> None:
         called["show"] = True
 
     monkeypatch.setattr("matplotlib.pyplot.show", fake_show)
@@ -77,7 +85,8 @@ def test_plot_voltage_current_show(monkeypatch):
     assert called.get("show", False)
 
 
-def test_plot_voltage_current_fig_axes():
+def test_plot_voltage_current_fig_axes() -> None:
+    """Check supplied ``fig_axes`` are reused rather than recreated."""
     import matplotlib.pyplot as plt
 
     fig, ax_v = plt.subplots()
@@ -99,70 +108,37 @@ def test_plot_voltage_current_fig_axes():
     assert ax_i2 is ax_i
 
 
-def test_plot_voltage_current_invalid_units():
+@pytest.mark.parametrize(
+    "kwargs, match",
+    [
+        ({"voltage_time_unit": "invalid"}, r"Invalid `voltage_time_unit`"),
+        ({"current_time_unit": "invalid"}, r"Invalid `current_time_unit`"),
+        ({"voltage_value_unit": "invalid"}, r"Invalid `voltage_value_unit`"),
+        ({"current_value_unit": "invalid"}, r"Invalid `current_value_unit`"),
+    ],
+)
+def test_plot_voltage_current_invalid_units(
+    kwargs,  # bare: spread via **kwargs into typed params (keeps ty happy)
+    match: str,
+) -> None:
+    """Verify an unknown unit string raises a matching ValueError."""
     voltage_time = np.array([0, 1, 2])
     voltage_value = np.array([1, 2, 3])
     current_time = np.array([0, 1, 2])
     current_value = np.array([1, 2, 3])
 
-    # Invalid voltage_time_unit
-    try:
+    with pytest.raises(ValueError, match=match):
         plot_voltage_current(
             voltage_time,
             voltage_value,
             current_time,
             current_value,
-            voltage_time_unit="invalid",
+            **kwargs,
         )
-    except ValueError as e:
-        assert "Invalid `voltage_time_unit`" in str(e)
-    else:
-        assert False, "Expected `ValueError` for invalid `voltage_time_unit`"
-
-    # Invalid current_time_unit
-    try:
-        plot_voltage_current(
-            voltage_time,
-            voltage_value,
-            current_time,
-            current_value,
-            current_time_unit="invalid",
-        )
-    except ValueError as e:
-        assert "Invalid `current_time_unit`" in str(e)
-    else:
-        assert False, "Expected `ValueError` for invalid `current_time_unit`"
-
-    # Invalid voltage_value_unit
-    try:
-        plot_voltage_current(
-            voltage_time,
-            voltage_value,
-            current_time,
-            current_value,
-            voltage_value_unit="invalid",
-        )
-    except ValueError as e:
-        assert "Invalid `voltage_value_unit`" in str(e)
-    else:
-        assert False, "Expected `ValueError` for invalid `voltage_value_unit`"
-
-    # Invalid current_value_unit
-    try:
-        plot_voltage_current(
-            voltage_time,
-            voltage_value,
-            current_time,
-            current_value,
-            current_value_unit="invalid",
-        )
-    except ValueError as e:
-        assert "Invalid `current_value_unit`" in str(e)
-    else:
-        assert False, "Expected `ValueError` for invalid `current_value_unit`"
 
 
-def test_plot_voltage_current_unit_conversion():
+def test_plot_voltage_current_unit_conversion() -> None:
+    """Check plotted data is scaled to match the requested units."""
     voltage_time = np.array([1, 2])
     voltage_value = np.array([1, 2])
     current_time = np.array([1, 2])
@@ -197,7 +173,8 @@ def test_plot_voltage_current_unit_conversion():
     assert ax_i.get_ylabel() == r"$\mathregular{I \, [mA]}$"
 
 
-def test_plot_voltage_current_axis_colors():
+def test_plot_voltage_current_axis_colors() -> None:
+    """Check the current (right) axis spine and ticks are colored red."""
     voltage_time = np.array([0, 1])
     voltage_value = np.array([1, 2])
     current_time = np.array([0, 1])
@@ -213,7 +190,39 @@ def test_plot_voltage_current_axis_colors():
         assert colors.same_color(label.get_color(), "r")
 
 
-if __name__ == "__main__":
-    import pytest
+def test_set_mpl_style_one_and_two_columns() -> None:
+    """Check both supported column counts select a matplotlib style."""
+    # Both supported column counts apply a known matplotlib style file.
+    set_mpl_style(nb_columns=1)
+    set_mpl_style(nb_columns=2)
 
+
+def test_set_mpl_style_invalid() -> None:
+    """Verify an unsupported column count raises ValueError."""
+    with pytest.raises(ValueError, match=r"`nb_columns` must be 1 or 2"):
+        set_mpl_style(nb_columns=3)
+
+
+def test_save_figure(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Check save_figure builds the .png path and creates the dir."""
+    fig, ax = plt.subplots()
+    ax.plot([0, 1], [0, 1])
+    saved: dict[str, object] = {}
+
+    def fake_savefig(path: object, *args: object, **kwargs: object) -> None:
+        saved["path"] = path
+
+    # Point the figures directory at a fresh (non-existent) temp location so
+    # the directory-creation branch is exercised.
+    monkeypatch.setattr(
+        "pyresiflex.misc.plot.get_root", lambda: tmp_path / "a" / "b"
+    )
+    monkeypatch.setattr(fig, "savefig", fake_savefig)
+    save_figure(fig, "test_figure", dpi=100)
+    assert str(saved["path"]).endswith("test_figure.png")
+    assert (tmp_path / "figures").exists()
+    plt.close(fig)
+
+
+if __name__ == "__main__":
     pytest.main([__file__, "-s"])
