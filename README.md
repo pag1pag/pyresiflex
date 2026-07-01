@@ -1,4 +1,4 @@
-# [PyResiFlex](pag1pag.github.io/pyresiflex/)
+# [PyResiFlex](https://pag1pag.github.io/pyresiflex/)
 
 [![Build Status](https://github.com/pag1pag/pyresiflex/actions/workflows/on-push.yml/badge.svg)](https://github.com/pag1pag/pyresiflex/actions/workflows/on-push.yml/badge.svg)
 [![Coverage Status](https://raw.githubusercontent.com/pag1pag/pyresiflex/refs/heads/coverage-badge/coverage.svg?raw=true)](https://raw.githubusercontent.com/pag1pag/pyresiflex/refs/heads/coverage-badge/coverage.svg?raw=true)
@@ -6,13 +6,13 @@
 
 **PyResiFlex** is a simple set of tools in **Py**thon to obtain load (plasma) **Resi**stance from analysis of pulse re**Flex**ions.
 
-Full user documentation (advanced install and examples) are available on the [PyResiFlex Website](pag1pag.github.io/pyresiflex/).
+Full user documentation (advanced installation and examples) is available on the [PyResiFlex Website](https://pag1pag.github.io/pyresiflex/).
 
 ## Getting Started
 
 ### Install
 
-Assuming you have Python installed with the [Anaconda](https://www.anaconda.com/download/) distribution you can use `pip`:
+Assuming you have Python installed, you can use `pip`:
 
 ```bash
 pip install pyresiflex
@@ -20,7 +20,7 @@ pip install pyresiflex
 
 ### Quick Start
 
-Compute the voltage at the load, for a 5-m cable and a time-varying resistance:
+Compute the voltage at the load for a 5-m cable and a time-varying resistance:
 
 ```python
 # Import necessary libraries.
@@ -67,12 +67,12 @@ plt.show()
 
 GitHub Codespaces has been set up, so you can click on this button to quickly code and run the examples: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=958704955&skip_quickstart=true)
 
-You can also follow the instructions below, to set up the project on your machine:
+You can also follow the instructions below to set up the project on your machine:
 
 - First, clone the repository with `git clone https://github.com/pag1pag/pyresiflex.git`.
-- Since this package uses [uv](https://docs.astral.sh/uv/), install it by following [instructions on their website](https://docs.astral.sh/uv/getting-started/installation/).
+- Since this package uses [uv](https://docs.astral.sh/uv/), install it by following the [instructions on their website](https://docs.astral.sh/uv/getting-started/installation/).
 - Update this Python package manager with `uv self update`.
-- Run `uv sync` to create a virtual environment at `.venv`, with the latest version of Python and all the necessary dependencies.
+- Run `uv sync` to create a virtual environment at `.venv` with the latest version of Python and all the necessary dependencies.
 - To test if the package is working, run `uv run pytest`. All tests should pass.
 
 Next, you just need to activate the virtual environment with:
@@ -91,23 +91,23 @@ Before pushing to GitHub, run the following commands in a terminal (with the vir
 1. Run unit tests with coverage and generate a badge with `just tests-cov`.
 1. Build the documentation with `just build-docs`.
 
-You could also run `just` to run all the above commands in one go.
+You can also run `just` to run all the above commands in one go.
 
 ### Manually building the package
 
-If you want to install `pyresiflex` to another environment, you can build the package and install it with `pip`:
+If you want to install `pyresiflex` in another environment, you can build the package and install it with `pip`:
 
-- `(pyresiflex) uv build` will build a wheel `/whl` in the folder `./dist`.
-- Activating another env, called `other_env`.
+- `(pyresiflex) uv build` will build a wheel `.whl` in the folder `./dist`.
+- Activate another env, called `other_env`.
 - `(other_env) pip install path/to/file.whl` should install `pyresiflex` in `other_env`.
 
 ## Who do I talk to?
 
-- Pierre-Antoine Goutier, Spark Cleantech & EM2C Lab, 2024-present, <pierre-antoine.goutier@spark-cleantech.eu>
+- Pierre-Antoine Goutier, Spark Cleantech & EM2C Lab, 2024–present
 
 ## References
 
-A list of references used is available at [the reference section](https://pag1pag.github.io/pyresiflex/bibliography.html).
+A list of references used is available in [the reference section](https://pag1pag.github.io/pyresiflex/bibliography.html).
 
 ## Note
 
