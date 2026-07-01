@@ -126,6 +126,34 @@ class TrapezoidalGenerator(ComplexImpedanceBaseGenerator):
         self.check_frequency(frequency)
         return self.R_g * np.ones_like(frequency)
 
+    def maximum_frequency(self) -> float | None:
+        r"""Maximum significant frequency of the trapezoidal pulse.
+
+        The high-frequency content of a trapezoid is set by its steepest
+        (shortest) linear edge: a ramp of duration :math:`t_e` has a
+        characteristic bandwidth :math:`f_{max} \approx 1 / t_e`. The
+        shortest of the rise and fall times therefore dominates. An
+        instantaneous edge (zero rise/fall time) has unbounded bandwidth.
+
+        Returns
+        -------
+        float
+            Highest significant frequency in Hz.
+
+        Examples
+        --------
+        >>> from pyresiflex.generator.generator_complex_impedance import (
+        ...     TrapezoidalGenerator,
+        ... )
+        >>> gen = TrapezoidalGenerator(t_rise=2e-9, t_fall=4e-9)
+        >>> round(gen.maximum_frequency() / 1e9, 3)
+        0.5
+        """
+        edges = [t for t in (self._t_rise, self._t_fall) if t > 0]
+        if not edges:
+            return float("inf")
+        return 1.0 / min(edges)
+
 
 class GaussianGenerator(ComplexImpedanceBaseGenerator):
     """Gaussian generator.
@@ -277,3 +305,34 @@ class GaussianGenerator(ComplexImpedanceBaseGenerator):
         """
         sigma = gaussian_sigma_from_fwhm(FWHM)
         return height * np.exp(-(((t - mean) / sigma) ** 2))
+
+    def maximum_frequency(self) -> float | None:
+        r"""Maximum significant frequency of the Gaussian pulse.
+
+        A Gaussian voltage :math:`\exp(-((t-\mu)/\sigma)^2)` has a Gaussian
+        spectrum :math:`\propto \exp(-(\pi \sigma f)^2)`. Defining the
+        maximum significant frequency as the point where the spectral
+        magnitude has fallen to a small fraction ``tol`` of its peak gives
+
+        .. math::
+
+            f_{max} = \frac{\sqrt{-\ln(\mathrm{tol})}}{\pi \sigma}.
+
+        Returns
+        -------
+        float
+            Highest significant frequency in Hz (using ``tol = 1e-3``,
+            i.e. a -60 dB spectral magnitude threshold).
+
+        Examples
+        --------
+        >>> from pyresiflex.generator.generator_complex_impedance import (
+        ...     GaussianGenerator,
+        ... )
+        >>> gen = GaussianGenerator(height=1.0, mean=0.0, FWHM=1e-9)
+        >>> round(float(gen.maximum_frequency()) / 1e9, 3)
+        1.393
+        """
+        sigma = gaussian_sigma_from_fwhm(self.FWHM)
+        tol = 1e-3
+        return np.sqrt(-np.log(tol)) / (np.pi * sigma)

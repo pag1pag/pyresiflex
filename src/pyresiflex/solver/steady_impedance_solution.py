@@ -139,6 +139,12 @@ class SteadyImpedanceSolution(BaseSolution):
             generator.generator_impedance
         )
         self.V_g: Callable[[float], float] = generator.generator_voltage
+        # Highest significant frequency of the generator voltage (Hz), used
+        # for the Shannon-Nyquist sampling check. ``None`` if the generator
+        # does not declare it.
+        self._generator_max_frequency: float | None = (
+            generator.maximum_frequency()
+        )
 
         self.V_g_hat: np.ndarray
         self.f: np.ndarray
@@ -229,29 +235,35 @@ class SteadyImpedanceSolution(BaseSolution):
         with `nb_points_ft` points. The frequency vector is computed using
         the FFT frequency function.
 
-        The Shannon-Nyquist criterion is checked to ensure that the time
-        step is small enough to capture the highest frequency component
-        of the generator voltage. If the time step is larger than 1 ns,
-        a warning is issued.
-
-        In NRP Discharge, the maximum frequency encountered is around
-        the inverse of the rise time of the generator voltage.
-        For a rise time of 2 ns, the maximum frequency is around 500 MHz.
-        According to the Shannon-Nyquist criterion, the sampling
-        frequency must be at least twice the maximum frequency, so at
-        least 1 GHz. This corresponds to a time step of 1 ns.
+        The Shannon-Nyquist criterion requires the sampling frequency
+        ``f_s = 1 / dt`` to be at least twice the highest significant
+        frequency ``f_max`` of the generator voltage, i.e.
+        ``dt <= 1 / (2 * f_max)``. Equivalently, ``f_max`` must stay below
+        the Nyquist frequency ``f_s / 2 = 1 / (2 * dt)``. The generator
+        reports ``f_max`` through its ``maximum_frequency()`` method; when
+        ``f_max`` exceeds the Nyquist frequency the voltage is under-sampled
+        and a warning is issued (risk of aliasing). The check is skipped if
+        the generator does not declare ``f_max`` (returns ``None``).
         """
         # Define the time vector for the Fourier transform.
         times = np.linspace(0, max_time_ft, nb_points_ft, endpoint=False)
 
         dt = times[1] - times[0]  # time step
 
-        # Shannon-Nyquist criterion.
-        if dt > 1e-9:
-            warn(
-                f"Warning: dt = {dt:.2e} s seems to be "
-                "too large for Fourier Transform of NRP Discharge."
-            )
+        # Shannon-Nyquist criterion: the Nyquist frequency 1 / (2 dt) must
+        # exceed the generator's maximum significant frequency.
+        f_max = self._generator_max_frequency
+        if f_max is not None:
+            f_nyquist = 1.0 / (2.0 * dt)
+            if f_max > f_nyquist:
+                warn(
+                    f"The time step dt = {dt:.2e} s under-samples the "
+                    "generator voltage: its maximum significant frequency "
+                    f"({f_max:.2e} Hz) exceeds the Nyquist frequency "
+                    f"1 / (2 dt) = {f_nyquist:.2e} Hz (Shannon-Nyquist; "
+                    "risk of aliasing). Increase nb_points_ft or reduce "
+                    "max_time_ft."
+                )
 
         # Generator voltage in time domain.
         generator_voltage = np.array([self.V_g(t) for t in times])
